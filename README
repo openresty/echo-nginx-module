@@ -1,0 +1,45 @@
+Description
+
+A simple echo-back module for inspecting the actual HTTP request issued by an HTTP client
+
+Installation
+
+Grab the nginx source code from http://nginx.net/ , for example,
+the version 0.7.62 and then build the source with this module:
+
+    $ wget 'http://sysoev.ru/nginx/nginx-0.7.62.tar.gz'
+    $ tar -xzvf nginx-0.7.62.tar.gz
+    $ cd nginx-0.7.62/
+    $ ./configure --prefix /opt/nginx \
+        --add-module=/path/to/echo-nginx-module
+
+Configuration
+
+This is a sample configuration snippet in your nginx.conf file:
+
+    http {
+        ...
+        server {
+            ...
+            location /echo {
+                echo;
+            }
+            ...
+        }
+        ...
+    }
+
+As you can see, the only directive provided by this module is
+"echo".
+
+After starting the nginx server, one can query it this way:
+
+    $ curl 'http://localhost'
+    GET /echo HTTP/1.1
+    User-Agent: curl/7.18.2 (i486-pc-linux-gnu) libcurl/7.18.2 OpenSSL/0.9.8g zlib/1.2.3.3 libidn/1.10
+    Host: localhost
+    Accept: */*
+
+Contact the author by agentzh at gmail dot com whenever you have
+any questions.
+
