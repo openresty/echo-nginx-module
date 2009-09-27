@@ -1,6 +1,6 @@
 Description
 
-A simple echo-back module for inspecting the actual HTTP request issued by an HTTP client
+A simple echo-back nginx module for inspecting the actual HTTP requests issued by an HTTP client
 
 Installation
 
