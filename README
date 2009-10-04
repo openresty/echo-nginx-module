@@ -1,3 +1,6 @@
+WARNING!!! This module is still under initial development
+and is not ready for use at all.
+
 Description
 
 An nginx module for bringing the power of sh's "echo" command to Nginx's config file.
