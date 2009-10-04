@@ -10,3 +10,4 @@ print.txt
 .rsync
 *.tar.gz
 dist
+build.sh

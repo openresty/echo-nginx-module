@@ -1,6 +1,6 @@
 Description
 
-A simple echo-back nginx module for inspecting the actual HTTP requests issued by an HTTP client
+An nginx module for bringing the power of sh's "echo" command to Nginx's config file.
 
 Installation
 
@@ -21,8 +21,11 @@ This is a sample configuration snippet in your nginx.conf file:
         ...
         server {
             ...
-            location /echo {
-                echo;
+            location /echoback {
+                echo_client_request_header;
+            }
+            location /hello {
+                echo 'hello, world';
             }
             ...
         }
@@ -34,11 +37,14 @@ As you can see, the only directive provided by this module is
 
 After starting the nginx server, one can query it this way:
 
-    $ curl 'http://localhost/echo'
+    $ curl 'http://localhost/echoback'
     GET /echo HTTP/1.1
     User-Agent: curl/7.18.2 (i486-pc-linux-gnu) libcurl/7.18.2 OpenSSL/0.9.8g zlib/1.2.3.3 libidn/1.10
     Host: localhost
     Accept: */*
+
+    $ curl 'http://localhost/hello'
+    hello, world
 
 Contact the author by agentzh at gmail dot com whenever you have
 any questions.

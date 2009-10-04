@@ -1,4 +1,4 @@
-#define DDEBUG 1
+#define DDEBUG 0
 
 #include <ngx_config.h>
 #include <ngx_core.h>
@@ -7,6 +7,8 @@
 
 #if (DDEBUG)
 #include <ddebug.h>
+#else
+#define DD
 #endif
 
 static char *ngx_http_echo(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
