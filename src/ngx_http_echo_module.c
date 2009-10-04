@@ -1,8 +1,8 @@
 #define DDEBUG 0
 
+#include "ngx_http_echo_module.h"
+
 #include <ngx_config.h>
-#include <ngx_core.h>
-#include <ngx_http.h>
 #include <ngx_log.h>
 
 #if (DDEBUG)
