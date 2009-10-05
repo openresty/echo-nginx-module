@@ -11,17 +11,15 @@
 #define DD
 #endif
 
-static char *ngx_http_echo(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
+static char *ngx_http_echo_echo(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
 static ngx_int_t ngx_http_echo_handler(ngx_http_request_t *r);
-
-static const char ngx_http_echo_content_type[] = "text/plain; charset=utf-8";
 
 static ngx_command_t  ngx_http_echo_commands[] = {
 
     { ngx_string("echo"),
-      NGX_HTTP_LOC_CONF|NGX_CONF_NOARGS,
-      ngx_http_echo,
-      0,
+      NGX_HTTP_LOC_CONF|NGX_HTTP_LMT_CONF|NGX_CONF_NOARGS,
+      ngx_http_echo_echo,
+      NGX_HTTP_LOC_CONF_OFFSET,
       0,
       NULL },
 
