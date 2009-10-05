@@ -11,7 +11,6 @@ typedef enum {
     echo_opcode_echo_before_body,
     echo_opcode_echo_client_request_header,
     echo_opcode_echo_client_request_body,
-    echo_opcode_echo_set_content_type
 } ngx_http_echo_opcode_t;
 
 /* all the various config directives (or commands) are
