@@ -493,31 +493,6 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
     return ngx_http_output_filter(r, cl);
 }
 
-/*
-static ngx_int_t
-ngx_http_echo_handler(ngx_http_request_t *r) {
-    ngx_buf_t     *b;
-    ngx_buf_t     *header_in;
-    ngx_chain_t   out;
-    ngx_int_t     rc;
-    size_t        size;
-    u_char        *c;
-
-    r->headers_out.content_type.len = sizeof(ngx_http_echo_content_type) - 1;
-    r->headers_out.content_type.data = (u_char *) ngx_http_echo_content_type;
-
-    r->headers_out.status = NGX_HTTP_OK;
-    r->headers_out.content_length_n = size;
-
-    rc = ngx_http_send_header(r);
-    if (r->header_only || rc >= NGX_HTTP_SPECIAL_RESPONSE) {
-        return rc;
-    }
-
-    return ngx_http_output_filter(r, &out);
-}
-*/
-
 static ngx_int_t
 ngx_http_echo_header_filter(ngx_http_request_t *r) {
     /* TODO */
