@@ -1,4 +1,4 @@
-#define DDEBUG 0
+#define DDEBUG 1
 
 #include "ddebug.h"
 #include "ngx_http_echo_module.h"
@@ -9,10 +9,16 @@
 static ngx_http_output_header_filter_pt ngx_http_next_header_filter = NULL;
 static ngx_http_output_body_filter_pt ngx_http_next_body_filter = NULL;
 
+static ngx_buf_t *ngx_http_echo_space_buf   = NULL;
+static ngx_buf_t *ngx_http_echo_newline_buf = NULL;
+
 /* (optional) filters initialization */
 static ngx_int_t ngx_http_echo_filter_init(ngx_conf_t *cf);
 static ngx_int_t ngx_http_echo_header_filter(ngx_http_request_t *r);
 static ngx_int_t ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in);
+
+/* module init headler */
+static ngx_int_t ngx_http_echo_init(ngx_conf_t *cf);
 
 /* config init handler */
 static void* ngx_http_echo_create_conf(ngx_conf_t *cf);
@@ -87,7 +93,7 @@ static ngx_command_t  ngx_http_echo_commands[] = {
 
 static ngx_http_module_t ngx_http_echo_module_ctx = {
     /* TODO we could add our own variables here... */
-    NULL,                          /* preconfiguration */
+    ngx_http_echo_init,                          /* preconfiguration */
     NULL,                          /* postconfiguration */
 
     NULL,                          /* create main configuration */
@@ -114,6 +120,44 @@ ngx_module_t ngx_http_echo_module = {
     NULL,                          /* exit master */
     NGX_MODULE_V1_PADDING
 };
+
+static ngx_int_t
+ngx_http_echo_init(ngx_conf_t *cf) {
+    static char space_str[]   = " ";
+    static char newline_str[] = "\n";
+
+    DD("global init...")
+
+    if (ngx_http_echo_space_buf == NULL) {
+        ngx_http_echo_space_buf = ngx_calloc_buf(cf->pool);
+        if (ngx_http_echo_space_buf == NULL) {
+            return NGX_ERROR;
+        }
+        ngx_http_echo_space_buf->memory = 1;
+        ngx_http_echo_space_buf->start =
+            ngx_http_echo_space_buf->pos =
+                space_str;
+        ngx_http_echo_space_buf->end =
+            ngx_http_echo_space_buf->last =
+                space_str + sizeof(space_str) - 1;
+    }
+
+    if (ngx_http_echo_newline_buf == NULL) {
+        ngx_http_echo_newline_buf = ngx_pcalloc(cf->pool, sizeof(ngx_buf_t));
+        if (ngx_http_echo_newline_buf == NULL) {
+            return NGX_ERROR;
+        }
+        ngx_http_echo_newline_buf->memory = 1;
+        ngx_http_echo_newline_buf->start =
+            ngx_http_echo_newline_buf->pos =
+                newline_str;
+        ngx_http_echo_newline_buf->end =
+            ngx_http_echo_newline_buf->last =
+                newline_str + sizeof(newline_str) - 1;
+    }
+
+    return NGX_OK;
+}
 
 static ngx_int_t
 ngx_http_echo_filter_init (ngx_conf_t *cf) {
@@ -251,8 +295,6 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
     ngx_str_t                   *computed_arg;
     ngx_str_t                   *computed_arg_elts;
     ngx_int_t                   i;
-    ngx_buf_t                   *space_buf = NULL;
-    ngx_str_t                   space_str = ngx_string(" ");
 
     elcf = ngx_http_get_module_loc_conf(r, ngx_http_echo_module);
     cmds = elcf->handler_cmds;
@@ -293,15 +335,6 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
         switch (cmd->opcode) {
             case echo_opcode_echo:
                 DD("found echo opcode");
-                if (space_buf == NULL) {
-                    space_buf = ngx_pcalloc(r->pool, sizeof(ngx_buf_t));
-                    if (space_buf == NULL) {
-                        return NGX_HTTP_INTERNAL_SERVER_ERROR;
-                    }
-                    space_buf->start = space_buf->pos = space_str.data;
-                    space_buf->end = space_buf->last =
-                        space_str.data + space_str.len;
-                }
                 temp_first_cl = temp_last_cl = NULL;
                 if (computed_args->nelts == 0) {
                     ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
@@ -335,11 +368,29 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
                         if (temp_last_cl->next == NULL) {
                             return NGX_HTTP_INTERNAL_SERVER_ERROR;
                         }
-                        temp_last_cl->next->buf = space_buf;
+                        temp_last_cl->next->buf = ngx_http_echo_space_buf;
                         temp_last_cl->next->next = temp_cl;
                         temp_last_cl = temp_cl;
                     }
+                } /* end for */
+
+                /* append the newline character */
+                /* TODO add support for -n option to suppress
+                 * the trailing newline */
+                if (temp_last_cl == NULL) {
+                    temp_last_cl = temp_first_cl = ngx_alloc_chain_link(r->pool);
+                    if (temp_last_cl == NULL) {
+                        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+                    }
+                } else {
+                    temp_last_cl->next = ngx_alloc_chain_link(r->pool);
                 }
+                if (temp_last_cl->next == NULL) {
+                    return NGX_HTTP_INTERNAL_SERVER_ERROR;
+                }
+                temp_last_cl->next->buf = ngx_http_echo_newline_buf;
+                temp_last_cl->next->next = NULL;
+                temp_last_cl = temp_last_cl->next;
 
                 if (cl == NULL) {
                     DD("found NULL cl, setting cl to temp_first_cl...");
