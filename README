@@ -5,11 +5,11 @@ An nginx module for bringing the power of sh's "echo" command to Nginx's config 
 Installation
 
 Grab the nginx source code from http://nginx.net/ , for example,
-the version 0.7.62 and then build the source with this module:
+the version 0.8.17 and then build the source with this module:
 
-    $ wget 'http://sysoev.ru/nginx/nginx-0.7.62.tar.gz'
-    $ tar -xzvf nginx-0.7.62.tar.gz
-    $ cd nginx-0.7.62/
+    $ wget 'http://sysoev.ru/nginx/nginx-0.8.17.tar.gz'
+    $ tar -xzvf nginx-0.8.17.tar.gz
+    $ cd nginx-0.8.17/
     $ ./configure --prefix /opt/nginx \
         --add-module=/path/to/echo-nginx-module
 
