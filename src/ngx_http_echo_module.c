@@ -295,6 +295,9 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
     ngx_str_t                   *computed_arg;
     ngx_str_t                   *computed_arg_elts;
     ngx_int_t                   i;
+    ngx_buf_t                   *header_in;
+    size_t                      size;
+    u_char                      *c;
 
     elcf = ngx_http_get_module_loc_conf(r, ngx_http_echo_module);
     cmds = elcf->handler_cmds;
@@ -334,6 +337,8 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
         /* do command dispatch based on the opcode */
         switch (cmd->opcode) {
             case echo_opcode_echo:
+                /* XXX moved the following code to a separate
+                 * function */
                 DD("found echo opcode");
                 temp_first_cl = temp_last_cl = NULL;
                 if (computed_args->nelts == 0) {
@@ -402,8 +407,52 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
                 }
                 break;
             case echo_opcode_echo_client_request_header:
-                /* TODO */
-                return NGX_HTTP_INTERNAL_SERVER_ERROR;
+                DD("echo_client_request_header triggered!");
+                /* XXX moved the following code to a separate
+                 * function */
+                temp_first_cl = ngx_alloc_chain_link(r->pool);
+                if (temp_first_cl == NULL) {
+                    return NGX_HTTP_INTERNAL_SERVER_ERROR;
+                }
+                temp_first_cl->next = NULL;
+
+                if (r != r->main) {
+                    header_in = r->main->header_in;
+                } else {
+                    header_in = r->header_in;
+                }
+                if (header_in == NULL) {
+                    DD("header_in is NULL");
+                    return NGX_HTTP_BAD_REQUEST;
+                }
+                size = header_in->pos - header_in->start;
+                //DD("!!! size: %lu", (unsigned long)size);
+
+                buf = ngx_create_temp_buf(r->pool, size);
+                buf->last = ngx_cpymem(buf->start, header_in->start, size);
+                buf->memory = 1;
+
+                /* fix \0 introduced by the nginx header parser */
+                for (c = (u_char*)buf->start; c != buf->last; c++) {
+                    if (*c == '\0') {
+                        if (c + 1 != buf->last && *(c + 1) == LF) {
+                            *c = CR;
+                        } else {
+                            *c = ':';
+                        }
+                    }
+                }
+                temp_first_cl->buf = buf;
+
+                if (cl == NULL) {
+                    DD("found NULL cl, setting cl to temp_first_cl...");
+                    cl = last_cl = temp_first_cl;
+                } else {
+                    last_cl->next = temp_first_cl;
+                    last_cl = last_cl->next;
+                }
+
+                break;
             default:
                 ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
                         "Unknown opcode: %d", cmd->opcode);
@@ -448,38 +497,6 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
 
     r->headers_out.content_type.len = sizeof(ngx_http_echo_content_type) - 1;
     r->headers_out.content_type.data = (u_char *) ngx_http_echo_content_type;
-
-    if (r != r->main) {
-        header_in = r->main->header_in;
-    } else {
-        header_in = r->header_in;
-    }
-    if (NULL == header_in) {
-        DD("header_in is NULL");
-        return NGX_HTTP_BAD_REQUEST;
-    }
-    size = header_in->pos - header_in->start;
-    //DD("!!! size: %lu", (unsigned long)size);
-
-    b = ngx_create_temp_buf(r->pool, size);
-    b->last = ngx_cpymem(b->start, header_in->start, size);
-    b->memory = 1;
-    b->last_buf = 1;
-*/
-    /* fix \0 introduced by the nginx header parser */
-/*
-    for (c = (u_char*)b->start; c != b->last; c++) {
-        if (*c == '\0') {
-            if (c + 1 != b->last && *(c + 1) == LF) {
-                *c = CR;
-            } else {
-                *c = ':';
-            }
-        }
-    }
-
-    out.buf = b;
-    out.next = NULL;
 
     r->headers_out.status = NGX_HTTP_OK;
     r->headers_out.content_length_n = size;

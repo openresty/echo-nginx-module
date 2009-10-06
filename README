@@ -1,5 +1,3 @@
-WARNING!!! This module is still under initial development and is not ready for use at all.
-
 Description
 
 An nginx module for bringing the power of sh's "echo" command to Nginx's config file.
@@ -23,11 +21,15 @@ This is a sample configuration snippet in your nginx.conf file:
         ...
         server {
             ...
+
+            default_type text/plain;
+
             location /echoback {
                 echo_client_request_header;
             }
             location /hello {
                 echo 'hello, world';
+                echo hello world;
             }
             ...
         }
@@ -47,6 +49,7 @@ After starting the nginx server, one can query it this way:
 
     $ curl 'http://localhost/hello'
     hello, world
+    hello world
 
 Contact the author by agentzh at gmail dot com whenever you have
 any questions.
