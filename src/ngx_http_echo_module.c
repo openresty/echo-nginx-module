@@ -296,6 +296,11 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
     ngx_str_t                   *computed_arg_elts;
     ngx_int_t                   i;
     ngx_buf_t                   *header_in;
+
+    /* nginx clears buf flags at the end of each request handling */
+    ngx_buf_t                   space_buf = *ngx_http_echo_space_buf;
+    ngx_buf_t                   newline_buf = *ngx_http_echo_newline_buf;
+
     size_t                      size;
     u_char                      *c;
 
@@ -333,6 +338,9 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
                 return rc;
             }
         }
+
+        //DD("space buf .memory: %d", ngx_http_echo_space_buf->memory);
+        //DD("space buf .pos: '%s'", ngx_http_echo_space_buf->pos);
 
         /* do command dispatch based on the opcode */
         switch (cmd->opcode) {
@@ -373,7 +381,7 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
                         if (temp_last_cl->next == NULL) {
                             return NGX_HTTP_INTERNAL_SERVER_ERROR;
                         }
-                        temp_last_cl->next->buf = ngx_http_echo_space_buf;
+                        temp_last_cl->next->buf = &space_buf;
                         temp_last_cl->next->next = temp_cl;
                         temp_last_cl = temp_cl;
                     }
@@ -393,7 +401,7 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
                 if (temp_last_cl->next == NULL) {
                     return NGX_HTTP_INTERNAL_SERVER_ERROR;
                 }
-                temp_last_cl->next->buf = ngx_http_echo_newline_buf;
+                temp_last_cl->next->buf = &newline_buf;
                 temp_last_cl->next->next = NULL;
                 temp_last_cl = temp_last_cl->next;
 
