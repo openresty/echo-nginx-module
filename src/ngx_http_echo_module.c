@@ -1,15 +1,10 @@
 #define DDEBUG 0
 
+#include "ddebug.h"
 #include "ngx_http_echo_module.h"
 
 #include <ngx_config.h>
 #include <ngx_log.h>
-
-#if (DDEBUG)
-#include "ddebug.h"
-#else
-#define DD
-#endif
 
 static ngx_http_output_header_filter_pt ngx_http_next_header_filter = NULL;
 static ngx_http_output_body_filter_pt ngx_http_next_body_filter = NULL;
@@ -167,12 +162,14 @@ ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
             return NGX_CONF_ERROR;
         }
         if (cat == echo_handler_cmd) {
+            DD("registering the content handler");
             /* register the content handler */
             clcf = ngx_http_conf_get_module_loc_conf(cf,
                     ngx_http_core_module);
             if (clcf == NULL) {
                 return NGX_CONF_ERROR;
             }
+            DD("registering the content handler (2)");
             clcf->handler = ngx_http_echo_handler;
         } else {
             /* the init function itself will ensure
@@ -198,14 +195,15 @@ ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
         if (arg == NULL) {
             return NGX_CONF_ERROR;
         }
-        arg->raw_value = &raw_args[i];
+        arg->raw_value = raw_args[i];
+        DD("found raw arg %s", raw_args[i].data);
         arg->lengths = NULL;
         arg->values  = NULL;
-        n = ngx_http_script_variables_count(arg->raw_value);
+        n = ngx_http_script_variables_count(&arg->raw_value);
         if (n > 0) {
             ngx_memzero(&sc, sizeof(ngx_http_script_compile_t));
             sc.cf = cf;
-            sc.source = arg->raw_value;
+            sc.source = &arg->raw_value;
             sc.lengths = &arg->lengths;
             sc.values = &arg->values;
             sc.variables = n;
@@ -221,6 +219,7 @@ ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
 
 static char*
 ngx_http_echo_echo(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+    DD("in echo_echo...");
     return ngx_http_echo_helper(echo_opcode_echo,
             echo_handler_cmd,
             cf, cmd, conf);
@@ -293,6 +292,7 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
         /* do command dispatch based on the opcode */
         switch (cmd->opcode) {
             case echo_opcode_echo:
+                DD("found echo opcode");
                 if (space_buf == NULL) {
                     space_buf = ngx_pcalloc(r->pool, sizeof(ngx_buf_t));
                     if (space_buf == NULL) {
@@ -303,7 +303,12 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
                         space_str.data + space_str.len;
                 }
                 temp_first_cl = temp_last_cl = NULL;
-                temp_last_cl = temp_first_cl;
+                if (computed_args->nelts == 0) {
+                    ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
+                            "Found 0 evaluated argument for "
+                            "the \"echo\" directive.");
+                    return NGX_HTTP_INTERNAL_SERVER_ERROR;
+                }
                 computed_arg_elts = computed_args->elts;
                 for (i = 0; i < computed_args->nelts; i++) {
                     computed_arg = &computed_arg_elts[i];
@@ -337,6 +342,7 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
                 }
 
                 if (cl == NULL) {
+                    DD("found NULL cl, setting cl to temp_first_cl...");
                     cl = temp_first_cl;
                     last_cl = temp_last_cl;
                 } else {
@@ -357,9 +363,21 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
     if (last_cl) {
         last_cl->buf->last_buf = 1;
     }
-    if (cl == NULL) {
-        return NGX_DECLINED;
+
+    r->headers_out.status = NGX_HTTP_OK;
+    if (ngx_http_set_content_type(r) != NGX_OK) {
+        return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
+
+    if (cl == NULL) {
+        DD("cl is NULL");
+        rc = ngx_http_send_header(r);
+        if (r->header_only || rc >= NGX_HTTP_SPECIAL_RESPONSE) {
+            return rc;
+        }
+        return ngx_http_send_special(r, NGX_HTTP_LAST);
+    }
+    DD("sending last...");
     rc = ngx_http_send_header(r);
     if (r->header_only || rc >= NGX_HTTP_SPECIAL_RESPONSE) {
         return rc;
@@ -445,14 +463,15 @@ static ngx_int_t ngx_http_echo_eval_cmd_args(ngx_http_request_t *r,
 
     arg_elts = args->elts;
     for (i = 0; i < args->nelts; i++) {
+        computed_arg = ngx_array_push(computed_args);
+        if (computed_arg == NULL) {
+            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        }
         arg = &arg_elts[i];
         if (arg->lengths == NULL) { /* does not contain vars */
-            computed_arg = arg->raw_value;
+            DD("Using raw value \"%s\"", arg->raw_value.data);
+            *computed_arg = arg->raw_value;
         } else {
-            computed_arg = ngx_palloc(r->pool, sizeof(ngx_str_t));
-            if (computed_arg == NULL) {
-                return NGX_HTTP_INTERNAL_SERVER_ERROR;
-            }
             if (ngx_http_script_run(r, computed_arg, arg->lengths->elts,
                         0, arg->values->elts) == NULL) {
                 return NGX_HTTP_INTERNAL_SERVER_ERROR;

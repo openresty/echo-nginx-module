@@ -26,7 +26,7 @@ typedef enum {
 /* compiled form of a config directive argument's value */
 typedef struct {
     /* holds the raw string of the argument value */
-    ngx_str_t       *raw_value;
+    ngx_str_t       raw_value;
 
     /* fields "lengths" and "values" are set by
      * the function ngx_http_script_compile,

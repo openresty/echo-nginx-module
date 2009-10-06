@@ -11,3 +11,6 @@ print.txt
 *.tar.gz
 dist
 build.sh
+tags
+test.sh
+
