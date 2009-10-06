@@ -126,7 +126,7 @@ ngx_http_echo_init(ngx_conf_t *cf) {
     static char space_str[]   = " ";
     static char newline_str[] = "\n";
 
-    DD("global init...")
+    DD("global init...");
 
     if (ngx_http_echo_space_buf == NULL) {
         ngx_http_echo_space_buf = ngx_calloc_buf(cf->pool);
