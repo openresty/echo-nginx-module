@@ -25,6 +25,7 @@ This is a sample configuration snippet in your nginx.conf file:
             default_type text/plain;
 
             location /echoback {
+                echo "------------------------";
                 echo_client_request_header;
             }
             location /hello {
@@ -42,6 +43,7 @@ As you can see, the only directive provided by this module is
 After starting the nginx server, one can query it this way:
 
     $ curl 'http://localhost/echoback'
+    ------------------------
     GET /echoback HTTP/1.1
     User-Agent: curl/7.18.2 (i486-pc-linux-gnu) libcurl/7.18.2 OpenSSL/0.9.8g zlib/1.2.3.3 libidn/1.10
     Host: localhost
