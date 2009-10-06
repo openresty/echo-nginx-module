@@ -24,13 +24,21 @@ This is a sample configuration snippet in your nginx.conf file:
 
             default_type text/plain;
 
+            location /hello {
+                echo 'hello, world';
+                echo hello world;
+            }
+
             location /echoback {
                 echo "------------------------";
                 echo_client_request_header;
             }
-            location /hello {
-                echo 'hello, world';
-                echo hello world;
+
+            location /server {
+                echo "Server name: $server_name";
+                echo "Server address: $server_addr";
+                echo "Server port: $server_port";
+                echo "Server protocol: $server_protocol";
             }
             ...
         }
@@ -40,7 +48,11 @@ This is a sample configuration snippet in your nginx.conf file:
 As you can see, the only directive provided by this module is
 "echo".
 
-After starting the nginx server, one can query it this way:
+After starting the nginx server, one can query it these ways:
+
+    $ curl 'http://localhost/hello'
+    hello, world
+    hello world
 
     $ curl 'http://localhost/echoback'
     ------------------------
@@ -49,9 +61,11 @@ After starting the nginx server, one can query it this way:
     Host: localhost
     Accept: */*
 
-    $ curl 'http://localhost/hello'
-    hello, world
-    hello world
+    $ curl 'http://localhost/server'
+    Server name: localhost
+    Server address: 127.0.0.1
+    Server port: 80
+    Server protocol: HTTP/1.1
 
 Contact the author by agentzh at gmail dot com whenever you have
 any questions.
