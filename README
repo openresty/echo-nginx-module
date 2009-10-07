@@ -31,7 +31,7 @@ This is a sample configuration snippet in your nginx.conf file:
 
             location /echoback {
                 echo "------------------------";
-                echo_client_request_header;
+                echo_client_request_headers;
             }
 
             location /server {

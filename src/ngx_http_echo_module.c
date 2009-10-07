@@ -1,4 +1,4 @@
-#define DDEBUG 0
+#define DDEBUG 1
 
 #include "ddebug.h"
 #include "ngx_http_echo_module.h"
@@ -9,8 +9,8 @@
 static ngx_http_output_header_filter_pt ngx_http_next_header_filter = NULL;
 static ngx_http_output_body_filter_pt ngx_http_next_body_filter = NULL;
 
-static ngx_buf_t *ngx_http_echo_space_buf   = NULL;
-static ngx_buf_t *ngx_http_echo_newline_buf = NULL;
+static ngx_buf_t ngx_http_echo_space_buf;
+static ngx_buf_t ngx_http_echo_newline_buf;
 
 /* (optional) filters initialization */
 static ngx_int_t ngx_http_echo_filter_init(ngx_conf_t *cf);
@@ -25,7 +25,9 @@ static void* ngx_http_echo_create_conf(ngx_conf_t *cf);
 
 /* config directive handlers */
 static char* ngx_http_echo_echo(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
-static char* ngx_http_echo_echo_client_request_header(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
+static char* ngx_http_echo_echo_sleep(ngx_conf_t *cf, ngx_command_t *cmd,
+        void *conf);
+static char* ngx_http_echo_echo_client_request_headers(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
 static char*
 ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
         ngx_http_echo_cmd_category_t cat,
@@ -37,6 +39,9 @@ static ngx_int_t ngx_http_echo_handler(ngx_http_request_t *r);
 static ngx_int_t ngx_http_echo_eval_cmd_args(ngx_http_request_t *r,
         ngx_http_echo_cmd_t *cmd, ngx_array_t *computed_args);
 
+/* write event handler for echo_sleep */
+static void ngx_http_echo_req_delay(ngx_http_request_t *r);
+
 static ngx_command_t  ngx_http_echo_commands[] = {
 
     { ngx_string("echo"),
@@ -45,21 +50,21 @@ static ngx_command_t  ngx_http_echo_commands[] = {
       NGX_HTTP_LOC_CONF_OFFSET,
       offsetof(ngx_http_echo_loc_conf_t, handler_cmds),
       NULL },
-    /* TODO echo_client_request_header should take an
+    /* TODO echo_client_request_headers should take an
      * optional argument to change output format to
      * "html" or other things */
-    { ngx_string("echo_client_request_header"),
+    { ngx_string("echo_client_request_headers"),
       NGX_HTTP_LOC_CONF|NGX_CONF_NOARGS,
-      ngx_http_echo_echo_client_request_header,
+      ngx_http_echo_echo_client_request_headers,
       NGX_HTTP_LOC_CONF_OFFSET,
       offsetof(ngx_http_echo_loc_conf_t, handler_cmds),
       NULL },
     /* TODO
     { ngx_string("echo_sleep"),
       NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1,
-      ngx_http_echo_set_content_type,
+      ngx_http_echo_echo_sleep,
       NGX_HTTP_LOC_CONF_OFFSET,
-      0,
+      offsetof(ngx_http_echo_loc_conf_t, handler_cmds),
       NULL },
     { ngx_string("echo_client_request_body"),
       NGX_HTTP_LOC_CONF|NGX_CONF_NOARGS,
@@ -128,33 +133,23 @@ ngx_http_echo_init(ngx_conf_t *cf) {
 
     DD("global init...");
 
-    if (ngx_http_echo_space_buf == NULL) {
-        ngx_http_echo_space_buf = ngx_calloc_buf(cf->pool);
-        if (ngx_http_echo_space_buf == NULL) {
-            return NGX_ERROR;
-        }
-        ngx_http_echo_space_buf->memory = 1;
-        ngx_http_echo_space_buf->start =
-            ngx_http_echo_space_buf->pos =
-                space_str;
-        ngx_http_echo_space_buf->end =
-            ngx_http_echo_space_buf->last =
-                space_str + sizeof(space_str) - 1;
-    }
+    ngx_memzero(&ngx_http_echo_space_buf, sizeof(ngx_buf_t));
+    ngx_http_echo_space_buf.memory = 1;
+    ngx_http_echo_space_buf.start =
+        ngx_http_echo_space_buf.pos =
+            space_str;
+    ngx_http_echo_space_buf.end =
+        ngx_http_echo_space_buf.last =
+            space_str + sizeof(space_str) - 1;
 
-    if (ngx_http_echo_newline_buf == NULL) {
-        ngx_http_echo_newline_buf = ngx_pcalloc(cf->pool, sizeof(ngx_buf_t));
-        if (ngx_http_echo_newline_buf == NULL) {
-            return NGX_ERROR;
-        }
-        ngx_http_echo_newline_buf->memory = 1;
-        ngx_http_echo_newline_buf->start =
-            ngx_http_echo_newline_buf->pos =
-                newline_str;
-        ngx_http_echo_newline_buf->end =
-            ngx_http_echo_newline_buf->last =
-                newline_str + sizeof(newline_str) - 1;
-    }
+    ngx_memzero(&ngx_http_echo_newline_buf, sizeof(ngx_buf_t));
+    ngx_http_echo_newline_buf.memory = 1;
+    ngx_http_echo_newline_buf.start =
+        ngx_http_echo_newline_buf.pos =
+            newline_str;
+    ngx_http_echo_newline_buf.end =
+        ngx_http_echo_newline_buf.last =
+            newline_str + sizeof(newline_str) - 1;
 
     return NGX_OK;
 }
@@ -270,10 +265,18 @@ ngx_http_echo_echo(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
 }
 
 static char*
-ngx_http_echo_echo_client_request_header(ngx_conf_t *cf,
+ngx_http_echo_echo_sleep(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+    DD("in echo_sleep...");
+    return ngx_http_echo_helper(echo_opcode_echo_sleep,
+            echo_handler_cmd,
+            cf, cmd, conf);
+}
+
+static char*
+ngx_http_echo_echo_client_request_headers(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf) {
     return ngx_http_echo_helper(
-            echo_opcode_echo_client_request_header,
+            echo_opcode_echo_client_request_headers,
             echo_handler_cmd,
             cf, cmd, conf);
 }
@@ -296,10 +299,11 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
     ngx_str_t                   *computed_arg_elts;
     ngx_int_t                   i;
     ngx_buf_t                   *header_in;
+    ngx_int_t                   delay;
 
     /* nginx clears buf flags at the end of each request handling */
-    ngx_buf_t                   space_buf = *ngx_http_echo_space_buf;
-    ngx_buf_t                   newline_buf = *ngx_http_echo_newline_buf;
+    ngx_buf_t                   *space_buf;
+    ngx_buf_t                   *newline_buf;
 
     size_t                      size;
     u_char                      *c;
@@ -317,6 +321,17 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
             return NGX_HTTP_INTERNAL_SERVER_ERROR;
         }
         ngx_http_set_ctx(r, ctx, ngx_http_echo_module);
+    }
+
+    if (ctx->next_handler_cmd == 0) {
+        r->headers_out.status = NGX_HTTP_OK;
+        if (ngx_http_set_content_type(r) != NGX_OK) {
+            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        }
+        rc = ngx_http_send_header(r);
+        if (r->header_only || rc >= NGX_HTTP_SPECIAL_RESPONSE) {
+            return rc;
+        }
     }
 
     cmd_elts = cmds->elts;
@@ -381,7 +396,12 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
                         if (temp_last_cl->next == NULL) {
                             return NGX_HTTP_INTERNAL_SERVER_ERROR;
                         }
-                        temp_last_cl->next->buf = &space_buf;
+                        space_buf = ngx_calloc_buf(r->pool);
+                        if (space_buf == NULL) {
+                            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+                        }
+                        *space_buf = ngx_http_echo_space_buf;
+                        temp_last_cl->next->buf = space_buf;
                         temp_last_cl->next->next = temp_cl;
                         temp_last_cl = temp_cl;
                     }
@@ -401,7 +421,12 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
                 if (temp_last_cl->next == NULL) {
                     return NGX_HTTP_INTERNAL_SERVER_ERROR;
                 }
-                temp_last_cl->next->buf = &newline_buf;
+                newline_buf = ngx_calloc_buf(r->pool);
+                if (newline_buf == NULL) {
+                    return NGX_HTTP_INTERNAL_SERVER_ERROR;
+                }
+                *newline_buf = ngx_http_echo_newline_buf;
+                temp_last_cl->next->buf = newline_buf;
                 temp_last_cl->next->next = NULL;
                 temp_last_cl = temp_last_cl->next;
 
@@ -414,8 +439,29 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
                     last_cl = temp_last_cl;
                 }
                 break;
-            case echo_opcode_echo_client_request_header:
-                DD("echo_client_request_header triggered!");
+            case echo_opcode_echo_sleep:
+                computed_arg_elts = computed_args->elts;
+                computed_arg = &computed_arg_elts[0];
+                delay = ngx_atoi(computed_arg->data, computed_arg->len);
+                if (delay <= 0) {
+                    ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
+                               "invalid sleep duration \"%V\"", &computed_arg_elts[0]);
+                    return NGX_HTTP_INTERNAL_SERVER_ERROR;
+                }
+
+                DD("DELAY = %d sec", delay);
+                if (ngx_handle_read_event(r->connection->read, 0) != NGX_OK) {
+                    return NGX_HTTP_INTERNAL_SERVER_ERROR;
+                }
+
+                r->read_event_handler = ngx_http_block_reading;
+                r->write_event_handler = ngx_http_echo_req_delay;
+                ngx_add_timer(r->connection->write, (ngx_msec_t) delay * 1000);
+
+                return NGX_AGAIN;
+                break;
+            case echo_opcode_echo_client_request_headers:
+                DD("echo_client_request_headers triggered!");
                 /* XXX moved the following code to a separate
                  * function */
                 temp_first_cl = ngx_alloc_chain_link(r->pool);
@@ -472,24 +518,11 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
         last_cl->buf->last_buf = 1;
     }
 
-    r->headers_out.status = NGX_HTTP_OK;
-    if (ngx_http_set_content_type(r) != NGX_OK) {
-        return NGX_HTTP_INTERNAL_SERVER_ERROR;
-    }
-
     if (cl == NULL) {
         DD("cl is NULL");
-        rc = ngx_http_send_header(r);
-        if (r->header_only || rc >= NGX_HTTP_SPECIAL_RESPONSE) {
-            return rc;
-        }
         return ngx_http_send_special(r, NGX_HTTP_LAST);
     }
     DD("sending last...");
-    rc = ngx_http_send_header(r);
-    if (r->header_only || rc >= NGX_HTTP_SPECIAL_RESPONSE) {
-        return rc;
-    }
     return ngx_http_output_filter(r, cl);
 }
 
@@ -530,5 +563,31 @@ static ngx_int_t ngx_http_echo_eval_cmd_args(ngx_http_request_t *r,
         }
     }
     return NGX_OK;
+}
+
+static void
+ngx_http_echo_req_delay(ngx_http_request_t *r) {
+    ngx_event_t  *wev;
+    DD("!! req delaying");
+    wev = r->connection->write;
+
+    if (!wev->timedout) {
+        if (ngx_handle_write_event(wev, 0) != NGX_OK) {
+            ngx_http_finalize_request(r, NGX_HTTP_INTERNAL_SERVER_ERROR);
+        }
+        return;
+    }
+
+    wev->timedout = 0;
+
+    if (ngx_handle_read_event(r->connection->read, 0) != NGX_OK) {
+        ngx_http_finalize_request(r, NGX_HTTP_INTERNAL_SERVER_ERROR);
+        return;
+    }
+
+    r->read_event_handler = ngx_http_block_reading;
+    r->write_event_handler = ngx_http_core_run_phases;
+
+    ngx_http_core_run_phases(r);
 }
 

@@ -7,9 +7,10 @@
 /* config directive's opcode */
 typedef enum {
     echo_opcode_echo,
+    echo_opcode_echo_sleep,
     echo_opcode_echo_before_body,
     echo_opcode_echo_after_body,
-    echo_opcode_echo_client_request_header,
+    echo_opcode_echo_client_request_headers,
     echo_opcode_echo_client_request_body,
 } ngx_http_echo_opcode_t;
 
