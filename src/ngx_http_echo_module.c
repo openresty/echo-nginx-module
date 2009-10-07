@@ -1,8 +1,9 @@
-#define DDEBUG 1
+#define DDEBUG 0
 
 #include "ddebug.h"
 #include "ngx_http_echo_module.h"
 
+#include <nginx.h>
 #include <ngx_config.h>
 #include <ngx_log.h>
 
@@ -59,13 +60,13 @@ static ngx_command_t  ngx_http_echo_commands[] = {
       NGX_HTTP_LOC_CONF_OFFSET,
       offsetof(ngx_http_echo_loc_conf_t, handler_cmds),
       NULL },
-    /* TODO
     { ngx_string("echo_sleep"),
       NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1,
       ngx_http_echo_echo_sleep,
       NGX_HTTP_LOC_CONF_OFFSET,
       offsetof(ngx_http_echo_loc_conf_t, handler_cmds),
       NULL },
+    /* TODO
     { ngx_string("echo_client_request_body"),
       NGX_HTTP_LOC_CONF|NGX_CONF_NOARGS,
       ngx_http_echo_echo_client_request_body,
@@ -323,17 +324,6 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
         ngx_http_set_ctx(r, ctx, ngx_http_echo_module);
     }
 
-    if (ctx->next_handler_cmd == 0) {
-        r->headers_out.status = NGX_HTTP_OK;
-        if (ngx_http_set_content_type(r) != NGX_OK) {
-            return NGX_HTTP_INTERNAL_SERVER_ERROR;
-        }
-        rc = ngx_http_send_header(r);
-        if (r->header_only || rc >= NGX_HTTP_SPECIAL_RESPONSE) {
-            return rc;
-        }
-    }
-
     cmd_elts = cmds->elts;
     for (; ctx->next_handler_cmd < cmds->nelts; ctx->next_handler_cmd++) {
         cmd = &cmd_elts[ctx->next_handler_cmd];
@@ -454,11 +444,25 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
                     return NGX_HTTP_INTERNAL_SERVER_ERROR;
                 }
 
-                r->read_event_handler = ngx_http_block_reading;
+                DD("read event handler == block_reading? %d", r->read_event_handler == ngx_http_block_reading);
+                DD("read event handler == test_reading? %d", r->read_event_handler == ngx_http_test_reading);
+                DD("read event handler == test_reading? %d", r->read_event_handler == ngx_http_test_reading);
+                DD("write event handler == request_empty_handler ? %d", r->write_event_handler == ngx_http_request_empty_handler);
+                /* r->read_event_handler = ngx_http_test_reading; */
                 r->write_event_handler = ngx_http_echo_req_delay;
-                ngx_add_timer(r->connection->write, (ngx_msec_t) delay * 1000);
+                DD("write->timedout: %d", r->connection->write->timedout);
+                DD("write->delayed: %d", r->connection->write->delayed);
 
-                return NGX_AGAIN;
+#if defined(nginx_version) && nginx_version >= 8011
+                r->main->count++;
+#endif
+
+                DD("request main count : %d", r->main->count);
+                ngx_add_timer(r->connection->write, (ngx_msec_t) 1000 * delay);
+                ctx->cl      = cl;
+                ctx->last_cl = last_cl;
+
+                return NGX_DONE;
                 break;
             case echo_opcode_echo_client_request_headers:
                 DD("echo_client_request_headers triggered!");
@@ -518,10 +522,20 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
         last_cl->buf->last_buf = 1;
     }
 
+    r->headers_out.status = NGX_HTTP_OK;
+    if (ngx_http_set_content_type(r) != NGX_OK) {
+        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+    }
+    rc = ngx_http_send_header(r);
+    if (r->header_only || rc >= NGX_HTTP_SPECIAL_RESPONSE) {
+        return rc;
+    }
+
     if (cl == NULL) {
         DD("cl is NULL");
         return ngx_http_send_special(r, NGX_HTTP_LAST);
     }
+
     DD("sending last...");
     return ngx_http_output_filter(r, cl);
 }
@@ -567,9 +581,18 @@ static ngx_int_t ngx_http_echo_eval_cmd_args(ngx_http_request_t *r,
 
 static void
 ngx_http_echo_req_delay(ngx_http_request_t *r) {
-    ngx_event_t  *wev;
-    DD("!! req delaying");
+    ngx_event_t                 *wev;
+    ngx_http_echo_ctx_t         *ctx;
+    ngx_int_t                   rc;
+    ngx_chain_t                 *cl, *last_cl;
+
+    DD("!!! req delaying");
+    fprintf(stderr, "!!!!!!!!!!!!!!!!!!!!! HAHA");
     wev = r->connection->write;
+
+#if defined(nginx_version) && nginx_version >= 8011
+    r->main->count--;
+#endif
 
     if (!wev->timedout) {
         if (ngx_handle_write_event(wev, 0) != NGX_OK) {
@@ -585,9 +608,50 @@ ngx_http_echo_req_delay(ngx_http_request_t *r) {
         return;
     }
 
-    r->read_event_handler = ngx_http_block_reading;
-    r->write_event_handler = ngx_http_core_run_phases;
+    ctx = ngx_http_get_module_ctx(r, ngx_http_echo_module);
+    if (ctx == NULL) {
+        return ngx_http_finalize_request(r, NGX_HTTP_INTERNAL_SERVER_ERROR);
+    }
 
-    ngx_http_core_run_phases(r);
+    r->read_event_handler = ngx_http_block_reading;
+    r->write_event_handler = ngx_http_request_empty_handler;
+
+    r->headers_out.status = NGX_HTTP_OK;
+    if (ngx_http_set_content_type(r) != NGX_OK) {
+        ngx_http_finalize_request(r, NGX_HTTP_INTERNAL_SERVER_ERROR);
+        return;
+    }
+    rc = ngx_http_send_header(r);
+    if (r->header_only || rc >= NGX_HTTP_SPECIAL_RESPONSE) {
+        ngx_http_finalize_request(r, rc);
+        return;
+    }
+
+    DD("timer handler: sending last...");
+    cl = ctx->cl;
+    last_cl = ctx->last_cl;
+
+    if (cl == NULL) {
+        DD("timer handler: cl is NULL");
+        ngx_http_send_special(r, NGX_HTTP_LAST);
+        ngx_http_finalize_request(r, NGX_DONE);
+        return;
+    }
+
+    if (last_cl) {
+        last_cl->buf->last_buf = 1;
+    }
+
+    rc = ngx_http_output_filter(r, cl);
+    if (rc >= NGX_HTTP_SPECIAL_RESPONSE) {
+        DD("timer handler: output filter error: %d", rc);
+        ngx_http_finalize_request(r, rc);
+        return;
+    }
+    DD("timer handler: finally done...");
+    ngx_http_finalize_request(r, NGX_DONE);
+
+    /* ngx_http_core_run_phases(r); */
+    return;
 }
 
