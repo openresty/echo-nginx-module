@@ -45,8 +45,8 @@ This is a sample configuration snippet in your nginx.conf file:
         ...
     }
 
-As you can see, the only directive provided by this module is
-"echo".
+As you can see, the directives currently provided by this module are
+"echo" and "echo_client_request_headers".
 
 After starting the nginx server, one can query it these ways:
 
