@@ -129,8 +129,8 @@ ngx_module_t ngx_http_echo_module = {
 
 static ngx_int_t
 ngx_http_echo_init(ngx_conf_t *cf) {
-    static char space_str[]   = " ";
-    static char newline_str[] = "\n";
+    static u_char space_str[]   = " ";
+    static u_char newline_str[] = "\n";
 
     DD("global init...");
 
@@ -165,6 +165,7 @@ ngx_http_echo_filter_init (ngx_conf_t *cf) {
         ngx_http_next_body_filter = ngx_http_top_body_filter;
         ngx_http_top_body_filter  = ngx_http_echo_body_filter;
     }
+    return NGX_OK;
 }
 
 static void*
@@ -182,14 +183,14 @@ ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
         ngx_http_echo_cmd_category_t cat,
         ngx_conf_t *cf, ngx_command_t *cmd, void* conf) {
     ngx_http_core_loc_conf_t        *clcf;
-    ngx_http_echo_loc_conf_t        *ulcf = conf;
+    /* ngx_http_echo_loc_conf_t        *ulcf = conf; */
     ngx_array_t                     **args_ptr;
     ngx_http_script_compile_t       sc;
     ngx_str_t                       *raw_args;
     ngx_http_echo_arg_template_t    *arg;
     ngx_array_t                     **cmds_ptr;
     ngx_http_echo_cmd_t             *echo_cmd;
-    ngx_int_t                       i, n;
+    ngx_uint_t                       i, n;
 
     /* cmds_ptr points to ngx_http_echo_loc_conf_t's
      * handler_cmds, before_body_cmds, or after_body_cmds
@@ -287,7 +288,8 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
     ngx_http_echo_loc_conf_t    *elcf;
     ngx_http_echo_ctx_t         *ctx;
     ngx_int_t                   rc;
-    ngx_array_t                 *cmds, *computed_args;
+    ngx_array_t                 *cmds;
+    ngx_array_t                 *computed_args = NULL;
     ngx_chain_t                 *cl = NULL;
     ngx_chain_t                 *last_cl = NULL;
     ngx_chain_t                 *temp_cl;
@@ -298,7 +300,7 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
     ngx_http_echo_cmd_t         *cmd_elts;
     ngx_str_t                   *computed_arg;
     ngx_str_t                   *computed_arg_elts;
-    ngx_int_t                   i;
+    ngx_uint_t                   i;
     ngx_buf_t                   *header_in;
     ngx_int_t                   delay;
 
@@ -353,6 +355,9 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
                 /* XXX moved the following code to a separate
                  * function */
                 DD("found echo opcode");
+                if (computed_args == NULL) {
+                    return NGX_HTTP_INTERNAL_SERVER_ERROR;
+                }
                 temp_first_cl = temp_last_cl = NULL;
                 if (computed_args->nelts == 0) {
                     ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
@@ -455,9 +460,9 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
 
 #if defined(nginx_version) && nginx_version >= 8011
                 r->main->count++;
+                DD("request main count : %d", r->main->count);
 #endif
 
-                DD("request main count : %d", r->main->count);
                 ngx_add_timer(r->connection->write, (ngx_msec_t) 1000 * delay);
                 ctx->cl      = cl;
                 ctx->last_cl = last_cl;
@@ -554,7 +559,7 @@ ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in) {
 
 static ngx_int_t ngx_http_echo_eval_cmd_args(ngx_http_request_t *r,
         ngx_http_echo_cmd_t *cmd, ngx_array_t *computed_args) {
-    ngx_int_t                       i;
+    ngx_uint_t                       i;
     ngx_array_t                     *args = cmd->args;
     ngx_str_t                       *computed_arg;
     ngx_http_echo_arg_template_t    *arg, *arg_elts;

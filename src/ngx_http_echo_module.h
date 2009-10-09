@@ -59,15 +59,15 @@ typedef struct {
 typedef struct {
     /* index of the next handler command in
      * ngx_http_echo_loc_conf_t's "handler_cmds" array. */
-    ngx_int_t       next_handler_cmd;
+    ngx_uint_t       next_handler_cmd;
 
     /* index of the next before-body filter command in
      * ngx_http_echo_loc_conf_t's "before_body_cmds" array. */
-    ngx_int_t       next_before_filter_cmd;
+    ngx_uint_t       next_before_filter_cmd;
 
     /* index of the next after-body filter command in
      * ngx_http_echo_loc_conf_t's "after_body_cmds" array. */
-    ngx_int_t       next_after_filter_cmd;
+    ngx_uint_t       next_after_filter_cmd;
 
     ngx_chain_t*    cl;
     ngx_chain_t*    last_cl;
