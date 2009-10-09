@@ -10,7 +10,7 @@ the version 0.8.17 and then build the source with this module:
     $ wget 'http://sysoev.ru/nginx/nginx-0.8.17.tar.gz'
     $ tar -xzvf nginx-0.8.17.tar.gz
     $ cd nginx-0.8.17/
-    $ ./configure --prefix /opt/nginx \
+    $ ./configure --prefix=/opt/nginx \
         --add-module=/path/to/echo-nginx-module
 
 Configuration
