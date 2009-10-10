@@ -27,6 +27,7 @@ This is a sample configuration snippet in your nginx.conf file:
 
             location /hello {
                 echo 'hello, world';
+                echo;
                 echo hello world;
             }
 
@@ -53,6 +54,7 @@ After starting the nginx server, one can query it these ways:
 
     $ curl 'http://localhost/hello'
     hello, world
+
     hello world
 
     $ curl 'http://localhost/echoback'
