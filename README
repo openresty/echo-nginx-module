@@ -76,7 +76,7 @@ declarative too. Thanks to the Test::Base module in the Perl world.
 To run it on your side:
 
     $ cd test
-    $ PATH=/path/to/your/nginx-with-echo-module prove -Ilib -r t
+    $ PATH=/path/to/your/nginx-with-echo-module:$PATH prove -r t
 
 Contact me
 
