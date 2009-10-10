@@ -33,7 +33,7 @@ say hello world
 
 
 
-=== TEST 3: multiple instance
+=== TEST 3: multiple directive instances
 --- config
     location /echo {
         echo say that;
