@@ -1,3 +1,5 @@
+# vi:filetype=perl
+
 use lib 'lib';
 use Test::Nginx::Echo;
 
