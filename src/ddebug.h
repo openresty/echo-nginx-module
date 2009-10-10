@@ -1,6 +1,8 @@
 #ifndef DDEBUG_H
 #define DDEBUG_H
 
+#include <ngx_core.h>
+
 #if (DDEBUG)
 
 #   if (NGX_HAVE_VARIADIC_MACROS)
@@ -14,10 +16,9 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-static void DD(const char *fmt, va_list args) {
-    fprintf(stderr, "*** ");
-    fprintf(stderr, fmt, args);
-    fprintf(stderr, ".\n");
+#include <stdarg.h>
+
+static void DD(const char* fmt, ...) {
 }
 
 #    endif

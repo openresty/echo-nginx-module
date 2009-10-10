@@ -46,7 +46,7 @@ static void ngx_http_echo_req_delay(ngx_http_request_t *r);
 static ngx_command_t  ngx_http_echo_commands[] = {
 
     { ngx_string("echo"),
-      NGX_HTTP_LOC_CONF|NGX_CONF_1MORE,
+      NGX_HTTP_LOC_CONF|NGX_CONF_ANY,
       ngx_http_echo_echo,
       NGX_HTTP_LOC_CONF_OFFSET,
       offsetof(ngx_http_echo_loc_conf_t, handler_cmds),
@@ -359,12 +359,7 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
                     return NGX_HTTP_INTERNAL_SERVER_ERROR;
                 }
                 temp_first_cl = temp_last_cl = NULL;
-                if (computed_args->nelts == 0) {
-                    ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
-                            "Found 0 evaluated argument for "
-                            "the \"echo\" directive.");
-                    return NGX_HTTP_INTERNAL_SERVER_ERROR;
-                }
+
                 computed_arg_elts = computed_args->elts;
                 for (i = 0; i < computed_args->nelts; i++) {
                     computed_arg = &computed_arg_elts[i];
@@ -406,14 +401,16 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
                 /* TODO add support for -n option to suppress
                  * the trailing newline */
                 if (temp_last_cl == NULL) {
+                    DD("temp_last_cl is NULL");
                     temp_last_cl = temp_first_cl = ngx_alloc_chain_link(r->pool);
                     if (temp_last_cl == NULL) {
                         return NGX_HTTP_INTERNAL_SERVER_ERROR;
                     }
                 } else {
                     temp_last_cl->next = ngx_alloc_chain_link(r->pool);
+                    temp_last_cl = temp_last_cl->next;
                 }
-                if (temp_last_cl->next == NULL) {
+                if (temp_last_cl == NULL) {
                     return NGX_HTTP_INTERNAL_SERVER_ERROR;
                 }
                 newline_buf = ngx_calloc_buf(r->pool);
@@ -421,9 +418,8 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
                     return NGX_HTTP_INTERNAL_SERVER_ERROR;
                 }
                 *newline_buf = ngx_http_echo_newline_buf;
-                temp_last_cl->next->buf = newline_buf;
-                temp_last_cl->next->next = NULL;
-                temp_last_cl = temp_last_cl->next;
+                temp_last_cl->buf = newline_buf;
+                temp_last_cl->next = NULL;
 
                 if (cl == NULL) {
                     DD("found NULL cl, setting cl to temp_first_cl...");
@@ -449,14 +445,8 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
                     return NGX_HTTP_INTERNAL_SERVER_ERROR;
                 }
 
-                DD("read event handler == block_reading? %d", r->read_event_handler == ngx_http_block_reading);
-                DD("read event handler == test_reading? %d", r->read_event_handler == ngx_http_test_reading);
-                DD("read event handler == test_reading? %d", r->read_event_handler == ngx_http_test_reading);
-                DD("write event handler == request_empty_handler ? %d", r->write_event_handler == ngx_http_request_empty_handler);
                 /* r->read_event_handler = ngx_http_test_reading; */
                 r->write_event_handler = ngx_http_echo_req_delay;
-                DD("write->timedout: %d", r->connection->write->timedout);
-                DD("write->delayed: %d", r->connection->write->delayed);
 
 #if defined(nginx_version) && nginx_version >= 8011
                 r->main->count++;

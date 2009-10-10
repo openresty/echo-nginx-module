@@ -78,6 +78,9 @@ To run it on your side:
     $ cd test
     $ PATH=/path/to/your/nginx-with-echo-module:$PATH prove -r t
 
+You need to terminate any nginx processes before running the test
+suite if you have changed the nginx server binary.
+
 Contact me
 
 Contact the author by agentzh at gmail dot com whenever you have any questions.

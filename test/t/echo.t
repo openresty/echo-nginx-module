@@ -5,6 +5,8 @@ use Test::Nginx::Echo;
 
 plan tests => 1 * blocks();
 
+#$Test::Nginx::Echo::LogLevel = 'debug';
+
 run_tests();
 
 __DATA__
@@ -46,4 +48,16 @@ say hello world
 say that
 hello
 world !
+
+
+=== TEST 4: echo without arguments
+--- config
+    location /echo {
+        echo;
+        echo;
+    }
+--- request
+    GET /echo
+--- response_body eval
+"\n\n"
 
