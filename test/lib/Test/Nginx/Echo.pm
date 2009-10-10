@@ -2,6 +2,7 @@ package Test::Nginx::Echo;
 
 use lib 'lib';
 use lib 'inc';
+use Time::HiRes qw(sleep);
 
 #use Smart::Comments::JSON '##';
 use LWP::UserAgent; # XXX should use a socket level lib here
@@ -11,15 +12,17 @@ use File::Spec ();
 use Cwd qw( cwd );
 
 our $UserAgent = LWP::UserAgent->new;
+$UserAgent->agent("Test::Nginx::Echo");
+#$UserAgent->default_headers(HTTP::Headers->new);
 
 our $Workers                = 1;
 our $WorkerConnections      = 3;
 our $LogLevel               = 'debug';
 #our $MasterProcessEnabled   = 'on';
 #our $DaemonEnabled          = 'on';
-our $ListenPort             = 1984;
+our $ServerPort             = 1984;
 
-our ($ServerRoot, $PrevRequest, $PrevConfig);
+our ($PrevRequest, $PrevConfig);
 
 our $ServRoot   = File::Spec->catfile(cwd(), 't/servroot');
 our $LogDir     = File::Spec->catfile($ServRoot, 'logs');
@@ -39,9 +42,12 @@ sub run_tests () {
 }
 
 sub setup_server_root () {
-    if (-d 't/servroot') {
+    if (-d $ServRoot) {
+        #sleep 0.5;
+        #die ".pid file $PidFile exists.\n";
         system("rm -rf t/servroot") == 0 or
             die "Can't remove t/servroot";
+        #sleep 0.5;
     }
     mkdir $ServRoot or
         die "Failed to do mkdir $ServRoot\n";
@@ -60,7 +66,7 @@ sub write_config_file ($) {
     print $out <<_EOC_;
 worker_processes  $Workers;
 daemon on;
-master_process off;
+master_process on;
 error_log $ErrLogFile $LogLevel;
 pid       $PidFile;
 
@@ -70,7 +76,7 @@ http {
     default_type text/plain;
     keepalive_timeout  65;
     server {
-        listen          $ListenPort;
+        listen          $ServerPort;
         server_name     localhost;
 
         client_max_body_size 30M;
@@ -101,15 +107,26 @@ sub parse_request ($$) {
     my $first = <$in>;
     if (!$first) {
         Test::More::BAIL_OUT("$name - Request line should be non-empty");
+        die;
     }
     $first =~ s/^\s+|\s+$//g;
     my ($meth, $rel_url) = split /\s+/, $first, 2;
-    my $url = "http://localhost:$ListenPort" . $rel_url;
+    my $url = "http://localhost:$ServerPort" . $rel_url;
     close $in;
     return {
         method  => $meth,
         url     => $url,
     };
+}
+
+sub get_pid_from_pidfile ($) {
+    my ($name) = @_;
+    open my $in, $PidFile or
+        Test::More::BAIL_OUT("$name - Failed to open the pid file $PidFile for reading: $!");
+    my $pid = do { local $/; <$in> };
+    #warn "Pid: $pid\n";
+    close $in;
+    $pid;
 }
 
 sub run_test ($) {
@@ -124,41 +141,50 @@ sub run_test ($) {
     if (!defined $config) {
         $config = $PrevConfig;
     }
-    if (-f $PidFile) {
-        open my $in, $PidFile or
-            Test::More::BAIL_OUT("$name - Failed to open the pid file $PidFile for reading: $!");
-        my $pid = do { local $/; <$in> };
-        #warn "Pid: $pid\n";
-        close $in;
 
+    my $nginx_is_running = 1;
+    if (-f $PidFile) {
+        my $pid = get_pid_from_pidfile($name);
         if (system("ps $pid") == 0) {
-            if (kill(15, $pid) == 0) {
-                Test::More::note("$name - Failed to kill the existing nginx process with PID $pid using signal TERM, trying KILL instead...");
-                if (kill(9, $pid) == 0) {
-                    Test::More::BAIL_OUT("$name - Failed to kill the existing nginx process with PID $pid using signal KILL, giving up...");
-                }
+            write_config_file(\$config);
+            if (kill(1, $pid) == 0) { # send HUP signal
+                Test::More::BAIL_OUT("$name - Failed to send signal to the nginx process with PID $pid using signal HUP");
             }
+            sleep 0.1;
+        } else {
+            unlink $PidFile or
+                die "Failed to remove pid file $PidFile\n";
+            undef $nginx_is_running;
         }
+    } else {
+        undef $nginx_is_running;
     }
-    setup_server_root();
-    write_config_file(\$config);
-    if ( ! Module::Install::Can->can_run('nginx') ) {
-        Test::More::BAIL_OUT("$name - Cannot find the nginx executable in the PATH environment");
-    }
+
+    unless ($nginx_is_running) {
+        setup_server_root();
+        write_config_file(\$config);
+        if ( ! Module::Install::Can->can_run('nginx') ) {
+            Test::More::BAIL_OUT("$name - Cannot find the nginx executable in the PATH environment");
+            die;
+        }
     #if (system("nginx -p $ServRoot -c $ConfFile -t") != 0) {
     #Test::More::BAIL_OUT("$name - Invalid config file");
     #}
-    my $cmd = "nginx -p $ServRoot -c $ConfFile";
-    if (system($cmd) != 0 || !-f $PidFile) {
-        Test::More::BAIL_OUT("$name - Cannot start nginx using command \"$cmd\".");
+        my $cmd = "nginx -p $ServRoot -c $ConfFile";
+        if (system($cmd) != 0) {
+            Test::More::BAIL_OUT("$name - Cannot start nginx using command \"$cmd\".");
+            die;
+        }
+        sleep 0.1;
     }
+
     my $req_spec = parse_request($name, \$request);
     ## $req_spec
     my $method = $req_spec->{method};
     my $req = HTTP::Request->new($method);
     my $content = $req_spec->{content};
     #$req->header('Content-Type' => $type);
-    $req->header('Accept', '*/*');
+    #$req->header('Accept', '*/*');
     $req->url($req_spec->{url});
     if ($content) {
         if ($method eq 'GET' or $method eq 'HEAD') {
@@ -173,7 +199,11 @@ sub run_test ($) {
         if (!$res->is_success) {
             fail("$name - response_body - response indicates failure: " . $res->status_line);
         } else {
-            is($res->content, $block->response_body, "$name - response_body - response is expected");
+            (my $content = $res->content) =~ s/^TE: deflate,gzip;q=0\.3\r\n//gms;
+            $content =~ s/^Connection: TE, close\r\n//gms;
+            my $expected = $block->response_body;
+            $expected =~ s/\$ServerPort\b/$ServerPort/g;
+            is($content, $expected, "$name - response_body - response is expected");
         }
     }
 }
