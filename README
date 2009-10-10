@@ -68,6 +68,17 @@ After starting the nginx server, one can query it these ways:
     Server port: 80
     Server protocol: HTTP/1.1
 
-Contact the author by agentzh at gmail dot com whenever you have
-any questions.
+Test suite
+
+This module comes with a Perl-driven test suite. The test cases are
+declarative too. Thanks to the Test::Base module in the Perl world.
+
+To run it on your side:
+
+    $ cd test
+    $ PATH=/path/to/your/nginx-with-echo-module prove -Ilib -r t
+
+Contact me
+
+Contact the author by agentzh at gmail dot com whenever you have any questions.
 
