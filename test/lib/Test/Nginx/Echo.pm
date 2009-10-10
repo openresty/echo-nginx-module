@@ -3,7 +3,7 @@ package Test::Nginx::Echo;
 use lib 'lib';
 use lib 'inc';
 
-use Smart::Comments::JSON '##';
+#use Smart::Comments::JSON '##';
 use LWP::UserAgent; # XXX should use a socket level lib here
 use Test::Base -Base;
 use Module::Install::Can;

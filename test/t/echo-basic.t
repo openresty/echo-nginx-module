@@ -7,7 +7,7 @@ run_tests();
 
 __DATA__
 
-=== TEST 1: AUTHOR
+=== TEST 1: sanity
 --- config
     location /echo {
         echo hello;
@@ -16,4 +16,32 @@ __DATA__
     GET /echo
 --- response_body
 hello
+
+
+
+=== TEST 2: multiple args
+--- config
+    location /echo {
+        echo say hello world;
+    }
+--- request
+    GET /echo
+--- response_body
+say hello world
+
+
+
+=== TEST 3: multiple instance
+--- config
+    location /echo {
+        echo say that;
+        echo hello;
+        echo world !;
+    }
+--- request
+    GET /echo
+--- response_body
+say that
+hello
+world !
 
