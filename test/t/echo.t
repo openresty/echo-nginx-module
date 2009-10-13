@@ -50,6 +50,7 @@ hello
 world !
 
 
+
 === TEST 4: echo without arguments
 --- config
     location /echo {

@@ -6,6 +6,7 @@
 #include <nginx.h>
 #include <ngx_config.h>
 #include <ngx_log.h>
+#include <stdlib.h>
 
 static ngx_http_output_header_filter_pt ngx_http_next_header_filter = NULL;
 
@@ -601,15 +602,15 @@ ngx_http_echo_exec_echo_sleep(
         ngx_array_t *computed_args) {
     ngx_str_t                   *computed_arg;
     ngx_str_t                   *computed_arg_elts;
-    ngx_int_t                   delay;
+    float                       delay; /* in sec */
 
     computed_arg_elts = computed_args->elts;
     computed_arg = &computed_arg_elts[0];
-    delay = ngx_atoi(computed_arg->data, computed_arg->len);
-    if (delay <= 0) {
+    delay = atof((char*)computed_arg->data);
+    if (delay < 0.001) { /* should be bigger than 1 msec */
         ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
                    "invalid sleep duration \"%V\"", &computed_arg_elts[0]);
-        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        return NGX_HTTP_BAD_REQUEST;
     }
 
     DD("DELAY = %d sec", delay);
@@ -625,7 +626,7 @@ ngx_http_echo_exec_echo_sleep(
     DD("request main count : %d", r->main->count);
 #endif
 
-    ngx_add_timer(r->connection->write, (ngx_msec_t) 1000 * delay);
+    ngx_add_timer(r->connection->write, (ngx_msec_t) (1000 * delay));
 
     return NGX_DONE;
 }

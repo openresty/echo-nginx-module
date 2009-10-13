@@ -16,7 +16,7 @@ $UserAgent->agent("Test::Nginx::Echo");
 #$UserAgent->default_headers(HTTP::Headers->new);
 
 our $Workers                = 1;
-our $WorkerConnections      = 3;
+our $WorkerConnections      = 1024;
 our $LogLevel               = 'debug';
 #our $MasterProcessEnabled   = 'on';
 #our $DaemonEnabled          = 'on';
@@ -45,7 +45,7 @@ sub setup_server_root () {
     if (-d $ServRoot) {
         #sleep 0.5;
         #die ".pid file $PidFile exists.\n";
-        system("rm -rf t/servroot") == 0 or
+        system("rm -rf t/servroot > /dev/null") == 0 or
             die "Can't remove t/servroot";
         #sleep 0.5;
     }
@@ -145,7 +145,7 @@ sub run_test ($) {
     my $nginx_is_running = 1;
     if (-f $PidFile) {
         my $pid = get_pid_from_pidfile($name);
-        if (system("ps $pid") == 0) {
+        if (system("ps $pid > /dev/null") == 0) {
             write_config_file(\$config);
             if (kill(1, $pid) == 0) { # send HUP signal
                 Test::More::BAIL_OUT("$name - Failed to send signal to the nginx process with PID $pid using signal HUP");
@@ -170,7 +170,7 @@ sub run_test ($) {
     #if (system("nginx -p $ServRoot -c $ConfFile -t") != 0) {
     #Test::More::BAIL_OUT("$name - Invalid config file");
     #}
-        my $cmd = "nginx -p $ServRoot -c $ConfFile";
+        my $cmd = "nginx -p $ServRoot -c $ConfFile > /dev/null";
         if (system($cmd) != 0) {
             Test::More::BAIL_OUT("$name - Cannot start nginx using command \"$cmd\".");
             die;
