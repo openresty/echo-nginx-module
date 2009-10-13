@@ -15,4 +15,7 @@ tags
 test/Makefile
 test/blib
 test.sh
-t
+t.sh
+t/t.sh
+test/t/servroot/
+
