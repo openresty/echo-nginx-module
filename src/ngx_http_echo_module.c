@@ -606,7 +606,7 @@ ngx_http_echo_exec_echo_sleep(
 
     computed_arg_elts = computed_args->elts;
     computed_arg = &computed_arg_elts[0];
-    delay = atof((char*)computed_arg->data);
+    delay = atof( (char*) computed_arg->data );
     if (delay < 0.001) { /* should be bigger than 1 msec */
         ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
                    "invalid sleep duration \"%V\"", &computed_arg_elts[0]);
@@ -637,10 +637,6 @@ ngx_http_echo_post_sleep(ngx_http_request_t *r) {
     ngx_http_echo_ctx_t         *ctx;
 
     wev = r->connection->write;
-
-#if defined(nginx_version) && nginx_version >= 8011
-    r->main->count--;
-#endif
 
     if (!wev->timedout) {
         if (ngx_handle_write_event(wev, 0) != NGX_OK) {
