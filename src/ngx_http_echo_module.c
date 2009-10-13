@@ -37,6 +37,20 @@ ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
 /* main content handler */
 static ngx_int_t ngx_http_echo_handler(ngx_http_request_t *r);
 
+static ngx_int_t ngx_http_echo_exec_echo(ngx_http_request_t *r,
+        ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args);
+
+static ngx_int_t ngx_http_echo_exec_echo_client_request_headers(
+        ngx_http_request_t* r, ngx_http_echo_ctx_t *ctx);
+
+static ngx_int_t ngx_http_echo_send_chain_link(ngx_http_request_t* r,
+        ngx_http_echo_ctx_t *ctx, ngx_chain_t *cl);
+
+/*
+static ngx_int_t ngx_http_echo_exec_echo_sleep(
+        ngx_http_request_t *r, ngx_http_echo_ctx_t *ctx);
+*/
+
 static ngx_int_t ngx_http_echo_eval_cmd_args(ngx_http_request_t *r,
         ngx_http_echo_cmd_t *cmd, ngx_array_t *computed_args);
 
@@ -290,26 +304,11 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
     ngx_int_t                   rc;
     ngx_array_t                 *cmds;
     ngx_array_t                 *computed_args = NULL;
-    ngx_chain_t                 *cl = NULL;
-    ngx_chain_t                 *last_cl = NULL;
-    ngx_chain_t                 *temp_cl;
-    ngx_chain_t                 *temp_first_cl;
-    ngx_chain_t                 *temp_last_cl;
-    ngx_buf_t                   *buf;
     ngx_http_echo_cmd_t         *cmd;
     ngx_http_echo_cmd_t         *cmd_elts;
     ngx_str_t                   *computed_arg;
     ngx_str_t                   *computed_arg_elts;
-    ngx_uint_t                   i;
-    ngx_buf_t                   *header_in;
     ngx_int_t                   delay;
-
-    /* nginx clears buf flags at the end of each request handling */
-    ngx_buf_t                   *space_buf;
-    ngx_buf_t                   *newline_buf;
-
-    size_t                      size;
-    u_char                      *c;
 
     elcf = ngx_http_get_module_loc_conf(r, ngx_http_echo_module);
     cmds = elcf->handler_cmds;
@@ -355,79 +354,16 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
                 /* XXX moved the following code to a separate
                  * function */
                 DD("found echo opcode");
-                if (computed_args == NULL) {
-                    return NGX_HTTP_INTERNAL_SERVER_ERROR;
+                rc = ngx_http_echo_exec_echo(r, ctx, computed_args);
+                if (rc != NGX_OK) {
+                    return rc;
                 }
-                temp_first_cl = temp_last_cl = NULL;
-
-                computed_arg_elts = computed_args->elts;
-                for (i = 0; i < computed_args->nelts; i++) {
-                    computed_arg = &computed_arg_elts[i];
-                    buf = ngx_pcalloc(r->pool, sizeof(ngx_buf_t));
-                    if (buf == NULL) {
-                        return NGX_HTTP_INTERNAL_SERVER_ERROR;
-                    }
-                    buf->start = buf->pos = computed_arg->data;
-                    buf->last = buf->end = computed_arg->data +
-                        computed_arg->len;
-                    buf->memory = 1;
-
-                    temp_cl = ngx_alloc_chain_link(r->pool);
-                    if (temp_cl == NULL) {
-                        return NGX_HTTP_INTERNAL_SERVER_ERROR;
-                    }
-                    temp_cl->buf  = buf;
-                    temp_cl->next = NULL;
-
-                    if (temp_first_cl == NULL) {
-                        temp_first_cl = temp_last_cl = temp_cl;
-                    } else {
-                        temp_last_cl->next = ngx_alloc_chain_link(r->pool);
-                        if (temp_last_cl->next == NULL) {
-                            return NGX_HTTP_INTERNAL_SERVER_ERROR;
-                        }
-                        space_buf = ngx_calloc_buf(r->pool);
-                        if (space_buf == NULL) {
-                            return NGX_HTTP_INTERNAL_SERVER_ERROR;
-                        }
-                        *space_buf = ngx_http_echo_space_buf;
-                        temp_last_cl->next->buf = space_buf;
-                        temp_last_cl->next->next = temp_cl;
-                        temp_last_cl = temp_cl;
-                    }
-                } /* end for */
-
-                /* append the newline character */
-                /* TODO add support for -n option to suppress
-                 * the trailing newline */
-                if (temp_last_cl == NULL) {
-                    DD("temp_last_cl is NULL");
-                    temp_last_cl = temp_first_cl = ngx_alloc_chain_link(r->pool);
-                    if (temp_last_cl == NULL) {
-                        return NGX_HTTP_INTERNAL_SERVER_ERROR;
-                    }
-                } else {
-                    temp_last_cl->next = ngx_alloc_chain_link(r->pool);
-                    temp_last_cl = temp_last_cl->next;
-                }
-                if (temp_last_cl == NULL) {
-                    return NGX_HTTP_INTERNAL_SERVER_ERROR;
-                }
-                newline_buf = ngx_calloc_buf(r->pool);
-                if (newline_buf == NULL) {
-                    return NGX_HTTP_INTERNAL_SERVER_ERROR;
-                }
-                *newline_buf = ngx_http_echo_newline_buf;
-                temp_last_cl->buf = newline_buf;
-                temp_last_cl->next = NULL;
-
-                if (cl == NULL) {
-                    DD("found NULL cl, setting cl to temp_first_cl...");
-                    cl = temp_first_cl;
-                    last_cl = temp_last_cl;
-                } else {
-                    last_cl->next = temp_first_cl;
-                    last_cl = temp_last_cl;
+                break;
+            case echo_opcode_echo_client_request_headers:
+                rc = ngx_http_echo_exec_echo_client_request_headers(r,
+                        ctx);
+                if (rc != NGX_OK) {
+                    return rc;
                 }
                 break;
             case echo_opcode_echo_sleep:
@@ -454,57 +390,10 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
 #endif
 
                 ngx_add_timer(r->connection->write, (ngx_msec_t) 1000 * delay);
-                ctx->cl      = cl;
-                ctx->last_cl = last_cl;
+                //ctx->cl      = cl;
+                //ctx->last_cl = last_cl;
 
                 return NGX_DONE;
-                break;
-            case echo_opcode_echo_client_request_headers:
-                DD("echo_client_request_headers triggered!");
-                /* XXX moved the following code to a separate
-                 * function */
-                temp_first_cl = ngx_alloc_chain_link(r->pool);
-                if (temp_first_cl == NULL) {
-                    return NGX_HTTP_INTERNAL_SERVER_ERROR;
-                }
-                temp_first_cl->next = NULL;
-
-                if (r != r->main) {
-                    header_in = r->main->header_in;
-                } else {
-                    header_in = r->header_in;
-                }
-                if (header_in == NULL) {
-                    DD("header_in is NULL");
-                    return NGX_HTTP_BAD_REQUEST;
-                }
-                size = header_in->pos - header_in->start;
-                //DD("!!! size: %lu", (unsigned long)size);
-
-                buf = ngx_create_temp_buf(r->pool, size);
-                buf->last = ngx_cpymem(buf->start, header_in->start, size);
-                buf->memory = 1;
-
-                /* fix \0 introduced by the nginx header parser */
-                for (c = (u_char*)buf->start; c != buf->last; c++) {
-                    if (*c == '\0') {
-                        if (c + 1 != buf->last && *(c + 1) == LF) {
-                            *c = CR;
-                        } else {
-                            *c = ':';
-                        }
-                    }
-                }
-                temp_first_cl->buf = buf;
-
-                if (cl == NULL) {
-                    DD("found NULL cl, setting cl to temp_first_cl...");
-                    cl = last_cl = temp_first_cl;
-                } else {
-                    last_cl->next = temp_first_cl;
-                    last_cl = last_cl->next;
-                }
-
                 break;
             default:
                 ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
@@ -513,25 +402,136 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
                 break;
         }
     }
-    if (last_cl) {
-        last_cl->buf->last_buf = 1;
-    }
 
-    r->headers_out.status = NGX_HTTP_OK;
-    if (ngx_http_set_content_type(r) != NGX_OK) {
+    return ngx_http_echo_send_chain_link(r, ctx, NULL /* indicate LAST */);
+}
+
+static ngx_int_t
+ngx_http_echo_exec_echo(ngx_http_request_t *r,
+        ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args) {
+    ngx_uint_t                  i;
+
+    ngx_buf_t                   *space_buf;
+    ngx_buf_t                   *newline_buf;
+    ngx_buf_t                   *buf;
+
+    ngx_str_t                   *computed_arg;
+    ngx_str_t                   *computed_arg_elts;
+
+    ngx_chain_t *cl  = NULL; /* the head of the chain link */
+    ngx_chain_t **ll = NULL;  /* always point to the address of the last link */
+
+    if (computed_args == NULL) {
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
-    rc = ngx_http_send_header(r);
-    if (r->header_only || rc >= NGX_HTTP_SPECIAL_RESPONSE) {
-        return rc;
+
+    computed_arg_elts = computed_args->elts;
+    for (i = 0; i < computed_args->nelts; i++) {
+        computed_arg = &computed_arg_elts[i];
+        buf = ngx_pcalloc(r->pool, sizeof(ngx_buf_t));
+        if (buf == NULL) {
+            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        }
+        buf->start = buf->pos = computed_arg->data;
+        buf->last = buf->end = computed_arg->data +
+            computed_arg->len;
+        buf->memory = 1;
+
+        if (cl == NULL) {
+            cl = ngx_alloc_chain_link(r->pool);
+            if (cl == NULL) {
+                return NGX_HTTP_INTERNAL_SERVER_ERROR;
+            }
+            cl->buf  = buf;
+            cl->next = NULL;
+            ll = &cl->next;
+        } else {
+            /* append a space first */
+            *ll = ngx_alloc_chain_link(r->pool);
+            if (*ll == NULL) {
+                return NGX_HTTP_INTERNAL_SERVER_ERROR;
+            }
+            space_buf = ngx_calloc_buf(r->pool);
+            if (space_buf == NULL) {
+                return NGX_HTTP_INTERNAL_SERVER_ERROR;
+            }
+
+            /* nginx clears buf flags at the end of each request handling,
+             * so we have to make a clone here. */
+            *space_buf = ngx_http_echo_space_buf;
+
+            (*ll)->buf = space_buf;
+            (*ll)->next = NULL;
+
+            ll = &(*ll)->next;
+
+            /* then append the buf */
+            *ll = ngx_alloc_chain_link(r->pool);
+            if (*ll == NULL) {
+                return NGX_HTTP_INTERNAL_SERVER_ERROR;
+            }
+            (*ll)->buf  = buf;
+            (*ll)->next = NULL;
+
+            ll = &(*ll)->next;
+        }
+    } /* end for */
+
+    /* append the newline character */
+    /* TODO add support for -n option to suppress
+     * the trailing newline */
+    newline_buf = ngx_calloc_buf(r->pool);
+    if (newline_buf == NULL) {
+        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+    }
+    *newline_buf = ngx_http_echo_newline_buf;
+
+    if (cl == NULL) {
+        cl = ngx_alloc_chain_link(r->pool);
+        if (cl == NULL) {
+            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        }
+        cl->buf = newline_buf;
+        cl->next = NULL;
+        //ll = &cl->next;
+    } else {
+        *ll = ngx_alloc_chain_link(r->pool);
+        if (*ll == NULL) {
+            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        }
+        (*ll)->buf  = newline_buf;
+        (*ll)->next = NULL;
+        //ll = &(*ll)->next;
+    }
+
+    return ngx_http_echo_send_chain_link(r, ctx, cl);
+}
+
+static ngx_int_t
+ngx_http_echo_send_chain_link(ngx_http_request_t* r,
+        ngx_http_echo_ctx_t *ctx, ngx_chain_t *cl) {
+    ngx_int_t   rc;
+
+    if ( ! ctx->headers_sent ) {
+        ctx->headers_sent = 1;
+        r->headers_out.status = NGX_HTTP_OK;
+        if (ngx_http_set_content_type(r) != NGX_OK) {
+            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        }
+        rc = ngx_http_send_header(r);
+        if (r->header_only || rc >= NGX_HTTP_SPECIAL_RESPONSE) {
+            return rc;
+        }
     }
 
     if (cl == NULL) {
-        DD("cl is NULL");
-        return ngx_http_send_special(r, NGX_HTTP_LAST);
+        rc = ngx_http_send_special(r, NGX_HTTP_LAST);
+        if (rc >= NGX_HTTP_SPECIAL_RESPONSE) {
+            return rc;
+        }
+        return NGX_OK;
     }
 
-    DD("sending last...");
     return ngx_http_output_filter(r, cl);
 }
 
@@ -549,7 +549,7 @@ ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in) {
 
 static ngx_int_t ngx_http_echo_eval_cmd_args(ngx_http_request_t *r,
         ngx_http_echo_cmd_t *cmd, ngx_array_t *computed_args) {
-    ngx_uint_t                       i;
+    ngx_uint_t                      i;
     ngx_array_t                     *args = cmd->args;
     ngx_str_t                       *computed_arg;
     ngx_http_echo_arg_template_t    *arg, *arg_elts;
@@ -579,10 +579,8 @@ ngx_http_echo_req_delay(ngx_http_request_t *r) {
     ngx_event_t                 *wev;
     ngx_http_echo_ctx_t         *ctx;
     ngx_int_t                   rc;
-    ngx_chain_t                 *cl, *last_cl;
+    ngx_chain_t                 *cl = NULL, *last_cl = NULL;
 
-    DD("!!! req delaying");
-    fprintf(stderr, "!!!!!!!!!!!!!!!!!!!!! HAHA");
     wev = r->connection->write;
 
 #if defined(nginx_version) && nginx_version >= 8011
@@ -623,8 +621,8 @@ ngx_http_echo_req_delay(ngx_http_request_t *r) {
     }
 
     DD("timer handler: sending last...");
-    cl = ctx->cl;
-    last_cl = ctx->last_cl;
+    //cl = ctx->cl;
+    //last_cl = ctx->last_cl;
 
     if (cl == NULL) {
         DD("timer handler: cl is NULL");
@@ -648,5 +646,52 @@ ngx_http_echo_req_delay(ngx_http_request_t *r) {
 
     /* ngx_http_core_run_phases(r); */
     return;
+}
+
+static ngx_int_t
+ngx_http_echo_exec_echo_client_request_headers(
+        ngx_http_request_t* r, ngx_http_echo_ctx_t *ctx) {
+    size_t                      size;
+    u_char                      *c;
+    ngx_buf_t                   *header_in;
+    ngx_chain_t                 *cl  = NULL;
+    ngx_buf_t                   *buf;
+
+    DD("echo_client_request_headers triggered!");
+    cl = ngx_alloc_chain_link(r->pool);
+    if (cl == NULL) {
+        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+    }
+    cl->next = NULL;
+
+    if (r != r->main) {
+        header_in = r->main->header_in;
+    } else {
+        header_in = r->header_in;
+    }
+    if (header_in == NULL) {
+        DD("header_in is NULL");
+        return NGX_HTTP_BAD_REQUEST;
+    }
+    size = header_in->pos - header_in->start;
+    //DD("!!! size: %lu", (unsigned long)size);
+
+    buf = ngx_create_temp_buf(r->pool, size);
+    buf->last = ngx_cpymem(buf->start, header_in->start, size);
+    buf->memory = 1;
+
+    /* fix \0 introduced by the nginx header parser */
+    for (c = (u_char*)buf->start; c != buf->last; c++) {
+        if (*c == '\0') {
+            if (c + 1 != buf->last && *(c + 1) == LF) {
+                *c = CR;
+            } else {
+                *c = ':';
+            }
+        }
+    }
+
+    cl->buf = buf;
+    return ngx_http_echo_send_chain_link(r, ctx, cl);
 }
 

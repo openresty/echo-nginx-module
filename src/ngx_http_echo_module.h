@@ -69,8 +69,7 @@ typedef struct {
      * ngx_http_echo_loc_conf_t's "after_body_cmds" array. */
     ngx_uint_t       next_after_filter_cmd;
 
-    ngx_chain_t*    cl;
-    ngx_chain_t*    last_cl;
+    ngx_flag_t       headers_sent;
 } ngx_http_echo_ctx_t;
 
 #endif /* NGX_HTTP_ECHO_MODULE_H */
