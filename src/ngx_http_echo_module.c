@@ -401,6 +401,8 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
                     return NGX_HTTP_INTERNAL_SERVER_ERROR;
                 }
                 break;
+            case echo_opcode_echo_blocking_sleep:
+
             default:
                 ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
                         "Unknown opcode: %d", cmd->opcode);

@@ -45,7 +45,7 @@ This is a sample configuration snippet in your nginx.conf file:
 
             location /echo_with_sleep {
                 echo 'before sleep';
-                echo_flush;  # need this to force flushing ouputs before sleep
+                echo_flush;  # need this to force flushing outputs before sleep
                 echo_sleep 1;  # sleep for 1 sec here...
                 echo 'after sleep';
             }
