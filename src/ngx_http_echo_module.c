@@ -40,6 +40,9 @@ static char* ngx_http_echo_echo_sleep(ngx_conf_t *cf, ngx_command_t *cmd,
 
 static char* ngx_http_echo_echo_flush(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
 
+static char* ngx_http_echo_echo_blocking_sleep(ngx_conf_t *cf,
+        ngx_command_t *cmd, void *conf);
+
 static char*
 ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
         ngx_http_echo_cmd_category_t cat,
@@ -60,6 +63,9 @@ static ngx_int_t ngx_http_echo_exec_echo_sleep(
 
 static ngx_int_t ngx_http_echo_exec_echo_flush(ngx_http_request_t *r,
         ngx_http_echo_ctx_t *ctx);
+
+static ngx_int_t ngx_http_echo_exec_echo_blocking_sleep(ngx_http_request_t *r,
+        ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args);
 
 static ngx_int_t ngx_http_echo_eval_cmd_args(ngx_http_request_t *r,
         ngx_http_echo_cmd_t *cmd, ngx_array_t *computed_args);
@@ -99,6 +105,13 @@ static ngx_command_t  ngx_http_echo_commands[] = {
       NGX_HTTP_LOC_CONF_OFFSET,
       offsetof(ngx_http_echo_loc_conf_t, handler_cmds),
       NULL },
+    { ngx_string("echo_blocking_sleep"),
+      NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1,
+      ngx_http_echo_echo_blocking_sleep,
+      NGX_HTTP_LOC_CONF_OFFSET,
+      offsetof(ngx_http_echo_loc_conf_t, handler_cmds),
+      NULL },
+
     /* TODO
     { ngx_string("echo_client_request_body"),
       NGX_HTTP_LOC_CONF|NGX_CONF_NOARGS,
@@ -300,6 +313,15 @@ ngx_http_echo_echo(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
 }
 
 static char*
+ngx_http_echo_echo_client_request_headers(ngx_conf_t *cf,
+        ngx_command_t *cmd, void *conf) {
+    return ngx_http_echo_helper(
+            echo_opcode_echo_client_request_headers,
+            echo_handler_cmd,
+            cf, cmd, conf);
+}
+
+static char*
 ngx_http_echo_echo_sleep(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     DD("in echo_sleep...");
     return ngx_http_echo_helper(echo_opcode_echo_sleep,
@@ -316,10 +338,9 @@ ngx_http_echo_echo_flush(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
 }
 
 static char*
-ngx_http_echo_echo_client_request_headers(ngx_conf_t *cf,
-        ngx_command_t *cmd, void *conf) {
-    return ngx_http_echo_helper(
-            echo_opcode_echo_client_request_headers,
+ngx_http_echo_echo_blocking_sleep(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+    DD("in echo_blocking_sleep...");
+    return ngx_http_echo_helper(echo_opcode_echo_blocking_sleep,
             echo_handler_cmd,
             cf, cmd, conf);
 }
@@ -392,17 +413,28 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
                 break;
             case echo_opcode_echo_flush:
                 rc = ngx_http_echo_exec_echo_flush(r, ctx);
+
                 if (rc >= NGX_HTTP_SPECIAL_RESPONSE) {
                     return rc;
                 }
+
                 if (rc == NGX_ERROR) {
                     ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
                             "Failed to flush the output", cmd->opcode);
                     return NGX_HTTP_INTERNAL_SERVER_ERROR;
                 }
+
                 break;
             case echo_opcode_echo_blocking_sleep:
+                rc = ngx_http_echo_exec_echo_blocking_sleep(r, ctx,
+                        computed_args);
+                if (rc == NGX_ERROR) {
+                    ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
+                            "Failed to run blocking sleep", cmd->opcode);
+                    return NGX_HTTP_INTERNAL_SERVER_ERROR;
+                }
 
+                break;
             default:
                 ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
                         "Unknown opcode: %d", cmd->opcode);
@@ -702,5 +734,27 @@ ngx_http_echo_post_sleep(ngx_http_request_t *r) {
 static ngx_int_t
 ngx_http_echo_exec_echo_flush(ngx_http_request_t *r, ngx_http_echo_ctx_t *ctx) {
     return ngx_http_send_special(r, NGX_HTTP_FLUSH);
+}
+
+static ngx_int_t
+ngx_http_echo_exec_echo_blocking_sleep(ngx_http_request_t *r,
+        ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args) {
+    ngx_str_t                   *computed_arg;
+    ngx_str_t                   *computed_arg_elts;
+    float                       delay; /* in sec */
+
+    computed_arg_elts = computed_args->elts;
+    computed_arg = &computed_arg_elts[0];
+    delay = atof( (char*) computed_arg->data );
+    if (delay < 0.001) { /* should be bigger than 1 msec */
+        ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
+                   "invalid sleep duration \"%V\"", &computed_arg_elts[0]);
+        return NGX_HTTP_BAD_REQUEST;
+    }
+
+    DD("blocking DELAY = %d sec", delay);
+
+    ngx_msleep((ngx_msec_t) (1000 * delay));
+    return NGX_OK;
 }
 
