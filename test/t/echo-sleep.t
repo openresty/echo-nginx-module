@@ -124,7 +124,9 @@ merely checks if it croaks if appears.
 hi
 trees
 
-=== TEST 8: flush does not increment opcode pointer itself
+
+
+=== TEST 9: flush does not increment opcode pointer itself
 --- config
     location /flush {
         echo hi;

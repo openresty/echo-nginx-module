@@ -1,3 +1,5 @@
+/* Copyright (C) by agentzh */
+
 #ifndef NGX_HTTP_ECHO_MODULE_H
 #define NGX_HTTP_ECHO_MODULE_H
 

@@ -1,3 +1,5 @@
+/* Copyright (C) by agentzh */
+
 #define DDEBUG 0
 
 #include "ddebug.h"
