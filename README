@@ -42,13 +42,24 @@ This is a sample configuration snippet in your nginx.conf file:
                 echo "Server port: $server_port";
                 echo "Server protocol: $server_protocol";
             }
+
+            location /echo_with_sleep {
+                echo 'before sleep';
+                echo_sleep 1;
+                echo 'after sleep';
+            }
             ...
         }
         ...
     }
 
 As you can see, the directives currently provided by this module are
-"echo" and "echo_client_request_headers".
+"echo", "echo_client_request_headers", and "echo_sleep".
+
+The "echo_sleep" directive is a non-blocking sleep on the server side. So if your
+nginx worker process is "sleeping" for one request, it could serve other requests
+*at the same time*. On my laptop, with only 1 nginx worker process, my nginx can
+achieve 5500+ requests per second at the concurrency level of 10k.
 
 After starting the nginx server, one can query it these ways:
 
@@ -69,6 +80,14 @@ After starting the nginx server, one can query it these ways:
     Server address: 127.0.0.1
     Server port: 80
     Server protocol: HTTP/1.1
+
+    $ time curl 'http://localhost/echo_with_sleep'
+    before sleep
+    after sleep
+
+    real    0m1.018s
+    user    0m0.012s
+    sys     0m0.008s
 
 Test suite
 
