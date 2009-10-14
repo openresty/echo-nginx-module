@@ -56,11 +56,17 @@ This is a sample configuration snippet in your nginx.conf file:
 
 As you can see, the directives currently provided by this module are
 "echo", "echo_client_request_headers", "echo_sleep", and "echo_flush".
+And there's also an "echo_blocking_sleep" directive for completeness.
 
 The "echo_sleep" directive is a non-blocking sleep on the server side. So if your
 nginx worker process is "sleeping" for one request, it could serve other requests
 *at the same time*. On my laptop, with only 1 nginx worker process, my nginx can
 achieve 5500+ requests per second at the concurrency level of 10k.
+
+On the other hand, "echo_blocking_sleep" is a blocking version of
+"echo_sleep" and it will freeze the whole Nginx worker process. It's
+provided merely meant to be compared with "echo_sleep". And you should
+never use it for production.
 
 The "echo_flush" directive is needed whenever you need to force flushing the previous
 outputs potentially buffered without sending to the client.
