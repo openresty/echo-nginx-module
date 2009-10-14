@@ -106,3 +106,34 @@ after...
 2
 3
 
+
+
+=== TEST 8: flush before sleep
+we didn't really test the actual effect of "echo_flush" here...
+merely checks if it croaks if appears.
+--- config
+    location /flush {
+        echo hi;
+        echo_flush;
+        echo_sleep 0.01;
+        echo trees;
+    }
+--- request
+    GET /flush
+--- response_body
+hi
+trees
+
+=== TEST 8: flush does not increment opcode pointer itself
+--- config
+    location /flush {
+        echo hi;
+        echo_flush;
+        echo trees;
+    }
+--- request
+    GET /flush
+--- response_body
+hi
+trees
+

@@ -32,10 +32,13 @@ static void* ngx_http_echo_create_conf(ngx_conf_t *cf);
 /* config directive handlers */
 static char* ngx_http_echo_echo(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
 
+static char* ngx_http_echo_echo_client_request_headers(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
+
+
 static char* ngx_http_echo_echo_sleep(ngx_conf_t *cf, ngx_command_t *cmd,
         void *conf);
 
-static char* ngx_http_echo_echo_client_request_headers(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
+static char* ngx_http_echo_echo_flush(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
 
 static char*
 ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
@@ -54,6 +57,9 @@ static ngx_int_t ngx_http_echo_exec_echo_client_request_headers(
 static ngx_int_t ngx_http_echo_exec_echo_sleep(
         ngx_http_request_t *r, ngx_http_echo_ctx_t *ctx,
         ngx_array_t *computed_args);
+
+static ngx_int_t ngx_http_echo_exec_echo_flush(ngx_http_request_t *r,
+        ngx_http_echo_ctx_t *ctx);
 
 static ngx_int_t ngx_http_echo_eval_cmd_args(ngx_http_request_t *r,
         ngx_http_echo_cmd_t *cmd, ngx_array_t *computed_args);
@@ -84,6 +90,12 @@ static ngx_command_t  ngx_http_echo_commands[] = {
     { ngx_string("echo_sleep"),
       NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1,
       ngx_http_echo_echo_sleep,
+      NGX_HTTP_LOC_CONF_OFFSET,
+      offsetof(ngx_http_echo_loc_conf_t, handler_cmds),
+      NULL },
+    { ngx_string("echo_flush"),
+      NGX_HTTP_LOC_CONF|NGX_CONF_NOARGS,
+      ngx_http_echo_echo_flush,
       NGX_HTTP_LOC_CONF_OFFSET,
       offsetof(ngx_http_echo_loc_conf_t, handler_cmds),
       NULL },
@@ -296,6 +308,14 @@ ngx_http_echo_echo_sleep(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
 }
 
 static char*
+ngx_http_echo_echo_flush(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+    DD("in echo_flush...");
+    return ngx_http_echo_helper(echo_opcode_echo_flush,
+            echo_handler_cmd,
+            cf, cmd, conf);
+}
+
+static char*
 ngx_http_echo_echo_client_request_headers(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf) {
     return ngx_http_echo_helper(
@@ -369,6 +389,17 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
                 break;
             case echo_opcode_echo_sleep:
                 return ngx_http_echo_exec_echo_sleep(r, ctx, computed_args);
+                break;
+            case echo_opcode_echo_flush:
+                rc = ngx_http_echo_exec_echo_flush(r, ctx);
+                if (rc >= NGX_HTTP_SPECIAL_RESPONSE) {
+                    return rc;
+                }
+                if (rc == NGX_ERROR) {
+                    ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
+                            "Failed to flush the output", cmd->opcode);
+                    return NGX_HTTP_INTERNAL_SERVER_ERROR;
+                }
                 break;
             default:
                 ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
@@ -664,5 +695,10 @@ ngx_http_echo_post_sleep(ngx_http_request_t *r) {
 
     ngx_http_finalize_request(r, ngx_http_echo_handler(r));
     return;
+}
+
+static ngx_int_t
+ngx_http_echo_exec_echo_flush(ngx_http_request_t *r, ngx_http_echo_ctx_t *ctx) {
+    return ngx_http_send_special(r, NGX_HTTP_FLUSH);
 }
 
