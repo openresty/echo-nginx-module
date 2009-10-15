@@ -10,7 +10,8 @@ print.txt
 .rsync
 *.tar.gz
 dist
-build*.sh
+build[78].sh
+build.sh
 tags
 test/Makefile
 test/blib
