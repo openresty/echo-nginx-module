@@ -1,6 +1,7 @@
 Description
 
-An nginx module for bringing the power of sh's "echo" command to Nginx's config file.
+This is an Nginx module for bringing the power of "echo", "sleep", "time" and
+more to Nginx's config file.
 
 Installation
 
@@ -129,6 +130,12 @@ To run it on your side:
 
 You need to terminate any nginx processes before running the test
 suite if you have changed the nginx server binary.
+
+TODO
+
+* Add echo_before_body and echo_after_body (output) filter directives.
+* Add echo_location and echo_location_async directives.
+* Add echo_file and echo_cached_file directives.
 
 Copyright & License
 
