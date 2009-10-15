@@ -48,6 +48,9 @@ static char* ngx_http_echo_echo_flush(ngx_conf_t *cf, ngx_command_t *cmd, void *
 static char* ngx_http_echo_echo_blocking_sleep(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
 
+static char* ngx_http_echo_echo_reset_timer(ngx_conf_t *cf,
+        ngx_command_t *cmd, void *conf);
+
 static char*
 ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
         ngx_http_echo_cmd_category_t cat,
@@ -71,6 +74,9 @@ static ngx_int_t ngx_http_echo_exec_echo_flush(ngx_http_request_t *r,
 
 static ngx_int_t ngx_http_echo_exec_echo_blocking_sleep(ngx_http_request_t *r,
         ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args);
+
+static ngx_int_t ngx_http_echo_exec_echo_reset_timer(ngx_http_request_t *r,
+        ngx_http_echo_ctx_t *ctx);
 
 static ngx_int_t ngx_http_echo_eval_cmd_args(ngx_http_request_t *r,
         ngx_http_echo_cmd_t *cmd, ngx_array_t *computed_args);
@@ -128,13 +134,27 @@ static ngx_command_t  ngx_http_echo_commands[] = {
       NGX_HTTP_LOC_CONF_OFFSET,
       offsetof(ngx_http_echo_loc_conf_t, handler_cmds),
       NULL },
+    { ngx_string("echo_reset_timer"),
+      NGX_HTTP_LOC_CONF|NGX_CONF_NOARGS,
+      ngx_http_echo_echo_reset_timer,
+      NGX_HTTP_LOC_CONF_OFFSET,
+      offsetof(ngx_http_echo_loc_conf_t, handler_cmds),
+      NULL },
+
     /* TODO
     { ngx_string("echo_location"),
-      NGX_HTTP_LOC_CONF|NGX_CONF_1MORE,
+      NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1,
       ngx_http_echo_echo_location,
       NGX_HTTP_LOC_CONF_OFFSET,
       0,
       NULL },
+    { ngx_string("echo_location_async"),
+      NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1,
+      ngx_http_echo_echo_location_async,
+      NGX_HTTP_LOC_CONF_OFFSET,
+      0,
+      NULL },
+
     { ngx_string("echo_before_body"),
       NGX_HTTP_LOC_CONF|NGX_CONF_1MORE,
       ngx_http_echo_echo_before_body,
@@ -353,6 +373,13 @@ ngx_http_echo_echo_blocking_sleep(ngx_conf_t *cf, ngx_command_t *cmd, void *conf
             cf, cmd, conf);
 }
 
+static char* ngx_http_echo_echo_reset_timer(ngx_conf_t *cf,
+        ngx_command_t *cmd, void *conf) {
+    return ngx_http_echo_helper(echo_opcode_echo_reset_timer,
+            echo_handler_cmd,
+            cf, cmd, conf);
+}
+
 static ngx_int_t
 ngx_http_echo_init_ctx(ngx_http_request_t *r, ngx_http_echo_ctx_t **ctx_ptr) {
     *ctx_ptr = ngx_pcalloc(r->pool, sizeof(ngx_http_echo_ctx_t));
@@ -452,6 +479,12 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
                     return NGX_HTTP_INTERNAL_SERVER_ERROR;
                 }
 
+                break;
+            case echo_opcode_echo_reset_timer:
+                rc = ngx_http_echo_exec_echo_reset_timer(r, ctx);
+                if (rc != NGX_OK) {
+                    return NGX_HTTP_INTERNAL_SERVER_ERROR;
+                }
                 break;
             default:
                 ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
@@ -696,7 +729,7 @@ ngx_http_echo_exec_echo_sleep(
         return NGX_HTTP_BAD_REQUEST;
     }
 
-    DD("DELAY = %d sec", delay);
+    DD("DELAY = %.02lf sec", delay);
     if (ngx_handle_read_event(r->connection->read, 0) != NGX_OK) {
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
@@ -770,7 +803,7 @@ ngx_http_echo_exec_echo_blocking_sleep(ngx_http_request_t *r,
         return NGX_HTTP_BAD_REQUEST;
     }
 
-    DD("blocking DELAY = %d sec", delay);
+    DD("blocking DELAY = %.02lf sec", delay);
 
     ngx_msleep((ngx_msec_t) (1000 * delay));
     return NGX_OK;
@@ -795,10 +828,15 @@ ngx_http_echo_timer_elapsed_variable(ngx_http_request_t *r,
         ctx->timer_begin->msec = (ngx_msec_t) r->start_msec;
     }
 
+    ngx_time_update(0, 0); /* force the ngx timer to update */
     tp = ngx_timeofday();
 
+    DD("old sec msec: %ld %d\n", ctx->timer_begin->sec, ctx->timer_begin->msec);
+    DD("new sec msec: %ld %d\n", tp->sec, tp->msec);
+
     ms = (ngx_msec_int_t)
-             ((tp->sec - r->start_sec) * 1000 + (tp->msec - r->start_msec));
+             ((tp->sec - ctx->timer_begin->sec) * 1000 +
+              (tp->msec - ctx->timer_begin->msec));
     ms = (ms >= 0) ? ms : 0;
 
     size = sizeof("-9223372036854775808.000") - 1;
@@ -806,6 +844,7 @@ ngx_http_echo_timer_elapsed_variable(ngx_http_request_t *r,
     v->len = ngx_snprintf(p, size, "%T.%03M",
              ms / 1000, ms % 1000) - p;
     v->data = p;
+    DD("%s", p);
 
     v->valid = 1;
     v->no_cacheable = 1;
@@ -824,6 +863,20 @@ ngx_http_echo_add_variables(ngx_conf_t *cf) {
         var->get_handler = v->get_handler;
         var->data = v->data;
     }
+    return NGX_OK;
+}
+
+static ngx_int_t
+ngx_http_echo_exec_echo_reset_timer(ngx_http_request_t *r,
+        ngx_http_echo_ctx_t *ctx) {
+    DD("Exec timer...");
+    ngx_time_update(0, 0); /* force the ngx timer to update */
+
+    ctx->timer_begin = ngx_palloc(r->pool, sizeof(ngx_time_t));
+    if (ctx->timer_begin == NULL) {
+        return NGX_ERROR;
+    }
+    *(ctx->timer_begin) = *ngx_timeofday();
     return NGX_OK;
 }
 

@@ -20,7 +20,7 @@ __DATA__
 --- request
     GET /timer
 --- response_body_like
-^elapsed 0\.0(3[0-4]|2[6-9]) sec\.$
+^elapsed 0\.0(2[6-9]|3[0-5]) sec\.$
 
 
 
@@ -32,5 +32,49 @@ __DATA__
 --- request
     GET /timer
 --- response_body_like
-^elapsed 0\.00[0-4] sec\.$
+^elapsed 0\.00[0-5] sec\.$
+
+
+
+=== TEST 3: timing accumulated sleeps
+--- config
+    location /timer {
+        echo_sleep 0.03;
+        echo_sleep 0.02;
+        echo "elapsed $echo_timer_elapsed sec.";
+    }
+--- request
+    GET /timer
+--- response_body_like
+^elapsed 0\.0(4[6-9]|5[0-5]) sec\.$
+
+
+
+=== TEST 4: timer with explicit reset but without sleep
+--- config
+    location /timer {
+        echo_reset_timer;
+        echo "elapsed $echo_timer_elapsed sec.";
+    }
+--- request
+    GET /timer
+--- response_body_like
+^elapsed 0\.00[0-5] sec\.$
+
+
+
+=== TEST 5: reset timer between sleeps
+--- config
+    location /timer {
+        echo_sleep 0.02;
+        echo "elapsed $echo_timer_elapsed sec.";
+        echo_reset_timer;
+        echo_sleep 0.03;
+        echo "elapsed $echo_timer_elapsed sec.";
+    }
+--- request
+    GET /timer
+--- response_body_like
+^elapsed 0\.0(1[6-9]|2[0-5]) sec\.
+elapsed 0\.0(2[6-9]|3[0-5]) sec\.$
 

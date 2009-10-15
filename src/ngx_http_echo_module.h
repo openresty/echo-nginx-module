@@ -13,6 +13,7 @@ typedef enum {
     echo_opcode_echo_sleep,
     echo_opcode_echo_flush,
     echo_opcode_echo_blocking_sleep,
+    echo_opcode_echo_reset_timer,
     echo_opcode_echo_before_body,
     echo_opcode_echo_after_body,
     echo_opcode_echo_client_request_body,

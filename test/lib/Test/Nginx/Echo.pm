@@ -216,14 +216,15 @@ sub run_test ($) {
             my $expected_pat = $block->response_body_like;
             $expected_pat =~ s/\$ServerPort\b/$ServerPort/g;
             my $summary = trim($content);
-            like($content, qr/$expected_pat/, "$name - response_body_like - response is expected ($summary)");
+            like($content, qr/$expected_pat/s, "$name - response_body_like - response is expected ($summary)");
         }
     }
 }
 
 sub trim ($) {
     (my $s = shift) =~ s/^\s+|\s+$//g;
-    $s =~ s/\s{2,}/ /g;
+    $s =~ s/\n/ /gs;
+    $s =~ s/\s{2,}/ /gs;
     $s;
 }
 
