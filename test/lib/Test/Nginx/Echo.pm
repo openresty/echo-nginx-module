@@ -35,6 +35,8 @@ our $PidFile    = File::Spec->catfile($LogDir, 'nginx.pid');
 
 our @EXPORT = qw( run_tests run_test );
 
+sub trim ($);
+
 sub run_tests () {
     for my $block (blocks()) {
         run_test($block);
@@ -205,7 +207,24 @@ sub run_test ($) {
             $expected =~ s/\$ServerPort\b/$ServerPort/g;
             is($content, $expected, "$name - response_body - response is expected");
         }
+    } elsif (defined $block->response_body_like) {
+        if (!$res->is_success) {
+            fail("$name - response_body - response indicates failure: " . $res->status_line);
+        } else {
+            (my $content = $res->content) =~ s/^TE: deflate,gzip;q=0\.3\r\n//gms;
+            $content =~ s/^Connection: TE, close\r\n//gms;
+            my $expected_pat = $block->response_body_like;
+            $expected_pat =~ s/\$ServerPort\b/$ServerPort/g;
+            my $summary = trim($content);
+            like($content, qr/$expected_pat/, "$name - response_body_like - response is expected ($summary)");
+        }
     }
+}
+
+sub trim ($) {
+    (my $s = shift) =~ s/^\s+|\s+$//g;
+    $s =~ s/\s{2,}/ /g;
+    $s;
 }
 
 1;

@@ -18,6 +18,9 @@ static ngx_buf_t ngx_http_echo_space_buf;
 
 static ngx_buf_t ngx_http_echo_newline_buf;
 
+static ngx_int_t ngx_http_echo_init_ctx(ngx_http_request_t *r,
+        ngx_http_echo_ctx_t **ctx_ptr);
+
 /* (optional) filters initialization */
 static ngx_int_t ngx_http_echo_filter_init(ngx_conf_t *cf);
 
@@ -78,6 +81,18 @@ static ngx_int_t ngx_http_echo_send_chain_link(ngx_http_request_t* r,
 /* write event handler for echo_sleep */
 static void ngx_http_echo_post_sleep(ngx_http_request_t *r);
 
+/* variable handler */
+static ngx_int_t ngx_http_echo_timer_elapsed_variable(ngx_http_request_t *r,
+        ngx_http_variable_value_t *v, uintptr_t data);
+
+static ngx_int_t ngx_http_echo_add_variables(ngx_conf_t *cf);
+
+static ngx_http_variable_t ngx_http_echo_variables[] = {
+    { ngx_string("echo_timer_elapsed"), NULL,
+      ngx_http_echo_timer_elapsed_variable, 0,
+      NGX_HTTP_VAR_NOCACHEABLE, 0 }
+};
+
 static ngx_command_t  ngx_http_echo_commands[] = {
 
     { ngx_string("echo"),
@@ -113,15 +128,6 @@ static ngx_command_t  ngx_http_echo_commands[] = {
       NGX_HTTP_LOC_CONF_OFFSET,
       offsetof(ngx_http_echo_loc_conf_t, handler_cmds),
       NULL },
-
-    /* TODO
-    { ngx_string("echo_client_request_body"),
-      NGX_HTTP_LOC_CONF|NGX_CONF_NOARGS,
-      ngx_http_echo_echo_client_request_body,
-      NGX_HTTP_LOC_CONF_OFFSET,
-      0,
-      NULL },
-      */
     /* TODO
     { ngx_string("echo_location"),
       NGX_HTTP_LOC_CONF|NGX_CONF_1MORE,
@@ -200,7 +206,7 @@ ngx_http_echo_init(ngx_conf_t *cf) {
         ngx_http_echo_newline_buf.last =
             newline_str + sizeof(newline_str) - 1;
 
-    return NGX_OK;
+    return ngx_http_echo_add_variables(cf);
 }
 
 static ngx_int_t
@@ -348,6 +354,15 @@ ngx_http_echo_echo_blocking_sleep(ngx_conf_t *cf, ngx_command_t *cmd, void *conf
 }
 
 static ngx_int_t
+ngx_http_echo_init_ctx(ngx_http_request_t *r, ngx_http_echo_ctx_t **ctx_ptr) {
+    *ctx_ptr = ngx_pcalloc(r->pool, sizeof(ngx_http_echo_ctx_t));
+    if (*ctx_ptr == NULL) {
+        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+    }
+    return NGX_OK;
+}
+
+static ngx_int_t
 ngx_http_echo_handler(ngx_http_request_t *r) {
     ngx_http_echo_loc_conf_t    *elcf;
     ngx_http_echo_ctx_t         *ctx;
@@ -365,10 +380,11 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
 
     ctx = ngx_http_get_module_ctx(r, ngx_http_echo_module);
     if (ctx == NULL) {
-        ctx = ngx_pcalloc(r->pool, sizeof(ngx_http_echo_ctx_t));
-        if (ctx == NULL) {
-            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        rc = ngx_http_echo_init_ctx(r, &ctx);
+        if (rc != NGX_OK) {
+            return rc;
         }
+
         ngx_http_set_ctx(r, ctx, ngx_http_echo_module);
     }
 
@@ -757,6 +773,57 @@ ngx_http_echo_exec_echo_blocking_sleep(ngx_http_request_t *r,
     DD("blocking DELAY = %d sec", delay);
 
     ngx_msleep((ngx_msec_t) (1000 * delay));
+    return NGX_OK;
+}
+
+static ngx_int_t
+ngx_http_echo_timer_elapsed_variable(ngx_http_request_t *r,
+        ngx_http_variable_value_t *v, uintptr_t data) {
+    ngx_http_echo_ctx_t     *ctx;
+    ngx_msec_int_t          ms;
+    u_char                  *p;
+    ngx_time_t              *tp;
+    size_t                  size;
+
+    ctx = ngx_http_get_module_ctx(r, ngx_http_echo_module);
+    if (ctx->timer_begin == NULL) {
+        ctx->timer_begin = ngx_palloc(r->pool, sizeof(ngx_time_t));
+        if (ctx->timer_begin == NULL) {
+            return NGX_ERROR;
+        }
+        ctx->timer_begin->sec  = r->start_sec;
+        ctx->timer_begin->msec = (ngx_msec_t) r->start_msec;
+    }
+
+    tp = ngx_timeofday();
+
+    ms = (ngx_msec_int_t)
+             ((tp->sec - r->start_sec) * 1000 + (tp->msec - r->start_msec));
+    ms = (ms >= 0) ? ms : 0;
+
+    size = sizeof("-9223372036854775808.000") - 1;
+    p = ngx_palloc(r->pool, size);
+    v->len = ngx_snprintf(p, size, "%T.%03M",
+             ms / 1000, ms % 1000) - p;
+    v->data = p;
+
+    v->valid = 1;
+    v->no_cacheable = 1;
+    v->not_found = 0;
+    return NGX_OK;
+}
+
+static ngx_int_t
+ngx_http_echo_add_variables(ngx_conf_t *cf) {
+    ngx_http_variable_t *var, *v;
+    for (v = ngx_http_echo_variables; v->name.len; v++) {
+        var = ngx_http_add_variable(cf, &v->name, v->flags);
+        if (var == NULL) {
+            return NGX_ERROR;
+        }
+        var->get_handler = v->get_handler;
+        var->data = v->data;
+    }
     return NGX_OK;
 }
 

@@ -74,6 +74,8 @@ typedef struct {
     ngx_uint_t       next_after_filter_cmd;
 
     ngx_flag_t       headers_sent;
+
+    ngx_time_t      *timer_begin;
 } ngx_http_echo_ctx_t;
 
 #endif /* NGX_HTTP_ECHO_MODULE_H */
