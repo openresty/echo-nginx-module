@@ -49,14 +49,24 @@ This is a sample configuration snippet in your nginx.conf file:
                 echo_sleep 1;  # sleep for 1 sec here...
                 echo 'after sleep';
             }
+
+            location /timed_sleep {
+                echo_sleep 0.03;
+                echo "$echo_timer_elapsed sec elapsed.";
+
+                echo_reset_timer;
+                echo_sleep 0.02;
+                echo "$echo_timer_elapsed sec elapsed.";
+            }
             ...
         }
         ...
     }
 
 As you can see, the directives currently provided by this module are
-"echo", "echo_client_request_headers", "echo_sleep", and "echo_flush".
-And there's also an "echo_blocking_sleep" directive for completeness.
+"echo", "echo_client_request_headers", "echo_sleep", "echo_flush",
+and "echo_reset_timer". And there's also an "echo_blocking_sleep"
+directive for completeness.
 
 The "echo_sleep" directive is a non-blocking sleep on the server side. So if your
 nginx worker process is "sleeping" for one request, it could serve other requests
@@ -98,6 +108,14 @@ After starting the nginx server, one can query it these ways:
     real    0m1.018s
     user    0m0.012s
     sys     0m0.008s
+
+    $ curl 'http://localhost/timed_sleep'
+    0.032 sec elapsed.
+    0.020 sec elapsed.
+
+Variables
+
+This module implements the $echo_timer_elapsed variable.
 
 Test suite
 
