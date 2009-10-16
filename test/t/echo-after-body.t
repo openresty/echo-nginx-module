@@ -29,7 +29,7 @@ hello
 --- config
     location /echo {
         echo_after_body hello;
-        proxy_pass $request_uri/more;
+        proxy_pass http://127.0.0.1:$server_port$request_uri/more;
     }
     location /echo/more {
         echo world
@@ -133,5 +133,28 @@ hello
 hiya
 ////////
 world
+igor
+
+
+=== TEST 2: echo around proxy
+--- config
+    location /echo {
+        echo_before_body hello;
+        echo_before_body world;
+        #echo $scheme://$host:$server_port$request_uri/more;
+        proxy_pass $scheme://127.0.0.1:$server_port$request_uri/more;
+        echo_after_body hiya;
+        echo_after_body igor;
+    }
+    location /echo/more {
+        echo blah;
+    }
+--- request
+    GET /echo
+--- response_body
+hello
+world
+blah
+hiya
 igor
 

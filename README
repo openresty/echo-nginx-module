@@ -59,6 +59,18 @@ This is a sample configuration snippet in your nginx.conf file:
                 echo_sleep 0.02;
                 echo "$echo_timer_elapsed sec elapsed.";
             }
+
+            location /filtered {
+                echo_before_body hello;
+                echo_before_body world;
+                proxy_pass http://127.0.0.1:$server_port$request_uri/more;
+                echo_after_body hiya;
+                echo_after_body igor;
+            }
+            location /filtered/more {
+                echo more...;
+            }
+
             ...
         }
         ...
@@ -66,8 +78,9 @@ This is a sample configuration snippet in your nginx.conf file:
 
 As you can see, the directives currently provided by this module are
 "echo", "echo_client_request_headers", "echo_sleep", "echo_flush",
-and "echo_reset_timer". And there's also an "echo_blocking_sleep"
-directive for completeness.
+"echo_reset_timer", "echo_before_body", and "echo_after_body".
+
+And there's also an "echo_blocking_sleep" directive for completeness.
 
 The "echo_sleep" directive is a non-blocking sleep on the server side. So if your
 nginx worker process is "sleeping" for one request, it could serve other requests
@@ -113,6 +126,13 @@ After starting the nginx server, one can query it these ways:
     $ curl 'http://localhost/timed_sleep'
     0.032 sec elapsed.
     0.020 sec elapsed.
+
+    $ curl 'http://localhost:8080/filtered'
+    hello
+    world
+    more...
+    hiya
+    igor
 
 Variables
 
