@@ -68,13 +68,15 @@ typedef struct {
 
     /* index of the next before-body filter command in
      * ngx_http_echo_loc_conf_t's "before_body_cmds" array. */
-    ngx_uint_t       next_before_filter_cmd;
+    ngx_uint_t       next_before_body_cmd;
 
     /* index of the next after-body filter command in
      * ngx_http_echo_loc_conf_t's "after_body_cmds" array. */
-    ngx_uint_t       next_after_filter_cmd;
+    ngx_uint_t       next_after_body_cmd;
 
     ngx_flag_t       headers_sent;
+    ngx_flag_t       before_body_sent;
+    ngx_flag_t       skip_filter;
 
     ngx_time_t       timer_begin;
 } ngx_http_echo_ctx_t;

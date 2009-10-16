@@ -1,6 +1,6 @@
 /* Copyright (C) by agentzh */
 
-#define DDEBUG 0
+#define DDEBUG 1
 
 #include "ddebug.h"
 #include "ngx_http_echo_module.h"
@@ -10,9 +10,11 @@
 #include <ngx_log.h>
 #include <stdlib.h>
 
-static ngx_http_output_header_filter_pt ngx_http_next_header_filter = NULL;
+static ngx_http_output_header_filter_pt ngx_http_next_header_filter;
 
-static ngx_http_output_body_filter_pt ngx_http_next_body_filter = NULL;
+static ngx_http_output_body_filter_pt ngx_http_next_body_filter;
+
+static ngx_flag_t ngx_http_echo_filter_used = 0;
 
 static ngx_buf_t ngx_http_echo_space_buf;
 
@@ -51,8 +53,13 @@ static char* ngx_http_echo_echo_blocking_sleep(ngx_conf_t *cf,
 static char* ngx_http_echo_echo_reset_timer(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
 
-static char*
-ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
+static char* ngx_http_echo_echo_before_body(ngx_conf_t *cf,
+        ngx_command_t *cmd, void *conf);
+
+static char* ngx_http_echo_echo_after_body(ngx_conf_t *cf,
+        ngx_command_t *cmd, void *conf);
+
+static char* ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
         ngx_http_echo_cmd_category_t cat,
         ngx_conf_t *cf, ngx_command_t *cmd, void* conf);
 
@@ -86,6 +93,10 @@ static ngx_int_t ngx_http_echo_send_chain_link(ngx_http_request_t* r,
 
 /* write event handler for echo_sleep */
 static void ngx_http_echo_post_sleep(ngx_http_request_t *r);
+
+/* filter handlers */
+static ngx_int_t ngx_http_echo_exec_filter_cmds(ngx_http_request_t *r,
+        ngx_http_echo_ctx_t *ctx, ngx_array_t *cmds, ngx_uint_t *iterator);
 
 /* variable handler */
 static ngx_int_t ngx_http_echo_timer_elapsed_variable(ngx_http_request_t *r,
@@ -140,6 +151,18 @@ static ngx_command_t  ngx_http_echo_commands[] = {
       NGX_HTTP_LOC_CONF_OFFSET,
       offsetof(ngx_http_echo_loc_conf_t, handler_cmds),
       NULL },
+    { ngx_string("echo_before_body"),
+      NGX_HTTP_LOC_CONF|NGX_CONF_ANY,
+      ngx_http_echo_echo_before_body,
+      NGX_HTTP_LOC_CONF_OFFSET,
+      offsetof(ngx_http_echo_loc_conf_t, before_body_cmds),
+      NULL },
+    { ngx_string("echo_after_body"),
+      NGX_HTTP_LOC_CONF|NGX_CONF_ANY,
+      ngx_http_echo_echo_after_body,
+      NGX_HTTP_LOC_CONF_OFFSET,
+      offsetof(ngx_http_echo_loc_conf_t, after_body_cmds),
+      NULL },
 
     /* TODO
     { ngx_string("echo_location"),
@@ -154,27 +177,14 @@ static ngx_command_t  ngx_http_echo_commands[] = {
       NGX_HTTP_LOC_CONF_OFFSET,
       0,
       NULL },
-
-    { ngx_string("echo_before_body"),
-      NGX_HTTP_LOC_CONF|NGX_CONF_1MORE,
-      ngx_http_echo_echo_before_body,
-      NGX_HTTP_LOC_CONF_OFFSET,
-      0,
-      NULL },
-    { ngx_string("echo_after_body"),
-      NGX_HTTP_LOC_CONF|NGX_CONF_1MORE,
-      ngx_http_echo_echo_after_body,
-      NGX_HTTP_LOC_CONF_OFFSET,
-      0,
-      NULL },
     */
       ngx_null_command
 };
 
 static ngx_http_module_t ngx_http_echo_module_ctx = {
     /* TODO we could add our own variables here... */
-    ngx_http_echo_init,                          /* preconfiguration */
-    NULL,                          /* postconfiguration */
+    ngx_http_echo_init,                         /* preconfiguration */
+    ngx_http_echo_filter_init,                  /* postconfiguration */
 
     NULL,                          /* create main configuration */
     NULL,                          /* init main configuration */
@@ -231,14 +241,16 @@ ngx_http_echo_init(ngx_conf_t *cf) {
 
 static ngx_int_t
 ngx_http_echo_filter_init (ngx_conf_t *cf) {
-    if (ngx_http_next_header_filter == NULL) {
+    if (ngx_http_echo_filter_used) {
+        DD("top header filter: %ld", (unsigned long) ngx_http_top_header_filter);
         ngx_http_next_header_filter = ngx_http_top_header_filter;
         ngx_http_top_header_filter  = ngx_http_echo_header_filter;
-    }
-    if (ngx_http_next_body_filter == NULL) {
+
+        DD("top body filter: %ld", (unsigned long) ngx_http_top_body_filter);
         ngx_http_next_body_filter = ngx_http_top_body_filter;
         ngx_http_top_body_filter  = ngx_http_echo_body_filter;
     }
+
     return NGX_OK;
 }
 
@@ -287,9 +299,8 @@ ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
             DD("registering the content handler (2)");
             clcf->handler = ngx_http_echo_handler;
         } else {
-            /* the init function itself will ensure
-             * it does NOT initialize twice */
-            ngx_http_echo_filter_init(cf);
+            DD("filter used = 1");
+            ngx_http_echo_filter_used = 1;
         }
     }
     echo_cmd = ngx_array_push(*cmds_ptr);
@@ -373,10 +384,28 @@ ngx_http_echo_echo_blocking_sleep(ngx_conf_t *cf, ngx_command_t *cmd, void *conf
             cf, cmd, conf);
 }
 
-static char* ngx_http_echo_echo_reset_timer(ngx_conf_t *cf,
+static char*
+ngx_http_echo_echo_reset_timer(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf) {
     return ngx_http_echo_helper(echo_opcode_echo_reset_timer,
             echo_handler_cmd,
+            cf, cmd, conf);
+}
+
+static char*
+ngx_http_echo_echo_before_body(ngx_conf_t *cf,
+        ngx_command_t *cmd, void *conf) {
+    DD("processing echo_before_body directive...");
+    return ngx_http_echo_helper(echo_opcode_echo_before_body,
+            echo_filter_cmd,
+            cf, cmd, conf);
+}
+
+static char*
+ngx_http_echo_echo_after_body(ngx_conf_t *cf,
+        ngx_command_t *cmd, void *conf) {
+    return ngx_http_echo_helper(echo_opcode_echo_after_body,
+            echo_filter_cmd,
             cf, cmd, conf);
 }
 
@@ -430,7 +459,7 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
             if (rc != NGX_OK) {
                 ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
                         "Failed to evaluate arguments for "
-                        "the \"echo\" directive.");
+                        "the directive.");
                 return rc;
             }
         }
@@ -628,17 +657,163 @@ ngx_http_echo_send_chain_link(ngx_http_request_t* r,
 
 static ngx_int_t
 ngx_http_echo_header_filter(ngx_http_request_t *r) {
-    /* TODO */
-    return NGX_OK;
+    ngx_http_echo_loc_conf_t    *conf;
+    ngx_http_echo_ctx_t         *ctx;
+    ngx_int_t                   rc;
+
+    DD("We're in the header filter...");
+
+    ctx = ngx_http_get_module_ctx(r, ngx_http_echo_module);
+
+    /* XXX we should add option to insert contents for responses
+     * of non-200 status code here... */
+    if (r->headers_out.status != NGX_HTTP_OK) {
+        if (ctx != NULL) {
+            ctx->skip_filter = 1;
+        }
+        return ngx_http_next_header_filter(r);
+    }
+
+    conf = ngx_http_get_module_loc_conf(r, ngx_http_echo_module);
+    if (conf->before_body_cmds == NULL && conf->after_body_cmds == NULL) {
+        if (ctx != NULL) {
+            ctx->skip_filter = 1;
+        }
+        return ngx_http_next_header_filter(r);
+    }
+
+    if (ctx == NULL) {
+        rc = ngx_http_echo_init_ctx(r, &ctx);
+        if (rc != NGX_OK) {
+            return NGX_ERROR;
+        }
+        ctx->headers_sent = 1;
+        ngx_http_set_ctx(r, ctx, ngx_http_echo_module);
+    }
+
+    /* enable streaming here (use chunked encoding) */
+    ngx_http_clear_content_length(r);
+    ngx_http_clear_accept_ranges(r);
+
+    return ngx_http_next_header_filter(r);
 }
 
 static ngx_int_t
 ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in) {
-    /* TODO */
+    ngx_http_echo_ctx_t         *ctx;
+    ngx_int_t                   rc;
+    ngx_http_echo_loc_conf_t    *conf;
+    ngx_flag_t                  last;
+    ngx_chain_t                 *cl;
+
+    if (in == NULL || r->header_only) {
+        return ngx_http_next_body_filter(r, in);
+    }
+
+    ctx = ngx_http_get_module_ctx(r, ngx_http_echo_module);
+
+    if (ctx == NULL || ctx->skip_filter) {
+        return ngx_http_next_body_filter(r, in);
+    }
+
+    conf = ngx_http_get_module_loc_conf(r, ngx_http_echo_module);
+
+    if (!ctx->before_body_sent) {
+        ctx->before_body_sent = 1;
+
+        if (conf->before_body_cmds != NULL) {
+            rc = ngx_http_echo_exec_filter_cmds(r, ctx, conf->before_body_cmds,
+                    &ctx->next_before_body_cmd);
+            if (rc != NGX_OK) {
+                return NGX_ERROR;
+            }
+        }
+    }
+
+    if (conf->after_body_cmds == NULL) {
+        ctx->skip_filter = 1;
+        return ngx_http_next_body_filter(r, in);
+    }
+
+    last = 0;
+
+    for (cl = in; cl; cl = cl->next) {
+        if (cl->buf->last_buf) {
+            cl->buf->last_buf = 0;
+            cl->buf->sync = 1;
+            last = 1;
+        }
+    }
+
+    rc = ngx_http_next_body_filter(r, in);
+
+    if (rc == NGX_ERROR || !last) {
+        return rc;
+    }
+
+    DD("exec filter cmds for after body cmds");
+    rc = ngx_http_echo_exec_filter_cmds(r, ctx, conf->after_body_cmds, &ctx->next_after_body_cmd);
+    if (rc != NGX_OK) {
+        DD("FAILED: exec filter cmds for after body cmds");
+        return NGX_ERROR;
+    }
+
+    ctx->skip_filter = 1;
+
+    DD("after body cmds executed...terminating...");
+
+    return ngx_http_send_special(r, NGX_HTTP_LAST);
+}
+
+static ngx_int_t
+ngx_http_echo_exec_filter_cmds(ngx_http_request_t *r,
+        ngx_http_echo_ctx_t *ctx, ngx_array_t *cmds,
+        ngx_uint_t *iterator) {
+    ngx_int_t                   rc;
+    ngx_array_t                 *computed_args = NULL;
+    ngx_http_echo_cmd_t         *cmd;
+    ngx_http_echo_cmd_t         *cmd_elts;
+
+    cmd_elts = cmds->elts;
+    for (; *iterator < cmds->nelts; (*iterator)++) {
+        cmd = &cmd_elts[*iterator];
+
+        /* evaluate arguments for the current cmd (if any) */
+        if (cmd->args) {
+            computed_args = ngx_array_create(r->pool, cmd->args->nelts,
+                    sizeof(ngx_str_t));
+            if (computed_args == NULL) {
+                return NGX_HTTP_INTERNAL_SERVER_ERROR;
+            }
+            rc = ngx_http_echo_eval_cmd_args(r, cmd, computed_args);
+            if (rc != NGX_OK) {
+                ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
+                        "Failed to evaluate arguments for "
+                        "the directive.");
+                return rc;
+            }
+        }
+
+        /* do command dispatch based on the opcode */
+        switch (cmd->opcode) {
+            case echo_opcode_echo_before_body:
+            case echo_opcode_echo_after_body:
+                DD("exec echo_before_body or echo_after_body...");
+                rc = ngx_http_echo_exec_echo(r, ctx, computed_args);
+                if (rc != NGX_OK) {
+                    return rc;
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
     return NGX_OK;
 }
 
-static ngx_int_t ngx_http_echo_eval_cmd_args(ngx_http_request_t *r,
+static ngx_int_t
+ngx_http_echo_eval_cmd_args(ngx_http_request_t *r,
         ngx_http_echo_cmd_t *cmd, ngx_array_t *computed_args) {
     ngx_uint_t                      i;
     ngx_array_t                     *args = cmd->args;

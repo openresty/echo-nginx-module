@@ -22,7 +22,6 @@ if [[ "$BUILD_CLEAN" -eq 1 || ! -f Makefile ]]; then
           --without-http_map_module  \
           --without-http_referer_module  \
           --without-http_rewrite_module  \
-          --without-http_proxy_module    \
           --without-http_fastcgi_module   \
           --without-http_memcached_module  \
           --without-http_limit_zone_module  \
@@ -31,6 +30,7 @@ if [[ "$BUILD_CLEAN" -eq 1 || ! -f Makefile ]]; then
           --without-http_browser_module  \
           --without-http_upstream_ip_hash_module \
           --add-module=$root $opts
+          #--without-http_proxy_module    \
 fi
 if [ -f /opt/nginx/sbin/nginx ]; then
     rm -f /opt/nginx/sbin/nginx
