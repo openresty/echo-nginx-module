@@ -78,3 +78,20 @@ __DATA__
 ^elapsed 0\.0(1[6-9]|2[0-5]) sec\.
 elapsed 0\.0(2[6-9]|3[0-5]) sec\.$
 
+
+
+=== TEST 6: reset timer between blocking sleeps
+--- config
+    location /timer {
+        echo_blocking_sleep 0.02;
+        echo "elapsed $echo_timer_elapsed sec.";
+        echo_reset_timer;
+        echo_blocking_sleep 0.03;
+        echo "elapsed $echo_timer_elapsed sec.";
+    }
+--- request
+    GET /timer
+--- response_body_like
+^elapsed 0\.0(1[6-9]|2[0-5]) sec\.
+elapsed 0\.0(2[6-9]|3[0-5]) sec\.$
+
