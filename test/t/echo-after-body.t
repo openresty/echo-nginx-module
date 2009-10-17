@@ -25,7 +25,7 @@ hello
 
 
 
-=== TEST 2: echo before proxy
+=== TEST 2: echo after proxy
 --- config
     location /echo {
         echo_after_body hello;

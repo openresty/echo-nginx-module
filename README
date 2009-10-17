@@ -1,197 +1,548 @@
+Name
+    echo-nginx-module - Brings "echo", "sleep", "time", "flush" and more
+    shell-style goodies to Nginx config file.
+
+    *This module is not distributed with the Nginx source. See the
+    installation instructions.*
+
+Version
+    This document describes echo-nginx-module v0.07
+    (<http://github.com/agentzh/echo-nginx-module/downloads>) released on
+    Oct 16, 2009.
+
+Synopsis
+      location /hello {
+        echo "hello, world!";
+      }
+
+
+
+      location /timed_hello {
+        echo_reset_timer;
+        echo hello world;
+        echo "'hello world' takes about $echo_timer_elapsed sec.";
+        echo hiya igor;
+        echo "'hiya igor' takes about $echo_timer_elapsed sec.";
+      }
+
+
+
+      location /echoback {
+        echo "you request header looks like this:";
+        echo;
+        echo_client_request_headers;
+        echo "--------------- END ----------------";
+      }
+
+
+
+      location /serverinfo {
+        echo "Server name: $server_name";
+        echo "Server address: $server_addr";
+        echo "Server port: $server_port";
+        echo "Server protocol: $server_protocol";
+      }
+
+
+
+      location /echo_with_sleep {
+        echo hello;
+        echo_flush;  # ensure the client can see previous output immediately
+        echo_sleep   2.5;  # in sec
+        echo world;
+      }
+
+
+
+      # in the following example, accessing /echo yields
+      #   hello
+      #   world
+      #   blah
+      #   hiya
+      #   igor
+      location /echo {
+          echo_before_body hello;
+          echo_before_body world;
+          proxy_pass $scheme://127.0.0.1:$server_port$request_uri/more;
+          echo_after_body hiya;
+          echo_after_body igor;
+      }
+      location /echo/more {
+          echo blah;
+      }
+
 Description
+    This module provides various utilities that help testing and debugging
+    of other modules by trivially emulating different kinds of faked
+    subrequest locations.
 
-This is an Nginx module for bringing the power of "echo", "sleep", "time" and
-more to Nginx's config file.
+    People will also find it useful in real-world applications that need to
 
-Installation
+    1.
+    2.
 
-Grab the nginx source code from http://nginx.net/ (version 0.7.62
-and 0.8.20 have been tested on my side), for example,
-the version 0.8.20 and then build the source with this module:
+    This is a special dual-role module that can serve as a content handler
+    or lazily register itself as an output filter upon demand.
 
-    $ wget 'http://sysoev.ru/nginx/nginx-0.8.20.tar.gz'
-    $ tar -xzvf nginx-0.8.20.tar.gz
-    $ cd nginx-0.8.20/
-    $ ./configure --prefix=/opt/nginx \
-        --add-module=/path/to/echo-nginx-module
+    Use of any of this module's directive (no matter content handler
+    directive or filter directive) will force the chunked encoding to be
+    used for the HTTP response due to the streaming nature of this module.
 
-Configuration
+Content Handler Directives
+    Use of the following directives register this module to the current
+    Nginx location as a content handler. If you want to use another module,
+    such as standard proxy module, as the content handler, use the filter
+    directives provided by this module.
 
-This is a sample configuration snippet in your nginx.conf file:
+    The MIME type set by the standard default_type directive is respected by
+    this module, as in:
 
-    http {
-        ...
-        server {
-            ...
+      location /hello {
+        default_type text/plain;
+        echo hello;
+      }
 
-            default_type text/plain;
+    Then on the client side:
 
-            location /hello {
-                echo 'hello, world';
-                echo;
-                echo hello world;
-            }
+      $ curl -I 'http://localhost/echo'
+      HTTP/1.1 200 OK
+      Server: nginx/0.8.20
+      Date: Sat, 17 Oct 2009 03:40:19 GMT
+      Content-Type: text/plain
+      Connection: keep-alive
 
-            location /echoback {
-                echo "------------------------";
-                echo_client_request_headers;
-            }
+  echo
+    syntax: *echo [argument]...*
 
-            location /server {
-                echo "Server name: $server_name";
-                echo "Server address: $server_addr";
-                echo "Server port: $server_port";
-                echo "Server protocol: $server_protocol";
-            }
+    default: *no*
 
-            location /echo_with_sleep {
-                echo 'before sleep';
-                echo_flush;  # need this to force flushing outputs before sleep
-                echo_sleep 1;  # sleep for 1 sec here...
-                echo 'after sleep';
-            }
+    context: *location*
 
-            location /timed_sleep {
-                echo_sleep 0.03;
-                echo "$echo_timer_elapsed sec elapsed.";
+    This is a content handler command. Sends arguments joined by spaces,
+    along with a trailing newline, out to the client.
 
-                echo_reset_timer;
-                echo_sleep 0.02;
-                echo "$echo_timer_elapsed sec elapsed.";
-            }
+    Note that the data might be buffered by Nginx's underlying buffer. To
+    force the output data flushed immediately, use the echo_flush command
+    just after "echo", as in
 
-            location /filtered {
-                echo_before_body hello;
-                echo_before_body world;
-                proxy_pass http://127.0.0.1:$server_port$request_uri/more;
-                echo_after_body hiya;
-                echo_after_body igor;
-            }
-            location /filtered/more {
-                echo more...;
-            }
+       echo hello world;
+       echo_flush;
 
-            ...
+    When no argument is specified, *echo* emits the trailing newline alone,
+    just like the *echo* command in shell.
+
+    Variables may appear in the arguments. An example is
+
+       echo The current request uri is $request_uri;
+
+    where $request_uri is a variable exposed by the [[NginxHttpCoreModule]].
+
+    This command can be used multiple times in a single location
+    configuration, as in
+
+        location /echo {
+            echo hello;
+            echo world;
         }
-        ...
-    }
 
-As you can see, the directives currently provided by this module are
-"echo", "echo_client_request_headers", "echo_sleep", "echo_flush",
-"echo_reset_timer", "echo_before_body", and "echo_after_body".
+    The output on the client side looks like this
 
-And there's also an "echo_blocking_sleep" directive for completeness.
+        $ curl 'http://localhost/echo'
+        hello
+        world
 
-The "echo_sleep" directive is a non-blocking sleep on the server side. So if your
-nginx worker process is "sleeping" for one request, it could serve other requests
-*at the same time*. On my laptop, with only 1 nginx worker process, my nginx can
-achieve 5500+ requests per second at the concurrency level of 10k.
+    This command can be mixed with other content handler commands like
+    echo_sleep and echo_client_request_headers and are executed
+    sequentially.
 
-On the other hand, "echo_blocking_sleep" is a blocking version of
-"echo_sleep" and it will freeze the whole Nginx worker process. It's
-provided merely meant to be compared with "echo_sleep". And you should
-never use it for production.
+  echo_flush
+    syntax: *echo_flush*
 
-The "echo_flush" directive is needed whenever you need to force flushing the previous
-outputs potentially buffered without sending to the client.
+    default: *no*
 
-After starting the nginx server, one can query it these ways:
+    context: *location*
 
-    $ curl 'http://localhost/hello'
-    hello, world
+    Forces the data potentially buffered by underlying Nginx output filters
+    to send immediately to the client side via socket.
 
-    hello world
+    Note that techically the command just emits a ngx_buf_t object with
+    "flush" slot set to 1, so certain weird third-party output filter module
+    could still block it before it reaches Nginx's (last) write filter.
 
-    $ curl 'http://localhost/echoback'
-    ------------------------
-    GET /echoback HTTP/1.1
-    User-Agent: curl/7.18.2 (i486-pc-linux-gnu) libcurl/7.18.2 OpenSSL/0.9.8g zlib/1.2.3.3 libidn/1.10
-    Host: localhost
-    Accept: */*
+    This directive does not take any argument.
 
-    $ curl 'http://localhost/server'
-    Server name: localhost
-    Server address: 127.0.0.1
-    Server port: 80
-    Server protocol: HTTP/1.1
+    Consider the following example:
 
-    $ time curl 'http://localhost/echo_with_sleep'
-    before sleep
-    after sleep
+      location /flush {
+         echo hello;
 
-    real    0m1.018s
-    user    0m0.012s
-    sys     0m0.008s
+         echo_flush;
 
-    $ curl 'http://localhost/timed_sleep'
-    0.032 sec elapsed.
-    0.020 sec elapsed.
+         echo_sleep 1;
+         echo world;
+      }
 
-    $ curl 'http://localhost:8080/filtered'
-    hello
-    world
-    more...
-    hiya
-    igor
+    Then on the client side, using curl to access "/flush", you'll see the
+    "hello" line immediately, but only after 1 second, the last "world"
+    line. Without calling "echo_flush" in the example above, you'll most
+    likely see no output until 1 second is elapsed due to the internal
+    buffering of Nginx.
+
+    This command can be mixed with other content handler commands like
+    echo_sleep and echo_client_request_headers and are executed
+    sequentially.
+
+    See also echo and echo_sleep.
+
+  echo_sleep
+    syntax: *echo_sleep <seconds*>
+
+    default: *no*
+
+    context: *location*
+
+    Sleeps for the time period specified by the argument, which is in
+    seconds.
+
+    This operation is non-blocking on server side, so unlike the
+    echo_blocking_sleep directive, it won't block the whole Nginx worker
+    process.
+
+    Behind the scene, it registers a connection write handle timer to the
+    Nginx event model and just waits for a timeout on that handle.
+
+    The period might takes three digits after the decimal point and must be
+    greater than 0.001.
+
+    An example is
+
+       location /echo_after_sleep {
+           echo_sleep 1.234;
+           echo resumed!;
+       }
+
+    This command can be mixed with other content handler commands like
+    echo_reset_timer and echo_client_request_headers and are executed
+    sequentially.
+
+  echo_blocking_sleep
+    syntax: *echo_blocking_sleep <seconds*>
+
+    default: *no*
+
+    context: *location*
+
+    This is a blocking version of the echo_sleep directive.
+
+    See the documentation of echo_sleep for more detail.
+
+    Behind the curtain, it calls the ngx_msleep macro provided by the Nginx
+    core which maps to usleep on POSIX-compliant systems or WinSock select
+    on Windows.
+
+    Note that this directive will block the current Nginx worker process
+    completely while being executed, so never use it in production
+    environment.
+
+  echo_reset_timer
+    syntax: *echo_reset_timer*
+
+    default: *no*
+
+    context: *location*
+
+    Reset the timer begin time to *now*, i.e., the time when this command is
+    executed during request.
+
+    The timer begin time is default to the starting time of the current
+    request and can be overridden by this directive, potentially multiple
+    times in a single location. For example:
+
+      location /timed_sleep {
+          echo_sleep 0.03;
+          echo "$echo_timer_elapsed sec elapsed.";
+
+          echo_reset_timer;
+
+          echo_sleep 0.02;
+          echo "$echo_timer_elapsed sec elapsed.";
+      }
+
+    The output on the client side might be
+
+        $ curl 'http://localhost/timed_sleep'
+        0.032 sec elapsed.
+        0.020 sec elapsed.
+
+    The actual figures you get on your side may vary a bit due to your
+    system's current activities.
+
+    Invocation of this directive will force the underlying Nginx timer to
+    get updated to the current system time (regardless the timer resolution
+    specified elsewhere in the config file). Furthermore, references of the
+    $echo_timer_elapsed variable will also trigger timer update forcibly.
+
+    This command can be mixed with other content handler commands like
+    echo_sleep and echo_client_request_headers and are executed
+    sequentially.
+
+    See also echo_sleep and $echo_timer_elapsed.
+
+  echo_client_request_headers
+    syntax: *echo_reset_timer*
+
+    default: *no*
+
+    context: *location*
+
+    Outputs the original client request's headers.
+
+    Just as the name suggests, it will always take the main request even if
+    it's currently executed in a subrequest.
+
+    A simple example is below:
+
+      location /echoback {
+         echo "headers are:"
+         echo_client_request_headers;
+      }
+
+    Accessing "/echoback" yields
+
+      $ curl 'http://localhost/echoback'
+      headers are
+      GET /echoback HTTP/1.1
+      User-Agent: curl/7.18.2 (i486-pc-linux-gnu) libcurl/7.18.2 OpenSSL/0.9.8g
+      Host: localhost:1984
+      Accept: */*
+
+    Behind the scene, it recovers "r-"main->header_in> on the C level and
+    does not construct the headers itself by traversing parsed results in
+    the request object.
+
+    This command can be mixed with other content handler commands like
+    echo_sleep and echo_flush and are executed sequentially.
+
+Filter Directives
+    Use of the following directives trigger the filter registration of this
+    module. By default, no filter will be registered by this module.
+
+  echo_before_body
+    syntax: *echo_before_body [argument]...*
+
+    default: *no*
+
+    context: *location*
+
+    It's the filter version of the echo directive, and prepends its output
+    to the beginning of the original outputs generated by the underlying
+    content handler.
+
+    An example is
+
+        location /echo {
+            echo_before_body hello;
+            proxy_pass $scheme://127.0.0.1:$server_port$request_uri/more;
+        }
+        location /echo/more {
+            echo world
+        }
+
+    Accessing "/echo" from the client side yields
+
+      hello
+      world
+
+    In the previous sample, we borrow the standard proxy module to serve as
+    the underlying content handler that generates the "main contents".
+
+    Multiple instances of this filter directive are also allowed, as in:
+
+        location /echo {
+            echo_before_body hello;
+            echo_before_body world;
+            echo !;
+        }
+
+    On the client side, the output is like
+
+      $ curl 'http://localhost/echo'
+      hello
+      world
+      !
+
+    In this example, we also use the content handler directives provided by
+    this module as the underlying content handler.
+
+    This directive can be mixed with its brother directive echo_after_body.
+
+  echo_after_body
+    syntax: *echo_after_body [argument]...*
+
+    default: *no*
+
+    context: *location*
+
+    It's very much like the echo_before_body directive, but *appends* its
+    output to the end of the original outputs generated by the underlying
+    content handler.
+
+    Here's a simple example:
+
+        location /echo {
+            echo_after_body hello;
+            proxy_pass http://127.0.0.1:$server_port$request_uri/more;
+        }
+        location /echo/more {
+            echo world
+        }
+
+    Accessing "/echo" from the client side yields
+
+      world
+      hello
+
+    Multiple instances are allowed, as in:
+
+        location /echo {
+            echo_after_body hello;
+            echo_after_body world;
+            echo i;
+            echo say;
+        }
+
+    The output on the client side while accessing the "/echo" location looks
+    like
+
+      i
+      say
+      hello
+      world
+
+    This directive can be mixed with its brother directive echo_before_body.
 
 Variables
+  $echo_timer_elapsed
+    This variable holds the seconds elapsed since the start of the current
+    request (might be a subrequest though) or the last invocation of the
+    echo_reset_timer command.
 
-This module implements the $echo_timer_elapsed variable.
+    The timing result takes three digits after the decimal point.
 
-Test suite
+    References of this variable will force the underlying Nginx timer to
+    update to the current system time, regardless the timer resolution
+    settings elsewhere in the config file, just like the echo_reset_timer
+    directive.
 
-This module comes with a Perl-driven test suite. The test cases are
-declarative too. Thanks to the Test::Base module in the Perl world.
+Installation
+    Grab the nginx source code from nginx.net (<http://nginx.net/>), for
+    example, the version 0.8.20 (see nginx compatibility), and then build
+    the source with this module:
 
-To run it on your side:
+        $ wget 'http://sysoev.ru/nginx/nginx-0.8.20.tar.gz'
+        $ tar -xzvf nginx-0.8.20.tar.gz
+        $ cd nginx-0.8.20/
+        $ ./configure --prefix=/opt/nginx \
+            --add-module=/path/to/echo-nginx-module
 
-    $ cd test
-    $ PATH=/path/to/your/nginx-with-echo-module:$PATH prove -r t
+    Download the latest version of the release tarball of this module from
+    echo-nginx-module file list
+    (<http://github.com/agentzh/echo-nginx-module/downloads>).
 
-You need to terminate any nginx processes before running the test
-suite if you have changed the nginx server binary.
+Compatibility
+    The following versions of Nginx should work with this module:
+
+    *   0.8.x (last tested version is 0.8.20)
+
+    *   0.7.x = 0.7.21> (last tested version is 0.7.62)
+
+    Earlier versions of Nginx like 0.6.x and 0.5.x will *not* work.
+
+Source Repository
+    Available on github at agentzh/echo-nginx-module
+    (<http://github.com/agentzh/echo-nginx-module>).
+
+Test Suite
+    This module comes with a Perl-driven test suite. The test cases
+    (<http://github.com/agentzh/echo-nginx-module/tree/master/test/t/>) are
+    declarative
+    (<http://github.com/agentzh/echo-nginx-module/blob/master/test/t/echo.t>
+    ) too. Thanks to the Test::Base
+    (<http://search.cpan.org/perldoc?Test::Base>) module in the Perl world.
+
+    To run it on your side:
+
+        $ cd test
+        $ PATH=/path/to/your/nginx-with-echo-module:$PATH prove -Ilib -Iinc -r t
+
+    You need to terminate any nginx processes before running the test suite
+    if you have changed the nginx server binary.
 
 TODO
+    *   Add the *echo_file* and *echo_cached_file* directives.
 
-* Add echo_before_body and echo_after_body (output) filter directives.
-* Add echo_location and echo_location_async directives.
-* Add echo_file and echo_cached_file directives.
+    *   Add the *echo_duplicate* directive to generate specified large
+        amount of crappy outputs. For example, "echo_duplicate 1024 "a""
+        will generate 1KB of outputs consisting of tons of a's.
+
+    *   Add the *echo_location* and *echo_location_async* directives that
+        can insert contents of other Nginx locations via GET subrequests.
+
+    *   Add the *echo_subrequest* and *echo_subrequest_async* directives
+        that can initiate subrequests and insert the corresponding contents
+        herein.
+
+Getting involved
+    You'll be very welcomed to submit patches to the author or just ask for
+    a commit bit to the source repository on GitHub.
+
+Author
+    agentzh (章亦春) *<agentzh at gmail dot com*>
+
+    This wiki page is also maintained by the author himself, and everybody
+    is encouraged to improve this page as well.
 
 Copyright & License
+    Copyright (c) 2009, Taobao Inc., Alibaba Group ( http://www.taobao.com
+    ).
 
-Copyright (c) 2009, Taobao Inc., Alibaba Group ( http://www.taobao.com ).
-Copyright (c) 2009, agentzh <agentzh@gmail.com>.
+    Copyright (c) 2009, agentzh <agentzh at gmail dot com>.
 
-This module is licensed under the terms of the BSD license.
+    This module is licensed under the terms of the BSD license.
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions
-are met:
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are
+    met:
 
-    * Redistributions of source code must retain the above copyright
-    notice, this list of conditions and the following disclaimer.
+    *   Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
 
-    * Redistributions in binary form must reproduce the above copyright
-    notice, this list of conditions and the following disclaimer in the
-    documentation and/or other materials provided with the distribution.
+    *   Redistributions in binary form must reproduce the above copyright
+        notice, this list of conditions and the following disclaimer in the
+        documentation and/or other materials provided with the distribution.
 
-    * Neither the name of the Taobao Inc. nor the names of its
-    contributors may be used to endorse or promote products derived from
-    this software without specific prior written permission.
+    *   Neither the name of the Taobao Inc. nor the names of its
+        contributors may be used to endorse or promote products derived from
+        this software without specific prior written permission.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
-TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+    IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+    TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+    PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+    HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+    SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+    TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+    PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+    LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+    NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Contact the author
+See Also
+    *   The original blog post
+        (<http://agentzh.spaces.live.com/blog/cns!FF3A735632E41548!478.entry
+        >) about this module's initial development
 
-Please write to agentzh at gmail dot com whenever you have any questions.
+    *   The standard addition filter module
+
+    *   The standard proxy module
 

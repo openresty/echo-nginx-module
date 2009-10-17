@@ -25,7 +25,6 @@ if [[ "$BUILD_CLEAN" -eq 1 || ! -f Makefile ]]; then
           --without-http_fastcgi_module   \
           --without-http_memcached_module  \
           --without-http_limit_zone_module  \
-          --without-http_limit_req_module  \
           --without-http_empty_gif_module  \
           --without-http_browser_module  \
           --without-http_upstream_ip_hash_module \

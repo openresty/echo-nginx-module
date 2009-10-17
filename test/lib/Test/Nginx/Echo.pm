@@ -172,7 +172,8 @@ sub run_test ($) {
     #if (system("nginx -p $ServRoot -c $ConfFile -t") != 0) {
     #Test::More::BAIL_OUT("$name - Invalid config file");
     #}
-        my $cmd = "nginx -p $ServRoot -c $ConfFile > /dev/null";
+    #my $cmd = "nginx -p $ServRoot -c $ConfFile > /dev/null";
+        my $cmd = "nginx -c $ConfFile > /dev/null";
         if (system($cmd) != 0) {
             Test::More::BAIL_OUT("$name - Cannot start nginx using command \"$cmd\".");
             die;
