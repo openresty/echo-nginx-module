@@ -29,7 +29,7 @@ world
 --- config
     location /echo {
         echo_before_body hello;
-        proxy_pass $request_uri/more;
+        proxy_pass $scheme://127.0.0.1:$server_port$request_uri/more;
     }
     location /echo/more {
         echo world
