@@ -68,8 +68,12 @@ Description
 
     People will also find it useful in real-world applications that need to
 
-    1.
-    2.
+    1.  serve static contents directly from memory (loading from the Nginx
+        config file).
+
+    2.  wrap the upstream response with custom header and footer (kinda like
+        the addition module but with static contents directly in the config
+        file).
 
     This is a special dual-role module that can serve as a content handler
     or lazily register itself as an output filter upon demand.

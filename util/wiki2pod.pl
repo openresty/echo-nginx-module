@@ -79,6 +79,7 @@ while (<>) {
         }
         $nl_counts[$level]++;
         print "\n=item $nl_counts[$level].\n\n";
+        print "$txt\n";
     } elsif (/^(\*+) (.*)/) {
         my ($level, $txt) = (length($1) - 1, $2);
         if (defined $last_bl_count_level && $level != $last_bl_count_level) {
