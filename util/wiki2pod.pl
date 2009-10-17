@@ -14,14 +14,31 @@ sub fmt_pos ($) {
     $s;
 }
 
+sub fmt_mark ($$) {
+    my ($tag, $s) = @_;
+    my $max_level = 0;
+    while ($s =~ /([<>])\1*/g) {
+        my $level = length $&;
+        if ($level > $max_level) {
+            $max_level = $level;
+        }
+    }
+
+    my $times = $max_level + 1;
+    if ($times > 1) {
+        $s = " $s ";
+    }
+    return $tag . ('<' x $times) . $s . ('>' x $times);
+}
+
 print "=encoding utf-8\n\n";
 
 while (<>) {
     s{\[(http[^ \]]+) ([^\]]*)\]}{$2 (L<$1>)}gi;
     s{ \[\[ ( [^\]\|]+ ) \| ([^\]]*) \]\] }{"L<$2|" . fmt_pos($1) . ">"}gixe;
-    s{<code>(.*?)</code>}{C<$1>}gi;
-    s{'''(.*?)'''}{B<$1>}g;
-    s{''(.*?)''}{I<$1>}g;
+    s{<code>(.*?)</code>}{fmt_mark('C', $1)}gie;
+    s{'''(.*?)'''}{fmt_mark('B', $1)}ge;
+    s{''(.*?)''}{fmt_mark('I', $1)}ge;
     s{^\s*<[^>]+>\s*$}{};
 
     if (/^\s*$/) {

@@ -2,8 +2,8 @@ Name
     echo-nginx-module - Brings "echo", "sleep", "time", "flush" and more
     shell-style goodies to Nginx config file.
 
-    *This module is not distributed with the Nginx source. See the
-    installation instructions.*
+    *This module is not distributed with the Nginx source.* See the
+    installation instructions.
 
 Version
     This document describes echo-nginx-module v0.07
@@ -195,7 +195,7 @@ Content Handler Directives
     See also echo and echo_sleep.
 
   echo_sleep
-    syntax: *echo_sleep <seconds*>
+    syntax: *echo_sleep <seconds>*
 
     default: *no*
 
@@ -226,7 +226,7 @@ Content Handler Directives
     sequentially.
 
   echo_blocking_sleep
-    syntax: *echo_blocking_sleep <seconds*>
+    syntax: *echo_blocking_sleep <seconds>*
 
     default: *no*
 
@@ -316,7 +316,7 @@ Content Handler Directives
       Host: localhost:1984
       Accept: */*
 
-    Behind the scene, it recovers "r-"main->header_in> on the C level and
+    Behind the scene, it recovers "r->main->header_in" on the C level and
     does not construct the headers itself by traversing parsed results in
     the request object.
 
@@ -454,7 +454,7 @@ Compatibility
 
     *   0.8.x (last tested version is 0.8.20)
 
-    *   0.7.x = 0.7.21> (last tested version is 0.7.62)
+    *   0.7.x >= 0.7.21 (last tested version is 0.7.62)
 
     Earlier versions of Nginx like 0.6.x and 0.5.x will *not* work.
 
@@ -497,7 +497,7 @@ Getting involved
     a commit bit to the source repository on GitHub.
 
 Author
-    agentzh (章亦春) *<agentzh at gmail dot com*>
+    agentzh (章亦春) *<agentzh at gmail dot com>*
 
     This wiki page is also maintained by the author himself, and everybody
     is encouraged to improve this page as well.
