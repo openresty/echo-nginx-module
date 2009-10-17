@@ -39,7 +39,9 @@ while (<>) {
     s{<code>(.*?)</code>}{fmt_mark('C', $1)}gie;
     s{'''(.*?)'''}{fmt_mark('B', $1)}ge;
     s{''(.*?)''}{fmt_mark('I', $1)}ge;
-    s{^\s*<[^>]+>\s*$}{};
+    if (s{^\s*<[^>]+>\s*$}{}) {
+        next;
+    }
 
     if (/^\s*$/) {
         print "\n";

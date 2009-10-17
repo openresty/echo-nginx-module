@@ -15,8 +15,6 @@ Synopsis
         echo "hello, world!";
       }
 
-
-
       location /timed_hello {
         echo_reset_timer;
         echo hello world;
@@ -25,16 +23,12 @@ Synopsis
         echo "'hiya igor' takes about $echo_timer_elapsed sec.";
       }
 
-
-
       location /echoback {
         echo "you request header looks like this:";
         echo;
         echo_client_request_headers;
         echo "--------------- END ----------------";
       }
-
-
 
       location /serverinfo {
         echo "Server name: $server_name";
@@ -43,16 +37,12 @@ Synopsis
         echo "Server protocol: $server_protocol";
       }
 
-
-
       location /echo_with_sleep {
         echo hello;
         echo_flush;  # ensure the client can see previous output immediately
         echo_sleep   2.5;  # in sec
         echo world;
       }
-
-
 
       # in the following example, accessing /echo yields
       #   hello
