@@ -6,7 +6,7 @@
 
 = Version =
 
-This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/downloads v0.07] released on Oct 16, 2009.
+This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/downloads v0.08] released on Oct 18, 2009.
 
 = Synopsis =
 
@@ -440,6 +440,15 @@ Earlier versions of Nginx like 0.6.x and 0.5.x will ''not'' work.
 = Source Repository =
 
 Available on github at [http://github.com/agentzh/echo-nginx-module agentzh/echo-nginx-module].
+
+= ChangeLog =
+
+== v0.08 ==
+
+* <code>echo_sleep</code>: now we delete our <code>write event timer</code> in the <code>post_sleep</code> handle.
+* added <code>doc/manpage.wiki</code> which tracks changes in the [http://wiki.nginx.org/NginxHttpEchoModule wiki page].
+* added the <code>util/wiki2pod.pl</code> script to convert <code>doc/manpage.wiki</code> to <code>README</code>.
+* disabled the <code>DDEBUG</code> macro in the C source by default.
 
 = Test Suite =
 
