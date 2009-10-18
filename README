@@ -6,9 +6,9 @@ Name
     installation instructions.
 
 Version
-    This document describes echo-nginx-module v0.07
+    This document describes echo-nginx-module v0.08
     (<http://github.com/agentzh/echo-nginx-module/downloads>) released on
-    Oct 16, 2009.
+    Oct 18, 2009.
 
 Synopsis
       location /hello {
@@ -455,6 +455,19 @@ Compatibility
 Source Repository
     Available on github at agentzh/echo-nginx-module
     (<http://github.com/agentzh/echo-nginx-module>).
+
+ChangeLog
+  v0.08
+    *   "echo_sleep": now we delete our "write event timer" in the
+        "post_sleep" handle.
+
+    *   added "doc/manpage.wiki" which tracks changes in the wiki page
+        (<http://wiki.nginx.org/NginxHttpEchoModule>).
+
+    *   added the "util/wiki2pod.pl" script to convert "doc/manpage.wiki" to
+        "README".
+
+    *   disabled the "DDEBUG" macro in the C source by default.
 
 Test Suite
     This module comes with a Perl-driven test suite. The test cases
