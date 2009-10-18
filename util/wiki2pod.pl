@@ -2,6 +2,7 @@
 
 use strict;
 use warnings;
+use bytes;
 
 my @nl_counts;
 my $last_nl_count_level;
@@ -34,6 +35,17 @@ sub fmt_mark ($$) {
 print "=encoding utf-8\n\n";
 
 while (<>) {
+    if ($. == 1) {
+        # strip the leading U+FEFF byte in MS-DOS text files
+        my $first = ord(substr($_, 0, 1));
+        #printf STDERR "0x%x", $first;
+        #my $second = ord(substr($_, 2, 1));
+        #printf STDERR "0x%x", $second;
+        if ($first == 0xEF) {
+            substr($_, 0, 1, '');
+            #warn "Hit!";
+        }
+    }
     s{\[(http[^ \]]+) ([^\]]*)\]}{$2 (L<$1>)}gi;
     s{ \[\[ ( [^\]\|]+ ) \| ([^\]]*) \]\] }{"L<$2|" . fmt_pos($1) . ">"}gixe;
     s{<code>(.*?)</code>}{fmt_mark('C', $1)}gie;

@@ -467,10 +467,27 @@ Test Suite
     To run it on your side:
 
         $ cd test
-        $ PATH=/path/to/your/nginx-with-echo-module:$PATH prove -Ilib -Iinc -r t
+        $ PATH=/path/to/your/nginx-with-echo-module:$PATH prove -r t
 
-    You need to terminate any nginx processes before running the test suite
-    if you have changed the nginx server binary.
+    You need to terminate any Nginx processes before running the test suite
+    if you have changed the Nginx server binary.
+
+    At the moment, LWP::UserAgent
+    (<http://search.cpan.org/perldoc?LWP::UserAgent>) is used by the test
+    scaffold
+    (<http://github.com/agentzh/echo-nginx-module/blob/master/test/lib/Test/
+    Nginx/Echo.pm>) for simplicity and it's rather weak in testing
+    *streaming* behavior of Nginx (I'm using "curl" to test these aspects
+    manually for now). I'm considering coding up my own Perl HTTP client
+    library based on IO::Select
+    (<http://search.cpan.org/perldoc?IO::Select>) and IO::Socket
+    (<http://search.cpan.org/perldoc?IO::Socket>) (there might be already
+    one around?).
+
+    Because a single nginx server (by default, "localhost:1984") is used
+    across all the test scripts (".t" files), it's meaningless to run the
+    test suite in parallel by specifying "-jN" when invoking the "prove"
+    utility.
 
 TODO
     *   Add the *echo_file* and *echo_cached_file* directives.

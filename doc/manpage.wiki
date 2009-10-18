@@ -450,11 +450,14 @@ To run it on your side:
 
 <geshi lang="bash">
     $ cd test
-    $ PATH=/path/to/your/nginx-with-echo-module:$PATH prove -Ilib -Iinc -r t
+    $ PATH=/path/to/your/nginx-with-echo-module:$PATH prove -r t
 </geshi>
 
-You need to terminate any nginx processes before running the test
-suite if you have changed the nginx server binary.
+You need to terminate any Nginx processes before running the test suite if you have changed the Nginx server binary.
+
+At the moment, [http://search.cpan.org/perldoc?LWP::UserAgent LWP::UserAgent] is used by the [http://github.com/agentzh/echo-nginx-module/blob/master/test/lib/Test/Nginx/Echo.pm test scaffold] for simplicity and it's rather weak in testing ''streaming'' behavior of Nginx (I'm using "curl" to test these aspects manually for now). I'm considering coding up my own Perl HTTP client library based on [http://search.cpan.org/perldoc?IO::Select IO::Select] and [http://search.cpan.org/perldoc?IO::Socket IO::Socket] (there might be already one around?).
+
+Because a single nginx server (by default, <code>localhost:1984</code>) is used across all the test scripts (<code>.t</code> files), it's meaningless to run the test suite in parallel by specifying <code>-jN</code> when invoking the <code>prove</code> utility.
 
 = TODO =
 
