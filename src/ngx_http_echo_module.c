@@ -894,6 +894,7 @@ ngx_http_echo_exec_echo_sleep(
     ngx_str_t                   *computed_arg;
     ngx_str_t                   *computed_arg_elts;
     float                       delay; /* in sec */
+    ngx_event_t                 *wev;
 
     computed_arg_elts = computed_args->elts;
     computed_arg = &computed_arg_elts[0];
@@ -917,7 +918,8 @@ ngx_http_echo_exec_echo_sleep(
     DD("request main count : %d", r->main->count);
 #endif
 
-    ngx_add_timer(r->connection->write, (ngx_msec_t) (1000 * delay));
+    wev = r->connection->write;
+    ngx_add_timer(wev, (ngx_msec_t) (1000 * delay));
 
     return NGX_DONE;
 }
@@ -937,6 +939,10 @@ ngx_http_echo_post_sleep(ngx_http_request_t *r) {
     }
 
     wev->timedout = 0;
+
+    if (wev->timer_set) {
+        ngx_del_timer(wev);
+    }
 
     if (ngx_handle_read_event(r->connection->read, 0) != NGX_OK) {
         ngx_http_finalize_request(r, NGX_HTTP_INTERNAL_SERVER_ERROR);
