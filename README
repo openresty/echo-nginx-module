@@ -75,11 +75,12 @@ Description
         the addition module but with static contents directly in the config
         file).
 
-    This is a special dual-role module that can serve as a content handler
-    or lazily register itself as an output filter upon demand.
+    This is a special dual-role module that can *lazily* serve as a content
+    handler or register itself as an output filter only upon demand. By
+    default, this module does not do anything at all.
 
-    Use of any of this module's directive (no matter content handler
-    directive or filter directive) will force the chunked encoding to be
+    Use of any of this module's directives (no matter content handler
+    directives or filter directives) will force the chunked encoding to be
     used for the HTTP response due to the streaming nature of this module.
 
 Content Handler Directives
@@ -436,8 +437,13 @@ Installation
         $ wget 'http://sysoev.ru/nginx/nginx-0.8.20.tar.gz'
         $ tar -xzvf nginx-0.8.20.tar.gz
         $ cd nginx-0.8.20/
+
+        # Here we assume you would install you nginx under /opt/nginx/.
         $ ./configure --prefix=/opt/nginx \
             --add-module=/path/to/echo-nginx-module
+
+        $ make -j2
+        $ make install
 
     Download the latest version of the release tarball of this module from
     echo-nginx-module file list
@@ -451,6 +457,20 @@ Compatibility
     *   0.7.x >= 0.7.21 (last tested version is 0.7.62)
 
     Earlier versions of Nginx like 0.6.x and 0.5.x will *not* work.
+
+    If you find that any particular version of Nginx above 0.7.21 does not
+    work with this module, please consider reporting a bug.
+
+Report Bugs
+    Although a lot of effort has been put into testing and code tuning,
+    there must be some serious bugs lurking somewhere in this module. So
+    whenever you are bitten by any quirks, please don't hesitate to
+
+    1.  send a bug report or even patches to <agentzh@gmail.com>,
+
+    2.  or create a ticket on the issue tracking interface
+        (<http://github.com/agentzh/echo-nginx-module/issues>) provided by
+        GitHub.
 
 Source Repository
     Available on github at agentzh/echo-nginx-module
@@ -521,7 +541,7 @@ Getting involved
     a commit bit to the source repository on GitHub.
 
 Author
-    agentzh (章亦春) *<agentzh at gmail dot com>*
+    agentzh (章亦春) *<agentzh@gmail.com>*
 
     This wiki page is also maintained by the author himself, and everybody
     is encouraged to improve this page as well.
@@ -530,7 +550,7 @@ Copyright & License
     Copyright (c) 2009, Taobao Inc., Alibaba Group ( http://www.taobao.com
     ).
 
-    Copyright (c) 2009, agentzh <agentzh at gmail dot com>.
+    Copyright (c) 2009, agentzh <agentzh@gmail.com>.
 
     This module is licensed under the terms of the BSD license.
 
