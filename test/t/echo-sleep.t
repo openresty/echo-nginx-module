@@ -5,7 +5,7 @@ use Test::Nginx::Echo;
 
 plan tests => 1 * blocks();
 
-#$Test::Nginx::Echo::LogLevel = 'debug';
+$Test::Nginx::Echo::LogLevel = 'debug';
 
 run_tests();
 

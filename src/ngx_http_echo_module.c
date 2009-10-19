@@ -79,6 +79,8 @@ static ngx_int_t ngx_http_echo_exec_echo_sleep(
         ngx_http_request_t *r, ngx_http_echo_ctx_t *ctx,
         ngx_array_t *computed_args);
 
+static void ngx_http_echo_sleep_event_handler(ngx_event_t *ev);
+
 static ngx_int_t ngx_http_echo_exec_echo_flush(ngx_http_request_t *r,
         ngx_http_echo_ctx_t *ctx);
 
@@ -447,6 +449,11 @@ ngx_http_echo_init_ctx(ngx_http_request_t *r, ngx_http_echo_ctx_t **ctx_ptr) {
     if (*ctx_ptr == NULL) {
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
+
+    (*ctx_ptr)->sleep.handler   = ngx_http_echo_sleep_event_handler;
+    (*ctx_ptr)->sleep.data      = r;
+    (*ctx_ptr)->sleep.log       = r->connection->log;
+
     return NGX_OK;
 }
 
@@ -963,11 +970,12 @@ ngx_http_echo_exec_echo_sleep(
     ngx_str_t                   *computed_arg;
     ngx_str_t                   *computed_arg_elts;
     float                       delay; /* in sec */
-    ngx_event_t                 *rev;
 
     computed_arg_elts = computed_args->elts;
     computed_arg = &computed_arg_elts[0];
+
     delay = atof( (char*) computed_arg->data );
+
     if (delay < 0.001) { /* should be bigger than 1 msec */
         ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
                    "invalid sleep duration \"%V\"", &computed_arg_elts[0]);
@@ -975,48 +983,22 @@ ngx_http_echo_exec_echo_sleep(
     }
 
     DD("DELAY = %.02lf sec", delay);
-    if (ngx_handle_read_event(r->connection->read, 0) != NGX_OK) {
-        return NGX_HTTP_INTERNAL_SERVER_ERROR;
-    }
-
-    /* r->read_event_handler = ngx_http_test_reading; */
-    r->read_event_handler = ngx_http_echo_post_sleep;
 
 #if defined(nginx_version) && nginx_version >= 8011
+
     r->main->count++;
     DD("request main count : %d", r->main->count);
+
 #endif
 
-    rev = r->connection->read;
-    ngx_add_timer(rev, (ngx_msec_t) (1000 * delay));
+    ngx_add_timer(&ctx->sleep, (ngx_msec_t) (1000 * delay));
 
     return NGX_DONE;
 }
 
 static void
 ngx_http_echo_post_sleep(ngx_http_request_t *r) {
-    ngx_event_t                 *rev;
     ngx_http_echo_ctx_t         *ctx;
-
-    rev = r->connection->read;
-
-    if (!rev->timedout) {
-        if (ngx_handle_read_event(rev, 0) != NGX_OK) {
-            ngx_http_finalize_request(r, NGX_HTTP_INTERNAL_SERVER_ERROR);
-        }
-        return;
-    }
-
-    rev->timedout = 0;
-
-    if (rev->timer_set) {
-        ngx_del_timer(rev);
-    }
-
-    if (ngx_handle_read_event(r->connection->read, 0) != NGX_OK) {
-        ngx_http_finalize_request(r, NGX_HTTP_INTERNAL_SERVER_ERROR);
-        return;
-    }
 
     ctx = ngx_http_get_module_ctx(r, ngx_http_echo_module);
     if (ctx == NULL) {
@@ -1025,11 +1007,34 @@ ngx_http_echo_post_sleep(ngx_http_request_t *r) {
 
     ctx->next_handler_cmd++;
 
-    r->read_event_handler = ngx_http_block_reading;
-    /* r->write_event_handler = ngx_http_request_empty_handler; */
+    if (ctx->sleep.timer_set) {
+        ngx_del_timer(&ctx->sleep);
+    }
+
+    ctx->sleep.timedout = 0;
 
     ngx_http_finalize_request(r, ngx_http_echo_handler(r));
+
     return;
+}
+
+static void
+ngx_http_echo_sleep_event_handler(ngx_event_t *ev) {
+    ngx_connection_t        *c;
+    ngx_http_request_t      *r;
+    ngx_http_log_ctx_t      *ctx;
+
+    r = ev->data;
+    c = r->connection;
+    ctx = c->log->data;
+    ctx->current_request = r;
+
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, c->log, 0,
+            "echo sleep handler: \"%V?%V\"", &r->uri, &r->args);
+
+    ngx_http_echo_post_sleep(r);
+
+    ngx_http_run_posted_requests(c);
 }
 
 static ngx_int_t

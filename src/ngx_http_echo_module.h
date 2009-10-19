@@ -80,6 +80,8 @@ typedef struct {
     ngx_flag_t       skip_filter;
 
     ngx_time_t       timer_begin;
+
+    ngx_event_t      sleep;
 } ngx_http_echo_ctx_t;
 
 #endif /* NGX_HTTP_ECHO_MODULE_H */

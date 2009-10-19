@@ -5,7 +5,7 @@ use Test::Nginx::Echo;
 
 plan tests => 1 * blocks();
 
-$Test::Nginx::Echo::LogLevel = 'debug';
+#$Test::Nginx::Echo::LogLevel = 'debug';
 
 run_tests();
 
@@ -153,5 +153,4 @@ took 0\.00[0-5] sec for total\.$
 ^hello
 world
 took 0\.00[0-5] sec for total\.$
---- SKIP
 
