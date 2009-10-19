@@ -167,7 +167,7 @@ Content Handler Directives
         world
 
     This command can be mixed with other content handler commands like
-    echo_sleep and echo_client_request_headers and are executed
+    echo_sleep and echo_client_request_headers and they are executed
     sequentially.
 
   echo_flush
@@ -204,7 +204,7 @@ Content Handler Directives
     buffering of Nginx.
 
     This command can be mixed with other content handler commands like
-    echo_sleep and echo_client_request_headers and are executed
+    echo_sleep and echo_client_request_headers and they are executed
     sequentially.
 
     See also echo and echo_sleep.
@@ -239,7 +239,7 @@ Content Handler Directives
     per-request, this directive can work in parallel subrequests.
 
     This command can be mixed with other content handler commands like
-    echo_reset_timer and echo_client_request_headers and are executed
+    echo_reset_timer and echo_client_request_headers and they are executed
     sequentially.
 
   echo_blocking_sleep
@@ -300,7 +300,7 @@ Content Handler Directives
     $echo_timer_elapsed variable will also trigger timer update forcibly.
 
     This command can be mixed with other content handler commands like
-    echo_sleep and echo_client_request_headers and are executed
+    echo_sleep and echo_client_request_headers and they are executed
     sequentially.
 
     See also echo_sleep and $echo_timer_elapsed.
@@ -338,7 +338,7 @@ Content Handler Directives
     the request object.
 
     This command can be mixed with other content handler commands like
-    echo_sleep and echo_flush and are executed sequentially.
+    echo_sleep and echo_flush and they are executed sequentially.
 
   echo_location_async
     syntax: *echo_location_async <location> [<url_args>]*
@@ -430,15 +430,15 @@ Content Handler Directives
       [alert] 24212#0: *1 the http output chain is empty, client: 127.0.0.1, ...
 
     Technically speaking, this directive is an example that Nginx content
-    handler issues one or more subrequests directly. AFAIK, the [fancyindex
-    module (<https://connectical.com/projects/ngx-fancyindex/wiki>)] also
+    handler issues one or more subrequests directly. AFAIK, the fancyindex
+    module (<https://connectical.com/projects/ngx-fancyindex/wiki>) also
     does such kind of things ;)
 
     This directive is first introduced in v0.09 of this module and requires
     at least Nginx 0.7.46.
 
     This command can be mixed with other content handler commands like echo
-    and echo_sleep and are executed sequentially.
+    and echo_sleep and they are executed sequentially.
 
 Filter Directives
     Use of the following directives trigger the filter registration of this
