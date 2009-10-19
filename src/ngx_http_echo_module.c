@@ -59,6 +59,9 @@ static char* ngx_http_echo_echo_before_body(ngx_conf_t *cf,
 static char* ngx_http_echo_echo_after_body(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
 
+static char* ngx_http_echo_echo_location_async(ngx_conf_t *cf,
+        ngx_command_t *cmd, void *conf);
+
 static char* ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
         ngx_http_echo_cmd_category_t cat,
         ngx_conf_t *cf, ngx_command_t *cmd, void* conf);
@@ -85,8 +88,14 @@ static ngx_int_t ngx_http_echo_exec_echo_blocking_sleep(ngx_http_request_t *r,
 static ngx_int_t ngx_http_echo_exec_echo_reset_timer(ngx_http_request_t *r,
         ngx_http_echo_ctx_t *ctx);
 
+static ngx_int_t ngx_http_echo_exec_echo_location_async(ngx_http_request_t *r,
+        ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args);
+
 static ngx_int_t ngx_http_echo_eval_cmd_args(ngx_http_request_t *r,
         ngx_http_echo_cmd_t *cmd, ngx_array_t *computed_args);
+
+static ngx_int_t ngx_http_echo_send_header_if_needed(ngx_http_request_t* r,
+        ngx_http_echo_ctx_t *ctx);
 
 static ngx_int_t ngx_http_echo_send_chain_link(ngx_http_request_t* r,
         ngx_http_echo_ctx_t *ctx, ngx_chain_t *cl);
@@ -163,6 +172,12 @@ static ngx_command_t  ngx_http_echo_commands[] = {
       NGX_HTTP_LOC_CONF_OFFSET,
       offsetof(ngx_http_echo_loc_conf_t, after_body_cmds),
       NULL },
+    { ngx_string("echo_location_async"),
+      NGX_HTTP_LOC_CONF|NGX_CONF_TAKE12,
+      ngx_http_echo_echo_location_async,
+      NGX_HTTP_LOC_CONF_OFFSET,
+      0,
+      NULL },
 
     /* TODO
     { ngx_string("echo_location"),
@@ -171,13 +186,8 @@ static ngx_command_t  ngx_http_echo_commands[] = {
       NGX_HTTP_LOC_CONF_OFFSET,
       0,
       NULL },
-    { ngx_string("echo_location_async"),
-      NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1,
-      ngx_http_echo_echo_location_async,
-      NGX_HTTP_LOC_CONF_OFFSET,
-      0,
-      NULL },
     */
+
       ngx_null_command
 };
 
@@ -409,6 +419,28 @@ ngx_http_echo_echo_after_body(ngx_conf_t *cf,
             cf, cmd, conf);
 }
 
+static char*
+ ngx_http_echo_echo_location_async(ngx_conf_t *cf, ngx_command_t *cmd,
+         void *conf) {
+
+#if ! defined(nginx_version)
+
+    ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
+            "Directive echo_location_async does not work with nginx "
+            "versions ealier than 0.7.46.");
+
+    return NGX_CONF_ERROR;
+
+#else
+
+    return ngx_http_echo_helper(echo_opcode_echo_location_async,
+            echo_handler_cmd,
+            cf, cmd, conf);
+
+#endif
+
+}
+
 static ngx_int_t
 ngx_http_echo_init_ctx(ngx_http_request_t *r, ngx_http_echo_ctx_t **ctx_ptr) {
     *ctx_ptr = ngx_pcalloc(r->pool, sizeof(ngx_http_echo_ctx_t));
@@ -443,6 +475,8 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
 
         ngx_http_set_ctx(r, ctx, ngx_http_echo_module);
     }
+
+    DD("exec handler: %s: %u", r->uri.data, ctx->next_handler_cmd);
 
     cmd_elts = cmds->elts;
     for (; ctx->next_handler_cmd < cmds->nelts; ctx->next_handler_cmd++) {
@@ -480,6 +514,17 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
                         ctx);
                 if (rc != NGX_OK) {
                     return rc;
+                }
+                break;
+            case echo_opcode_echo_location_async:
+                DD("found opcode echo location async...");
+                rc = ngx_http_echo_exec_echo_location_async(r, ctx,
+                        computed_args);
+                if (rc != NGX_OK) {
+                    ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
+                            "Failed to issue subrequest for "
+                            "echo_location_async");
+                    return NGX_HTTP_INTERNAL_SERVER_ERROR;
                 }
                 break;
             case echo_opcode_echo_sleep:
@@ -540,6 +585,8 @@ ngx_http_echo_exec_echo(ngx_http_request_t *r,
 
     ngx_chain_t *cl  = NULL; /* the head of the chain link */
     ngx_chain_t **ll = NULL;  /* always point to the address of the last link */
+
+    DD("now exec echo...");
 
     if (computed_args == NULL) {
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
@@ -605,6 +652,7 @@ ngx_http_echo_exec_echo(ngx_http_request_t *r,
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
     *newline_buf = ngx_http_echo_newline_buf;
+    newline_buf->last_in_chain = 1;
 
     if (cl == NULL) {
         cl = ngx_alloc_chain_link(r->pool);
@@ -628,8 +676,8 @@ ngx_http_echo_exec_echo(ngx_http_request_t *r,
 }
 
 static ngx_int_t
-ngx_http_echo_send_chain_link(ngx_http_request_t* r,
-        ngx_http_echo_ctx_t *ctx, ngx_chain_t *cl) {
+ngx_http_echo_send_header_if_needed(ngx_http_request_t* r,
+        ngx_http_echo_ctx_t *ctx) {
     ngx_int_t   rc;
 
     if ( ! ctx->headers_sent ) {
@@ -639,16 +687,37 @@ ngx_http_echo_send_chain_link(ngx_http_request_t* r,
             return NGX_HTTP_INTERNAL_SERVER_ERROR;
         }
         rc = ngx_http_send_header(r);
-        if (r->header_only || rc >= NGX_HTTP_SPECIAL_RESPONSE) {
-            return rc;
-        }
+    }
+    return NGX_OK;
+}
+
+static ngx_int_t
+ngx_http_echo_send_chain_link(ngx_http_request_t* r,
+        ngx_http_echo_ctx_t *ctx, ngx_chain_t *cl) {
+    ngx_int_t   rc;
+
+    rc = ngx_http_echo_send_header_if_needed(r, ctx);
+    if (r->header_only || rc >= NGX_HTTP_SPECIAL_RESPONSE) {
+        return rc;
     }
 
     if (cl == NULL) {
+
+#if defined(nginx_version) && nginx_version <= 8004
+
+        /* earlier versions of nginx does not allow subrequests
+            to send last_buf themselves */
+        if (r != r->main) {
+            return NGX_OK;
+        }
+
+#endif
+
         rc = ngx_http_send_special(r, NGX_HTTP_LAST);
         if (rc >= NGX_HTTP_SPECIAL_RESPONSE) {
             return rc;
         }
+
         return NGX_OK;
     }
 
@@ -894,7 +963,7 @@ ngx_http_echo_exec_echo_sleep(
     ngx_str_t                   *computed_arg;
     ngx_str_t                   *computed_arg_elts;
     float                       delay; /* in sec */
-    ngx_event_t                 *wev;
+    ngx_event_t                 *rev;
 
     computed_arg_elts = computed_args->elts;
     computed_arg = &computed_arg_elts[0];
@@ -911,37 +980,37 @@ ngx_http_echo_exec_echo_sleep(
     }
 
     /* r->read_event_handler = ngx_http_test_reading; */
-    r->write_event_handler = ngx_http_echo_post_sleep;
+    r->read_event_handler = ngx_http_echo_post_sleep;
 
 #if defined(nginx_version) && nginx_version >= 8011
     r->main->count++;
     DD("request main count : %d", r->main->count);
 #endif
 
-    wev = r->connection->write;
-    ngx_add_timer(wev, (ngx_msec_t) (1000 * delay));
+    rev = r->connection->read;
+    ngx_add_timer(rev, (ngx_msec_t) (1000 * delay));
 
     return NGX_DONE;
 }
 
 static void
 ngx_http_echo_post_sleep(ngx_http_request_t *r) {
-    ngx_event_t                 *wev;
+    ngx_event_t                 *rev;
     ngx_http_echo_ctx_t         *ctx;
 
-    wev = r->connection->write;
+    rev = r->connection->read;
 
-    if (!wev->timedout) {
-        if (ngx_handle_write_event(wev, 0) != NGX_OK) {
+    if (!rev->timedout) {
+        if (ngx_handle_read_event(rev, 0) != NGX_OK) {
             ngx_http_finalize_request(r, NGX_HTTP_INTERNAL_SERVER_ERROR);
         }
         return;
     }
 
-    wev->timedout = 0;
+    rev->timedout = 0;
 
-    if (wev->timer_set) {
-        ngx_del_timer(wev);
+    if (rev->timer_set) {
+        ngx_del_timer(rev);
     }
 
     if (ngx_handle_read_event(r->connection->read, 0) != NGX_OK) {
@@ -957,7 +1026,7 @@ ngx_http_echo_post_sleep(ngx_http_request_t *r) {
     ctx->next_handler_cmd++;
 
     r->read_event_handler = ngx_http_block_reading;
-    r->write_event_handler = ngx_http_request_empty_handler;
+    /* r->write_event_handler = ngx_http_request_empty_handler; */
 
     ngx_http_finalize_request(r, ngx_http_echo_handler(r));
     return;
@@ -1049,6 +1118,40 @@ ngx_http_echo_exec_echo_reset_timer(ngx_http_request_t *r,
     ngx_time_update(0, 0); /* force the ngx timer to update */
 
     ctx->timer_begin = *ngx_timeofday();
+    return NGX_OK;
+}
+
+static ngx_int_t
+ngx_http_echo_exec_echo_location_async(ngx_http_request_t *r,
+        ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args) {
+    ngx_int_t                   rc;
+    ngx_http_request_t          *sr; /* subrequest object */
+    ngx_str_t                   *computed_arg_elts;
+    ngx_str_t                   location;
+    ngx_str_t                   *url_args;
+
+    computed_arg_elts = computed_args->elts;
+
+    location = computed_arg_elts[0];
+
+    if (computed_args->nelts > 1) {
+        url_args = &computed_arg_elts[1];
+    } else {
+        url_args = NULL;
+    }
+
+    DD("location: %s", location.data);
+    DD("location args: %s", (char*) (url_args ? url_args->data : (u_char*)"NULL"));
+
+    rc = ngx_http_echo_send_header_if_needed(r, ctx);
+    if (r->header_only || rc >= NGX_HTTP_SPECIAL_RESPONSE) {
+        return rc;
+    }
+
+    rc = ngx_http_subrequest(r, &location, url_args, &sr, NULL, 0);
+    if (rc != NGX_OK) {
+        return NGX_ERROR;
+    }
     return NGX_OK;
 }
 
