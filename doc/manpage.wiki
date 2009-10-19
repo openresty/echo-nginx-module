@@ -554,6 +554,8 @@ The following versions of Nginx should work with this module:
 * '''0.8.x'''                       (last tested version is 0.8.20)
 * '''0.7.x >= 0.7.21'''             (last tested version is 0.7.62)
 
+In particular, the [[#echo_location_async|echo_location_async]] directive does not work with '''0.7.x < 0.7.46'''.
+
 Earlier versions of Nginx like 0.6.x and 0.5.x will ''not'' work.
 
 If you find that any particular version of Nginx above 0.7.21 does not work with this module, please consider [[#Report Bugs|reporting a bug]].
