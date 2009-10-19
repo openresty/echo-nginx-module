@@ -174,7 +174,7 @@ The output on the client side looks like this
     world
 </geshi>
 
-This command can be mixed with other content handler commands like [[#echo_sleep|echo_sleep]] and [[#echo_client_request_headers|echo_client_request_headers]] and are executed sequentially.
+This command can be mixed with other content handler commands like [[#echo_sleep|echo_sleep]] and [[#echo_client_request_headers|echo_client_request_headers]] and they are executed sequentially.
 
 == echo_flush ==
 '''syntax:''' ''echo_flush''
@@ -204,7 +204,7 @@ Consider the following example:
 
 Then on the client side, using curl to access <code>/flush</code>, you'll see the "hello" line immediately, but only after 1 second, the last "world" line. Without calling <code>echo_flush</code> in the example above, you'll most likely see no output until 1 second is elapsed due to the internal buffering of Nginx.
 
-This command can be mixed with other content handler commands like [[#echo_sleep|echo_sleep]] and [[#echo_client_request_headers|echo_client_request_headers]] and are executed sequentially.
+This command can be mixed with other content handler commands like [[#echo_sleep|echo_sleep]] and [[#echo_client_request_headers|echo_client_request_headers]] and they are executed sequentially.
 
 See also [[#echo|echo]] and [[#echo_sleep|echo_sleep]].
 
@@ -232,7 +232,7 @@ An example is
 
 Behind the scene, it sets up a per-request "sleep" ngx_event_t object, and adds a timer using that custom event to the Nginx event model and just waits for a timeout on that event. Because the "sleep" event is per-request, this directive can work in parallel subrequests.
 
-This command can be mixed with other content handler commands like [[#echo_reset_timer|echo_reset_timer]] and [[#echo_client_request_headers|echo_client_request_headers]] and are executed sequentially.
+This command can be mixed with other content handler commands like [[#echo_reset_timer|echo_reset_timer]] and [[#echo_client_request_headers|echo_client_request_headers]] and they are executed sequentially.
 
 == echo_blocking_sleep ==
 '''syntax:''' ''echo_blocking_sleep <seconds>''
@@ -284,7 +284,7 @@ The actual figures you get on your side may vary a bit due to your system's curr
 
 Invocation of this directive will force the underlying Nginx timer to get updated to the current system time (regardless the timer resolution specified elsewhere in the config file). Furthermore, references of the [[#$echo_timer_elapsed|$echo_timer_elapsed]] variable will also trigger timer update forcibly.
 
-This command can be mixed with other content handler commands like [[#echo_sleep|echo_sleep]] and [[#echo_client_request_headers|echo_client_request_headers]] and are executed sequentially.
+This command can be mixed with other content handler commands like [[#echo_sleep|echo_sleep]] and [[#echo_client_request_headers|echo_client_request_headers]] and they are executed sequentially.
 
 See also [[#echo_sleep|echo_sleep]] and [[#$echo_timer_elapsed|$echo_timer_elapsed]].
 
@@ -322,7 +322,7 @@ Accessing <code>/echoback</code> yields
 
 Behind the scene, it recovers <code>r->main->header_in</code> on the C level and does not construct the headers itself by traversing parsed results in the request object.
 
-This command can be mixed with other content handler commands like [[#echo_sleep|echo_sleep]] and [[#echo_flush|echo_flush]] and are executed sequentially.
+This command can be mixed with other content handler commands like [[#echo_sleep|echo_sleep]] and [[#echo_flush|echo_flush]] and they are executed sequentially.
 
 == echo_location_async ==
 '''syntax:''' ''echo_location_async <location> [<url_args>]''
@@ -410,11 +410,11 @@ If calling this directive without SSI module enabled, you'll get truncated respo
 
   [alert] 24212#0: *1 the http output chain is empty, client: 127.0.0.1, ...
 
-Technically speaking, this directive is an example that Nginx content handler issues one or more subrequests directly. AFAIK, the [[https://connectical.com/projects/ngx-fancyindex/wiki fancyindex module]] also does such kind of things ;)
+Technically speaking, this directive is an example that Nginx content handler issues one or more subrequests directly. AFAIK, the [https://connectical.com/projects/ngx-fancyindex/wiki fancyindex module] also does such kind of things ;)
 
 This directive is first introduced in v0.09 of this module and requires at least Nginx 0.7.46.
 
-This command can be mixed with other content handler commands like [[#echo|echo]] and [[#echo_sleep|echo_sleep]] and are executed sequentially.
+This command can be mixed with other content handler commands like [[#echo|echo]] and [[#echo_sleep|echo_sleep]] and they are executed sequentially.
 
 = Filter Directives =
 
