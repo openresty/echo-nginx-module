@@ -154,3 +154,18 @@ took 0\.00[0-5] sec for total\.$
 world
 took 0\.00[0-5] sec for total\.$
 
+
+
+=== TEST 8: location with args
+--- config
+    location /main {
+        echo_location_async /sub 'foo=Foo&bar=Bar';
+    }
+    location /sub {
+        echo $arg_foo $arg_bar;
+    }
+--- request
+    GET /main
+--- response_body
+Foo Bar
+

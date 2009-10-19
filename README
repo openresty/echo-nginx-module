@@ -6,9 +6,9 @@ Name
     installation instructions.
 
 Version
-    This document describes echo-nginx-module v0.08
+    This document describes echo-nginx-module v0.09
     (<http://github.com/agentzh/echo-nginx-module/downloads>) released on
-    Oct 18, 2009.
+    Oct 19, 2009.
 
 Synopsis
       location /hello {
@@ -61,6 +61,26 @@ Synopsis
           echo blah;
       }
 
+        # the output of /main might be
+        #   hello
+        #   world
+        #   took 0.000 sec for total.
+        # and the whole request would take about 2 sec to complete.
+        location /main {
+            echo_reset_timer;
+            echo_location_async /sub1;
+            echo_location_async /sub2;
+            echo "took $echo_timer_elapsed sec for total.";
+        }
+        location /sub1 {
+            echo_sleep 2;
+            echo hello;
+        }
+        location /sub2 {
+            echo_sleep 1;
+            echo world;
+        }
+
 Description
     This module provides various utilities that help testing and debugging
     of other modules by trivially emulating different kinds of faked
@@ -72,8 +92,8 @@ Description
         config file).
 
     2.  wrap the upstream response with custom header and footer (kinda like
-        the addition module but with static contents directly in the config
-        file).
+        the addition module but with contents read directly from the config
+        file and Nginx variables).
 
     This is a special dual-role module that can *lazily* serve as a content
     handler or register itself as an output filter only upon demand. By
@@ -86,7 +106,7 @@ Description
 Content Handler Directives
     Use of the following directives register this module to the current
     Nginx location as a content handler. If you want to use another module,
-    such as standard proxy module, as the content handler, use the filter
+    like the standard proxy module, as the content handler, use the filter
     directives provided by this module.
 
     The MIME type set by the standard default_type directive is respected by
@@ -203,9 +223,6 @@ Content Handler Directives
     echo_blocking_sleep directive, it won't block the whole Nginx worker
     process.
 
-    Behind the scene, it registers a connection write handle timer to the
-    Nginx event model and just waits for a timeout on that handle.
-
     The period might takes three digits after the decimal point and must be
     greater than 0.001.
 
@@ -215,6 +232,11 @@ Content Handler Directives
            echo_sleep 1.234;
            echo resumed!;
        }
+
+    Behind the scene, it sets up a per-request "sleep" ngx_event_t object,
+    and adds a timer using that custom event to the Nginx event model and
+    just waits for a timeout on that event. Because the "sleep" event is
+    per-request, this directive can work in parallel subrequests.
 
     This command can be mixed with other content handler commands like
     echo_reset_timer and echo_client_request_headers and are executed
@@ -317,6 +339,106 @@ Content Handler Directives
 
     This command can be mixed with other content handler commands like
     echo_sleep and echo_flush and are executed sequentially.
+
+  echo_location_async
+    syntax: *echo_location_async <location> [<url_args>]*
+
+    default: *no*
+
+    context: *location*
+
+    Issue GET subrequest to the location specified (first argument) with
+    optional url arguments specified in the second argument.
+
+    A very simple example is
+
+        location /main {
+            echo_location_async /sub;
+            echo world;
+        }
+        location /sub {
+            echo hello;
+        }
+
+    Accessing "/main" gets
+
+      hello
+      world
+
+    Calling multiple locations in parallel is also possible:
+
+        location /main {
+            echo_reset_timer;
+            echo_location_async /sub1;
+            echo_location_async /sub2;
+            echo "took $echo_timer_elapsed sec for total.";
+        }
+        location /sub1 {
+            echo_sleep 2; # sleeps 2 sec
+            echo hello;
+        }
+        location /sub2 {
+            echo_sleep 1; # sleeps 1 sec
+            echo world;
+        }
+
+    Accessing "/main" yields
+
+      $ time curl 'http://localhost/main'
+      hello
+      world
+      took 0.000 sec for total.
+
+      real  0m2.006s
+      user  0m0.000s
+      sys   0m0.004s
+
+    You can see that the main handler "/main" does *not* wait the
+    subrequests "/sub1" and "/sub2" to complete and quickly goes on, hence
+    the "0.000 sec" timing result. The whole request, however takes
+    approximately 2 sec in total to complete because "/sub1" and "/sub2" run
+    in parallel (or "concurrently" to be more accurate).
+
+    If you use echo_blocking_sleep in the previous example instead, then
+    you'll get the same output, but with 3 sec total response time, because
+    "blocking sleep" blocks the whole Nginx worker process.
+
+    Locations can also take an optional querystring argument, for instance
+
+        location /main {
+            echo_location_async /sub 'foo=Foo&bar=Bar';
+        }
+        location /sub {
+            echo $arg_foo $arg_bar;
+        }
+
+    Accessing "/main" yields
+
+      $ curl 'http://localhost/main'
+      Foo Bar
+
+    Due to an unknown bug in Nginx (it still exists in Nginx 0.8.20), the
+    standard SSI module is required to ensure that the contents of the
+    subrequests issued by this directive are correctly merged into the
+    output chains of the main one. Fortunately, the SSI module is enabled by
+    default during Nginx's "configure" process.
+
+    If calling this directive without SSI module enabled, you'll get
+    truncated response without contents of any subrequests and get an alert
+    message in your Nginx's "error.log", like this:
+
+      [alert] 24212#0: *1 the http output chain is empty, client: 127.0.0.1, ...
+
+    Technically speaking, this directive is an example that Nginx content
+    handler issues one or more subrequests directly. AFAIK, the [fancyindex
+    module (<https://connectical.com/projects/ngx-fancyindex/wiki>)] also
+    does such kind of things ;)
+
+    This directive is first introduced in v0.09 of this module and requires
+    at least Nginx 0.7.46.
+
+    This command can be mixed with other content handler commands like echo
+    and echo_sleep and are executed sequentially.
 
 Filter Directives
     Use of the following directives trigger the filter registration of this
@@ -477,8 +599,17 @@ Source Repository
     (<http://github.com/agentzh/echo-nginx-module>).
 
 ChangeLog
+  v0.09
+    *   reimplement the echo_sleep directive using per-request event and
+        timer; the old implementation uses the global connection's
+        read/write event to register timer, so it will break horribly when
+        multiple subrequests "sleep" at the same time.
+
+    *   added the echo_location_async directive which can issue a GET
+        subrequest and insert its contents herein.
+
   v0.08
-    *   "echo_sleep": now we delete our "write event timer" in the
+    *   echo_sleep: now we delete our "write event timer" in the
         "post_sleep" handle.
 
     *   added "doc/manpage.wiki" which tracks changes in the wiki page

@@ -6,7 +6,7 @@
 
 = Version =
 
-This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/downloads v0.08] released on Oct 18, 2009.
+This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/downloads v0.09] released on Oct 19, 2009.
 
 = Synopsis =
 
@@ -72,6 +72,28 @@ This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-
   }
 </geshi>
 
+<geshi lang="nginx">
+    # the output of /main might be
+    #   hello
+    #   world
+    #   took 0.000 sec for total.
+    # and the whole request would take about 2 sec to complete.
+    location /main {
+        echo_reset_timer;
+        echo_location_async /sub1;
+        echo_location_async /sub2;
+        echo "took $echo_timer_elapsed sec for total.";
+    }
+    location /sub1 {
+        echo_sleep 2;
+        echo hello;
+    }
+    location /sub2 {
+        echo_sleep 1;
+        echo world;
+    }
+</geshi>
+
 = Description =
 
 This module provides various utilities that help testing and debugging of other modules by trivially emulating different kinds of faked subrequest locations.
@@ -79,7 +101,7 @@ This module provides various utilities that help testing and debugging of other 
 People will also find it useful in real-world applications that need to
 
 # serve static contents directly from memory (loading from the Nginx config file).
-# wrap the upstream response with custom header and footer (kinda like the [[NginxHttpAdditionModule|addition module]] but with static contents directly in the config file).
+# wrap the upstream response with custom header and footer (kinda like the [[NginxHttpAdditionModule|addition module]] but with contents read directly from the config file and Nginx variables).
 
 This is a special dual-role module that can ''lazily'' serve as a content handler or register itself as an output filter only upon demand. By default, this module does not do anything at all.
 
@@ -87,7 +109,7 @@ Use of any of this module's directives (no matter [[#Content Handler Directives|
 
 = Content Handler Directives =
 
-Use of the following directives register this module to the current Nginx location as a content handler. If you want to use another module, such as [[NginxHttpProxyModule|standard proxy module]], as the content handler, use the [[#Filter Directives|filter directives]] provided by this module.
+Use of the following directives register this module to the current Nginx location as a content handler. If you want to use another module, like the [[NginxHttpProxyModule|standard proxy module]], as the content handler, use the [[#Filter Directives|filter directives]] provided by this module.
 
 The MIME type set by the [[NginxHttpCoreModule#default_type|standard default_type directive]] is respected by this module, as in:
 
@@ -197,8 +219,6 @@ Sleeps for the time period specified by the argument, which is in seconds.
 
 This operation is non-blocking on server side, so unlike the [[#echo_blocking_sleep|echo_blocking_sleep]] directive, it won't block the whole Nginx worker process.
 
-Behind the scene, it registers a connection write handle timer to the Nginx event model and just waits for a timeout on that handle.
-
 The period might takes three digits after the decimal point and must be greater than 0.001.
 
 An example is
@@ -209,6 +229,8 @@ An example is
        echo resumed!;
    }
 </geshi>
+
+Behind the scene, it sets up a per-request "sleep" ngx_event_t object, and adds a timer using that custom event to the Nginx event model and just waits for a timeout on that event. Because the "sleep" event is per-request, this directive can work in parallel subrequests.
 
 This command can be mixed with other content handler commands like [[#echo_reset_timer|echo_reset_timer]] and [[#echo_client_request_headers|echo_client_request_headers]] and are executed sequentially.
 
@@ -301,6 +323,98 @@ Accessing <code>/echoback</code> yields
 Behind the scene, it recovers <code>r->main->header_in</code> on the C level and does not construct the headers itself by traversing parsed results in the request object.
 
 This command can be mixed with other content handler commands like [[#echo_sleep|echo_sleep]] and [[#echo_flush|echo_flush]] and are executed sequentially.
+
+== echo_location_async ==
+'''syntax:''' ''echo_location_async <location> [<url_args>]''
+
+'''default:''' ''no''
+
+'''context:''' ''location''
+
+Issue GET subrequest to the location specified (first argument) with optional url arguments specified in the second argument.
+
+A very simple example is
+
+<geshi lang="nginx">
+    location /main {
+        echo_location_async /sub;
+        echo world;
+    }
+    location /sub {
+        echo hello;
+    }
+</geshi>
+
+Accessing <code>/main</code> gets
+
+  hello
+  world
+
+Calling multiple locations in parallel is also possible:
+
+<geshi lang="nginx">
+    location /main {
+        echo_reset_timer;
+        echo_location_async /sub1;
+        echo_location_async /sub2;
+        echo "took $echo_timer_elapsed sec for total.";
+    }
+    location /sub1 {
+        echo_sleep 2; # sleeps 2 sec
+        echo hello;
+    }
+    location /sub2 {
+        echo_sleep 1; # sleeps 1 sec
+        echo world;
+    }
+</geshi>
+
+Accessing <code>/main</code> yields
+
+<geshi lang="bash">
+  $ time curl 'http://localhost/main'
+  hello
+  world
+  took 0.000 sec for total.
+  
+  real	0m2.006s
+  user	0m0.000s
+  sys	0m0.004s
+</geshi>
+
+You can see that the main handler <code>/main</code> does ''not'' wait the subrequests <code>/sub1</code> and <code>/sub2</code> to complete and quickly goes on, hence the "0.000 sec" timing result. The whole request, however takes approximately 2 sec in total to complete because <code>/sub1</code> and <code>/sub2</code> run in parallel (or "concurrently" to be more accurate).
+
+If you use [[#echo_blocking_sleep|echo_blocking_sleep]] in the previous example instead, then you'll get the same output, but with 3 sec total response time, because "blocking sleep" blocks the whole Nginx worker process.
+
+Locations can also take an optional querystring argument, for instance
+
+<geshi lang="nginx">
+    location /main {
+        echo_location_async /sub 'foo=Foo&bar=Bar';
+    }
+    location /sub {
+        echo $arg_foo $arg_bar;
+    }
+</geshi>
+
+Accessing <code>/main</code> yields
+
+<geshi lang="bash">
+  $ curl 'http://localhost/main'
+  Foo Bar
+</geshi>
+
+Due to an unknown bug in Nginx (it still exists in Nginx 0.8.20), the [[NginxHttpSsiModule|standard SSI module]] is required to ensure that the contents of the subrequests issued by this directive are correctly merged into the output chains of the main one. Fortunately, the SSI module is enabled by default during Nginx's <code>configure</code> process.
+
+If calling this directive without SSI module enabled, you'll get truncated response without contents of any subrequests and get an alert message in your Nginx's <code>error.log</code>, like this:
+
+  [alert] 24212#0: *1 the http output chain is empty, client: 127.0.0.1, ...
+
+Technically speaking, this directive is an example that Nginx content handler issues one or more subrequests directly. AFAIK, the [[https://connectical.com/projects/ngx-fancyindex/wiki fancyindex module]] also does such kind of things ;)
+
+This directive is first introduced in v0.09 of this module and requires at least Nginx 0.7.46.
+
+This command can be mixed with other content handler commands like [[#echo|echo]] and [[#echo_sleep|echo_sleep]] and are executed sequentially.
 
 = Filter Directives =
 
@@ -457,9 +571,14 @@ Available on github at [http://github.com/agentzh/echo-nginx-module agentzh/echo
 
 = ChangeLog =
 
+== v0.09 ==
+
+* reimplement the [[#echo_sleep|echo_sleep]] directive using per-request event and timer; the old implementation uses the global connection's read/write event to register timer, so it will break horribly when multiple subrequests "sleep" at the same time.
+* added the [[#echo_location_async|echo_location_async]] directive which can issue a GET subrequest and insert its contents herein.
+
 == v0.08 ==
 
-* <code>echo_sleep</code>: now we delete our <code>write event timer</code> in the <code>post_sleep</code> handle.
+* [[#echo_sleep|echo_sleep]]: now we delete our <code>write event timer</code> in the <code>post_sleep</code> handle.
 * added <code>doc/manpage.wiki</code> which tracks changes in the [http://wiki.nginx.org/NginxHttpEchoModule wiki page].
 * added the <code>util/wiki2pod.pl</code> script to convert <code>doc/manpage.wiki</code> to <code>README</code>.
 * disabled the <code>DDEBUG</code> macro in the C source by default.
