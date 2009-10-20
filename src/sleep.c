@@ -84,7 +84,12 @@ ngx_http_echo_sleep_event_handler(ngx_event_t *ev) {
 
     ngx_http_echo_post_sleep(r);
 
+#if defined(nginx_version)
+
     ngx_http_run_posted_requests(c);
+
+#endif
+
 }
 
 ngx_int_t

@@ -5,6 +5,7 @@
 
 #include <ngx_core.h>
 #include <ngx_http.h>
+#include <nginx.h>
 
 extern ngx_module_t ngx_http_echo_module;
 

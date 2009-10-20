@@ -8,5 +8,11 @@ ngx_int_t ngx_http_echo_init_ctx(ngx_http_request_t *r, ngx_http_echo_ctx_t **ct
 ngx_int_t ngx_http_echo_eval_cmd_args(ngx_http_request_t *r,
         ngx_http_echo_cmd_t *cmd, ngx_array_t *computed_args);
 
+ngx_int_t ngx_http_echo_send_header_if_needed(ngx_http_request_t* r,
+        ngx_http_echo_ctx_t *ctx);
+
+ngx_int_t ngx_http_echo_send_chain_link(ngx_http_request_t* r,
+        ngx_http_echo_ctx_t *ctx, ngx_chain_t *cl);
+
 #endif /* ECHO_UTIL_H */
 
