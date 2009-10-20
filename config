@@ -1,5 +1,5 @@
 ngx_addon_name=ngx_http_echo_module
 HTTP_AUX_FILTER_MODULES="$HTTP_AUX_FILTER_MODULES ngx_http_echo_module"
-NGX_ADDON_SRCS="$NGX_ADDON_SRCS $ngx_addon_dir/src/main.c $ngx_addon_dir/src/util.c $ngx_addon_dir/src/timer.c $ngx_addon_dir/src/var.c $ngx_addon_dir/src/handler.c $ngx_addon_dir/src/filter.c $ngx_addon_dir/src/sleep.c $ngx_addon_dir/src/location.c"
-NGX_ADDON_DEPS="$NGX_ADDON_DEPS $ngx_addon_dir/src/ngx_http_echo_module.h $ngx_addon_dir/src/ddebug.h $ngx_addon_dir/src/handler.h $ngx_addon_dir/src/util.h $ngx_addon_dir/src/sleep.h $ngx_addon_dir/src/filter.h $ngx_addon_dir/src/var.h $ngx_addon_dir/src/location.h"
+NGX_ADDON_SRCS="$NGX_ADDON_SRCS $ngx_addon_dir/src/main.c $ngx_addon_dir/src/util.c $ngx_addon_dir/src/timer.c $ngx_addon_dir/src/var.c $ngx_addon_dir/src/handler.c $ngx_addon_dir/src/filter.c $ngx_addon_dir/src/sleep.c $ngx_addon_dir/src/location.c $ngx_addon_dir/src/echo.c"
+NGX_ADDON_DEPS="$NGX_ADDON_DEPS $ngx_addon_dir/src/ngx_http_echo_module.h $ngx_addon_dir/src/ddebug.h $ngx_addon_dir/src/handler.h $ngx_addon_dir/src/util.h $ngx_addon_dir/src/sleep.h $ngx_addon_dir/src/filter.h $ngx_addon_dir/src/var.h $ngx_addon_dir/src/location.h $ngx_addon_dir/src/echo.h"
 
