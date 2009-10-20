@@ -6,9 +6,9 @@ Name
     installation instructions.
 
 Version
-    This document describes echo-nginx-module v0.09
+    This document describes echo-nginx-module v0.10
     (<http://github.com/agentzh/echo-nginx-module/downloads>) released on
-    Oct 19, 2009.
+    Oct 20, 2009.
 
 Synopsis
       location /hello {
@@ -602,6 +602,13 @@ Source Repository
     (<http://github.com/agentzh/echo-nginx-module>).
 
 ChangeLog
+  v0.10
+    *   Fixed compilation regression against Nginx 0.7.21. This bug appears
+        in version 0.09.
+
+    *   Refactored the codebase by splitting source into various small
+        files.
+
   v0.09
     *   reimplement the echo_sleep directive using per-request event and
         timer; the old implementation uses the global connection's
@@ -657,18 +664,19 @@ Test Suite
     utility.
 
 TODO
-    *   Add the *echo_file* and *echo_cached_file* directives.
-
     *   Add the *echo_duplicate* directive to generate specified large
         amount of crappy outputs. For example, "echo_duplicate 1024 "a""
         will generate 1KB of outputs consisting of tons of a's.
 
-    *   Add the *echo_location* and *echo_location_async* directives that
-        can insert contents of other Nginx locations via GET subrequests.
+    *   Add the *echo_location* directive that can insert contents of other
+        Nginx locations via GET subrequests, but unlike echo_location_async,
+        it issues subrequests sequentially, *not* concurrently.
 
     *   Add the *echo_subrequest* and *echo_subrequest_async* directives
-        that can initiate subrequests and insert the corresponding contents
-        herein.
+        that can initiate arbitrary subrequests (not only GET) and insert
+        the corresponding contents herein.
+
+    *   Add the *echo_file* and *echo_cached_file* directives.
 
 Getting involved
     You'll be very welcomed to submit patches to the author or just ask for
