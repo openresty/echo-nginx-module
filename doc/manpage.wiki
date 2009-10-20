@@ -6,7 +6,7 @@
 
 = Version =
 
-This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/downloads v0.10] released on Oct 20, 2009.
+This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/downloads v0.11] released on Oct 20, 2009.
 
 = Synopsis =
 
@@ -73,25 +73,43 @@ This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-
 </geshi>
 
 <geshi lang="nginx">
-    # the output of /main might be
-    #   hello
-    #   world
-    #   took 0.000 sec for total.
-    # and the whole request would take about 2 sec to complete.
-    location /main {
-        echo_reset_timer;
-        echo_location_async /sub1;
-        echo_location_async /sub2;
-        echo "took $echo_timer_elapsed sec for total.";
-    }
-    location /sub1 {
-        echo_sleep 2;
-        echo hello;
-    }
-    location /sub2 {
-        echo_sleep 1;
-        echo world;
-    }
+  # the output of /main might be
+  #   hello
+  #   world
+  #   took 0.000 sec for total.
+  # and the whole request would take about 2 sec to complete.
+  location /main {
+      echo_reset_timer;
+      echo_location_async /sub1;
+      echo_location_async /sub2;
+      echo "took $echo_timer_elapsed sec for total.";
+  }
+  location /sub1 {
+      echo_sleep 2;
+      echo hello;
+  }
+  location /sub2 {
+      echo_sleep 1;
+      echo world;
+  }
+</geshi>
+
+<geshi lang="nginx">
+  # Accessing /dup gives
+  #   ------ END ------
+  location /dup {
+    echo_duplicate 3 "---";
+    echo_duplicate 1 " END ";
+    echo_duplicate 3 "---";
+    echo;
+  }   
+</geshi>
+
+<geshi lang="nginx">
+  # /bighello will generate 1000,000,000 hello's.
+  location /bighello {
+    echo_duplicate 1000_000_000 'hello';
+  }
 </geshi>
 
 = Description =
@@ -131,14 +149,16 @@ Then on the client side:
   Connection: keep-alive
 </geshi>
 
+Every content handler directive supports variable interpolation in its arguments (if any).
+
 == echo ==
-'''syntax:''' ''echo [argument]...''
+'''syntax:''' ''echo <string>...''
 
 '''default:''' ''no''
 
 '''context:''' ''location''
 
-This is a content handler command. Sends arguments joined by spaces, along with a trailing newline, out to the client.
+Sends arguments joined by spaces, along with a trailing newline, out to the client.
 
 Note that the data might be buffered by Nginx's underlying buffer. To force the output data flushed immediately, use the [[#echo_flush|echo_flush]] command just after <code>echo</code>, as in
 
@@ -173,6 +193,52 @@ The output on the client side looks like this
     hello
     world
 </geshi>
+
+This command can be mixed with other content handler commands like [[#echo_sleep|echo_sleep]] and [[#echo_client_request_headers|echo_client_request_headers]] and they are executed sequentially.
+
+== echo_duplicate ==
+'''syntax:''' ''echo_duplicate <count> <string>''
+
+'''default:''' ''no''
+
+'''context:''' ''location''
+
+Outputs duplication of a string indicated by the second argument, using the times specified in the first argument.
+
+For instance,
+
+<geshi lang="nginx">
+  location /dup {
+      echo_duplicate 3 "abc";
+  }
+</geshi>
+
+will lead to an output of <code>"abcabcabc"</code>.
+
+Underscores are allowed in the count number, just like in Perl. For example, to emit 1000,000,000 instances of <code>"hello, world"</code>:
+
+<geshi lang="nginx">
+  location /many_hellos {
+      echo_duplicate 1000_000_000 "hello, world";
+  }
+</geshi>
+
+Unlike the [[#echo|echo]] directive, no trailing newline is appended to the result. So it's possible to "abuse" this directive as a no-trailing-newline version of [[#echo|echo]] by using "count" 1, as in
+
+<geshi lang="nginx">
+  location /echo_art {
+      echo_duplicate 2 '---';
+      echo_duplicate 1 ' END ';  # we don't want a trailing newline here
+      echo_duplicate 2 '---';
+      echo;  # we want a trailing newline here...
+  }
+</geshi>
+
+You get
+
+  ------ END ------
+
+This directive is first introduced in [[#v0.11|version 0.11]].
 
 This command can be mixed with other content handler commands like [[#echo_sleep|echo_sleep]] and [[#echo_client_request_headers|echo_client_request_headers]] and they are executed sequentially.
 
@@ -412,13 +478,15 @@ If calling this directive without SSI module enabled, you'll get truncated respo
 
 Technically speaking, this directive is an example that Nginx content handler issues one or more subrequests directly. AFAIK, the [https://connectical.com/projects/ngx-fancyindex/wiki fancyindex module] also does such kind of things ;)
 
-This directive is first introduced in v0.09 of this module and requires at least Nginx 0.7.46.
+This directive is first introduced in [[#v0.09|version 0.09]] of this module and requires at least Nginx 0.7.46.
 
 This command can be mixed with other content handler commands like [[#echo|echo]] and [[#echo_sleep|echo_sleep]] and they are executed sequentially.
 
 = Filter Directives =
 
 Use of the following directives trigger the filter registration of this module. By default, no filter will be registered by this module.
+
+Every filter directive supports variable interpolation in its arguments (if any).
 
 == echo_before_body ==
 '''syntax:''' ''echo_before_body [argument]...''
@@ -573,6 +641,10 @@ Available on github at [http://github.com/agentzh/echo-nginx-module agentzh/echo
 
 = ChangeLog =
 
+== v0.11 ==
+
+* Implemented the [[#echo_duplicate|echo_duplicate]] directive to help generating large chunk of data for testing.
+
 == v0.10 ==
 
 * Fixed compilation regression against Nginx 0.7.21. This bug appears in version 0.09.
@@ -580,15 +652,15 @@ Available on github at [http://github.com/agentzh/echo-nginx-module agentzh/echo
 
 == v0.09 ==
 
-* reimplement the [[#echo_sleep|echo_sleep]] directive using per-request event and timer; the old implementation uses the global connection's read/write event to register timer, so it will break horribly when multiple subrequests "sleep" at the same time.
-* added the [[#echo_location_async|echo_location_async]] directive which can issue a GET subrequest and insert its contents herein.
+* Reimplement the [[#echo_sleep|echo_sleep]] directive using per-request event and timer; the old implementation uses the global connection's read/write event to register timer, so it will break horribly when multiple subrequests "sleep" at the same time.
+* Added the [[#echo_location_async|echo_location_async]] directive which can issue a GET subrequest and insert its contents herein.
 
 == v0.08 ==
 
 * [[#echo_sleep|echo_sleep]]: now we delete our <code>write event timer</code> in the <code>post_sleep</code> handle.
-* added <code>doc/manpage.wiki</code> which tracks changes in the [http://wiki.nginx.org/NginxHttpEchoModule wiki page].
-* added the <code>util/wiki2pod.pl</code> script to convert <code>doc/manpage.wiki</code> to <code>README</code>.
-* disabled the <code>DDEBUG</code> macro in the C source by default.
+* Added <code>doc/manpage.wiki</code> which tracks changes in the [http://wiki.nginx.org/NginxHttpEchoModule wiki page].
+* Added the <code>util/wiki2pod.pl</code> script to convert <code>doc/manpage.wiki</code> to <code>README</code>.
+* Disabled the <code>DDEBUG</code> macro in the C source by default.
 
 = Test Suite =
 
@@ -610,7 +682,6 @@ Because a single nginx server (by default, <code>localhost:1984</code>) is used 
 
 = TODO =
 
-* Add the ''echo_duplicate'' directive to generate specified large amount of crappy outputs. For example, <code>echo_duplicate 1024 "a"</code> will generate 1KB of outputs consisting of tons of a's.
 * Add the ''echo_location'' directive that can insert contents of other Nginx locations via GET subrequests, but unlike [[#echo_location_async|echo_location_async]], it issues subrequests sequentially, ''not'' concurrently.
 * Add the ''echo_subrequest'' and ''echo_subrequest_async'' directives that can initiate arbitrary subrequests (not only GET) and insert the corresponding contents herein.
 * Add the ''echo_file'' and ''echo_cached_file'' directives.

@@ -6,7 +6,7 @@ Name
     installation instructions.
 
 Version
-    This document describes echo-nginx-module v0.10
+    This document describes echo-nginx-module v0.11
     (<http://github.com/agentzh/echo-nginx-module/downloads>) released on
     Oct 20, 2009.
 
@@ -61,25 +61,39 @@ Synopsis
           echo blah;
       }
 
-        # the output of /main might be
-        #   hello
-        #   world
-        #   took 0.000 sec for total.
-        # and the whole request would take about 2 sec to complete.
-        location /main {
-            echo_reset_timer;
-            echo_location_async /sub1;
-            echo_location_async /sub2;
-            echo "took $echo_timer_elapsed sec for total.";
-        }
-        location /sub1 {
-            echo_sleep 2;
-            echo hello;
-        }
-        location /sub2 {
-            echo_sleep 1;
-            echo world;
-        }
+      # the output of /main might be
+      #   hello
+      #   world
+      #   took 0.000 sec for total.
+      # and the whole request would take about 2 sec to complete.
+      location /main {
+          echo_reset_timer;
+          echo_location_async /sub1;
+          echo_location_async /sub2;
+          echo "took $echo_timer_elapsed sec for total.";
+      }
+      location /sub1 {
+          echo_sleep 2;
+          echo hello;
+      }
+      location /sub2 {
+          echo_sleep 1;
+          echo world;
+      }
+
+      # Accessing /dup gives
+      #   ------ END ------
+      location /dup {
+        echo_duplicate 3 "---";
+        echo_duplicate 1 " END ";
+        echo_duplicate 3 "---";
+        echo;
+      }   
+
+      # /bighello will generate 1000,000,000 hello's.
+      location /bighello {
+        echo_duplicate 1000_000_000 'hello';
+      }
 
 Description
     This module provides various utilities that help testing and debugging
@@ -126,15 +140,18 @@ Content Handler Directives
       Content-Type: text/plain
       Connection: keep-alive
 
+    Every content handler directive supports variable interpolation in its
+    arguments (if any).
+
   echo
-    syntax: *echo [argument]...*
+    syntax: *echo <string>...*
 
     default: *no*
 
     context: *location*
 
-    This is a content handler command. Sends arguments joined by spaces,
-    along with a trailing newline, out to the client.
+    Sends arguments joined by spaces, along with a trailing newline, out to
+    the client.
 
     Note that the data might be buffered by Nginx's underlying buffer. To
     force the output data flushed immediately, use the echo_flush command
@@ -165,6 +182,52 @@ Content Handler Directives
         $ curl 'http://localhost/echo'
         hello
         world
+
+    This command can be mixed with other content handler commands like
+    echo_sleep and echo_client_request_headers and they are executed
+    sequentially.
+
+  echo_duplicate
+    syntax: *echo_duplicate <count> <string>*
+
+    default: *no*
+
+    context: *location*
+
+    Outputs duplication of a string indicated by the second argument, using
+    the times specified in the first argument.
+
+    For instance,
+
+      location /dup {
+          echo_duplicate 3 "abc";
+      }
+
+    will lead to an output of "abcabcabc".
+
+    Underscores are allowed in the count number, just like in Perl. For
+    example, to emit 1000,000,000 instances of "hello, world":
+
+      location /many_hellos {
+          echo_duplicate 1000_000_000 "hello, world";
+      }
+
+    Unlike the echo directive, no trailing newline is appended to the
+    result. So it's possible to "abuse" this directive as a
+    no-trailing-newline version of echo by using "count" 1, as in
+
+      location /echo_art {
+          echo_duplicate 2 '---';
+          echo_duplicate 1 ' END ';  # we don't want a trailing newline here
+          echo_duplicate 2 '---';
+          echo;  # we want a trailing newline here...
+      }
+
+    You get
+
+      ------ END ------
+
+    This directive is first introduced in version 0.11.
 
     This command can be mixed with other content handler commands like
     echo_sleep and echo_client_request_headers and they are executed
@@ -434,8 +497,8 @@ Content Handler Directives
     module (<https://connectical.com/projects/ngx-fancyindex/wiki>) also
     does such kind of things ;)
 
-    This directive is first introduced in v0.09 of this module and requires
-    at least Nginx 0.7.46.
+    This directive is first introduced in version 0.09 of this module and
+    requires at least Nginx 0.7.46.
 
     This command can be mixed with other content handler commands like echo
     and echo_sleep and they are executed sequentially.
@@ -443,6 +506,9 @@ Content Handler Directives
 Filter Directives
     Use of the following directives trigger the filter registration of this
     module. By default, no filter will be registered by this module.
+
+    Every filter directive supports variable interpolation in its arguments
+    (if any).
 
   echo_before_body
     syntax: *echo_before_body [argument]...*
@@ -602,6 +668,10 @@ Source Repository
     (<http://github.com/agentzh/echo-nginx-module>).
 
 ChangeLog
+  v0.11
+    *   Implemented the echo_duplicate directive to help generating large
+        chunk of data for testing.
+
   v0.10
     *   Fixed compilation regression against Nginx 0.7.21. This bug appears
         in version 0.09.
@@ -610,25 +680,25 @@ ChangeLog
         files.
 
   v0.09
-    *   reimplement the echo_sleep directive using per-request event and
+    *   Reimplement the echo_sleep directive using per-request event and
         timer; the old implementation uses the global connection's
         read/write event to register timer, so it will break horribly when
         multiple subrequests "sleep" at the same time.
 
-    *   added the echo_location_async directive which can issue a GET
+    *   Added the echo_location_async directive which can issue a GET
         subrequest and insert its contents herein.
 
   v0.08
     *   echo_sleep: now we delete our "write event timer" in the
         "post_sleep" handle.
 
-    *   added "doc/manpage.wiki" which tracks changes in the wiki page
+    *   Added "doc/manpage.wiki" which tracks changes in the wiki page
         (<http://wiki.nginx.org/NginxHttpEchoModule>).
 
-    *   added the "util/wiki2pod.pl" script to convert "doc/manpage.wiki" to
+    *   Added the "util/wiki2pod.pl" script to convert "doc/manpage.wiki" to
         "README".
 
-    *   disabled the "DDEBUG" macro in the C source by default.
+    *   Disabled the "DDEBUG" macro in the C source by default.
 
 Test Suite
     This module comes with a Perl-driven test suite. The test cases
@@ -664,10 +734,6 @@ Test Suite
     utility.
 
 TODO
-    *   Add the *echo_duplicate* directive to generate specified large
-        amount of crappy outputs. For example, "echo_duplicate 1024 "a""
-        will generate 1KB of outputs consisting of tons of a's.
-
     *   Add the *echo_location* directive that can insert contents of other
         Nginx locations via GET subrequests, but unlike echo_location_async,
         it issues subrequests sequentially, *not* concurrently.
