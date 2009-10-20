@@ -9,7 +9,7 @@ opts=$2
 lwp-mirror "http://sysoev.ru/nginx/nginx-$version.tar.gz" nginx-$version.tar.gz
 tar -xzvf nginx-$version.tar.gz
 cd nginx-$version/
-if [[ "$BUILD_CLEAN" -eq 1 || ! -f Makefile || 1 ]]; then
+if [[ "$BUILD_CLEAN" -eq 1 || ! -f Makefile ]]; then
     ./configure --prefix=/opt/nginx \
           --add-module=$root $opts \
           --with-debug

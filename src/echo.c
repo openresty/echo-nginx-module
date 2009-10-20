@@ -119,7 +119,6 @@ ngx_http_echo_exec_echo(ngx_http_request_t *r,
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
     *newline_buf = ngx_http_echo_newline_buf;
-    newline_buf->last_in_chain = 1;
 
     if (cl == NULL) {
         cl = ngx_alloc_chain_link(r->pool);
@@ -194,4 +193,48 @@ ngx_http_echo_exec_echo_flush(ngx_http_request_t *r, ngx_http_echo_ctx_t *ctx) {
     return ngx_http_send_special(r, NGX_HTTP_FLUSH);
 }
 
+ngx_int_t
+ngx_http_echo_exec_echo_duplicate(ngx_http_request_t *r,
+        ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args) {
+    ngx_str_t                   *computed_arg;
+    ngx_str_t                   *computed_arg_elts;
+    ssize_t                     i, count;
+    ngx_str_t                   *str;
+    u_char                      *p;
+
+    ngx_buf_t                   *buf;
+    ngx_chain_t                 *cl;
+
+    computed_arg_elts = computed_args->elts;
+
+    computed_arg = &computed_arg_elts[0];
+    count = ngx_http_echo_atosz(computed_arg->data, computed_arg->len);
+    if (count == NGX_ERROR) {
+        ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
+                   "invalid size specified: \"%V\"", computed_arg);
+        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+    }
+
+    str = &computed_arg_elts[1];
+
+    buf = ngx_create_temp_buf(r->pool, count * str->len);
+    if (buf == NULL) {
+        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+    }
+
+    p = buf->pos = buf->start;
+    for (i = 0; i < count; i++) {
+        p = ngx_cpymem(p, str->data, str->len);
+    }
+    buf->last = p;
+
+    cl = ngx_alloc_chain_link(r->pool);
+    if (cl == NULL) {
+        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+    }
+    cl->next = NULL;
+    cl->buf = buf;
+
+    return ngx_http_echo_send_chain_link(r, ctx, cl);
+}
 

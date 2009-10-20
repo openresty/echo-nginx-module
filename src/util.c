@@ -95,3 +95,30 @@ ngx_http_echo_send_header_if_needed(ngx_http_request_t* r,
     return NGX_OK;
 }
 
+ssize_t
+ngx_http_echo_atosz(u_char *line, size_t n) {
+    ssize_t  value;
+
+    if (n == 0) {
+        return NGX_ERROR;
+    }
+
+    for (value = 0; n--; line++) {
+        if (*line == '_') { /* we ignore undercores */
+            continue;
+        }
+
+        if (*line < '0' || *line > '9') {
+            return NGX_ERROR;
+        }
+
+        value = value * 10 + (*line - '0');
+    }
+
+    if (value < 0) {
+        return NGX_ERROR;
+    } else {
+        return value;
+    }
+}
+

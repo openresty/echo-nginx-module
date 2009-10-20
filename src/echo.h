@@ -14,5 +14,8 @@ ngx_int_t ngx_http_echo_exec_echo_client_request_headers(
 ngx_int_t ngx_http_echo_exec_echo_flush(ngx_http_request_t *r,
         ngx_http_echo_ctx_t *ctx);
 
+ngx_int_t ngx_http_echo_exec_echo_duplicate(ngx_http_request_t *r,
+        ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args);
+
 #endif /* ECHO_ECHO_H */
 

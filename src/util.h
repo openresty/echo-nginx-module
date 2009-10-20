@@ -14,5 +14,7 @@ ngx_int_t ngx_http_echo_send_header_if_needed(ngx_http_request_t* r,
 ngx_int_t ngx_http_echo_send_chain_link(ngx_http_request_t* r,
         ngx_http_echo_ctx_t *ctx, ngx_chain_t *cl);
 
+ssize_t ngx_http_echo_atosz(u_char *line, size_t n);
+
 #endif /* ECHO_UTIL_H */
 

@@ -63,3 +63,20 @@ User-Agent: Test::Nginx::Echo\r
 ...these are the headers
 "
 
+
+
+=== TEST 4: mixed with echo_duplicate
+--- config
+    location /mixed {
+        echo hello;
+        echo_duplicate 2 ---;
+        echo_duplicate 1 ' END ';
+        echo_duplicate 2 ---;
+        echo;
+    }
+--- request
+    GET /mixed
+--- response_body
+hello
+------ END ------
+
