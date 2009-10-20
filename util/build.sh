@@ -22,5 +22,6 @@ fi
 if [ -f /opt/nginx/logs/nginx.pid ]; then
     kill `cat /opt/nginx/logs/nginx.pid`
 fi
-make install -j3
+make -j3
+make install
 

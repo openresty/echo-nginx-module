@@ -6,6 +6,8 @@
 #include <ngx_core.h>
 #include <ngx_http.h>
 
+extern ngx_module_t ngx_http_echo_module;
+
 /* config directive's opcode */
 typedef enum {
     echo_opcode_echo,
