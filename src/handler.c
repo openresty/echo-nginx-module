@@ -141,6 +141,13 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
                     return NGX_HTTP_INTERNAL_SERVER_ERROR;
                 }
                 break;
+            case echo_opcode_echo_location:
+                rc = ngx_http_echo_exec_echo_location(r, ctx, computed_args);
+                if (rc != NGX_OK) {
+                    return NGX_HTTP_INTERNAL_SERVER_ERROR;
+                }
+                return NGX_OK;
+                break;
             default:
                 ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
                         "Unknown opcode: %d", cmd->opcode);
