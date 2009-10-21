@@ -152,7 +152,7 @@ sub run_test ($) {
             if (kill(1, $pid) == 0) { # send HUP signal
                 Test::More::BAIL_OUT("$name - Failed to send signal to the nginx process with PID $pid using signal HUP");
             }
-            sleep 0.1;
+            sleep 0.05;
         } else {
             unlink $PidFile or
                 die "Failed to remove pid file $PidFile\n";

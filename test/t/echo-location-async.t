@@ -169,3 +169,18 @@ took 0\.00[0-5] sec for total\.$
 --- response_body
 Foo Bar
 
+
+
+=== TEST 9: querystring in url
+--- config
+    location /main {
+        echo_location_async /sub?foo=Foo&bar=Bar
+    }
+    location /sub {
+        echo $arg_foo $arg_bar
+    }
+--- request
+    GET /main
+--- response_body
+Foo Bar
+

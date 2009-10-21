@@ -6,9 +6,9 @@ Name
     installation instructions.
 
 Version
-    This document describes echo-nginx-module v0.11
+    This document describes echo-nginx-module v0.12
     (<http://github.com/agentzh/echo-nginx-module/downloads>) released on
-    Oct 20, 2009.
+    Oct 21, 2009.
 
 Synopsis
       location /hello {
@@ -68,8 +68,34 @@ Synopsis
       # and the whole request would take about 2 sec to complete.
       location /main {
           echo_reset_timer;
+
+          # subrequests in parallel
           echo_location_async /sub1;
           echo_location_async /sub2;
+
+          echo "took $echo_timer_elapsed sec for total.";
+      }
+      location /sub1 {
+          echo_sleep 2;
+          echo hello;
+      }
+      location /sub2 {
+          echo_sleep 1;
+          echo world;
+      }
+
+      # the output of /main might be
+      #   hello
+      #   world
+      #   took 3.003 sec for total.
+      # and the whole request would take about 3 sec to complete.
+      location /main {
+          echo_reset_timer;
+
+          # subrequests in series (chained by CPS)
+          echo_location /sub1;
+          echo_location /sub2;
+
           echo "took $echo_timer_elapsed sec for total.";
       }
       location /sub1 {
@@ -227,7 +253,7 @@ Content Handler Directives
 
       ------ END ------
 
-    This directive is first introduced in version 0.11.
+    This directive was first introduced in version 0.11.
 
     This command can be mixed with other content handler commands like
     echo_sleep and echo_client_request_headers and they are executed
@@ -480,6 +506,20 @@ Content Handler Directives
       $ curl 'http://localhost/main'
       Foo Bar
 
+    Querystrings could even be concatenated into the location argument
+    directly, for example
+
+        location /main {
+            echo_location_async /sub?foo=Foo&bar=Bar
+        }
+        location /sub {
+            echo $arg_foo $arg_bar
+        }
+
+    "/main" returns
+
+      Foo Bar
+
     Due to an unknown bug in Nginx (it still exists in Nginx 0.8.20), the
     standard SSI module is required to ensure that the contents of the
     subrequests issued by this directive are correctly merged into the
@@ -502,6 +542,64 @@ Content Handler Directives
 
     This command can be mixed with other content handler commands like echo
     and echo_sleep and they are executed sequentially.
+
+  echo_location
+    syntax: *echo_location <location> [<url_args>]*
+
+    default: *no*
+
+    context: *location*
+
+    Just like the echo_location_async directive, but "echo_location" issues
+    subrequests *in series* rather than in parallel. That is, the content
+    handler directives following this directive won't be executed until the
+    subrequest issued by this directive completes.
+
+    The final response body is almost always equivalent to the case when
+    echo_location_async is used instead, only if timing variables is used in
+    the outputs.
+
+    Consider the following example:
+
+        location /main {
+            echo_reset_timer;
+            echo_location /sub1;
+            echo_location /sub2;
+            echo "took $echo_timer_elapsed sec for total.";
+        }
+        location /sub1 {
+            echo_sleep 2;
+            echo hello;
+        }
+        location /sub2 {
+            echo_sleep 1;
+            echo world;
+        }
+
+    The location "/main" above will take for total 3 sec to complete
+    (compared to 2 sec if echo_location_async is used instead here). Here's
+    the result in action on my machine:
+
+      $ curl 'http://localhost/main'
+      hello
+      world
+      took 3.003 sec for total.
+
+      real  0m3.027s
+      user  0m0.020s
+      sys   0m0.004s
+
+    Behind the scene, it creates an "ngx_http_post_subrequest_t" object as a
+    *continuation* and passes it into the "ngx_http_subrequest" function
+    call. Nginx will later reopen this "continuation" in the subrequest's
+    "ngx_http_finalize_request" function call. We resumes the execution of
+    the parent-request's content handler and starts to run the next
+    directive (command) if any.
+
+    See echo_location_async for more details about the meaning of the
+    arguments.
+
+    This directive was first introduced in the release v0.12.
 
 Filter Directives
     Use of the following directives trigger the filter registration of this
@@ -644,8 +742,8 @@ Compatibility
 
     *   0.7.x >= 0.7.21 (last tested version is 0.7.62)
 
-    In particular, the echo_location_async directive does not work with
-    0.7.x < 0.7.46.
+    In particular, the echo_location_async and its brother echo_location
+    directives do *not* work with 0.7.x < 0.7.46.
 
     Earlier versions of Nginx like 0.6.x and 0.5.x will *not* work.
 
@@ -668,6 +766,11 @@ Source Repository
     (<http://github.com/agentzh/echo-nginx-module>).
 
 ChangeLog
+  v0.12
+    *   Implemented the echo_location directive, which can issue chained GET
+        subrequests in the Continuation Passing Style (CPS), rather than the
+        parallel subrequest issued by the echo_location_async directive.
+
   v0.11
     *   Implemented the echo_duplicate directive to help generating large
         chunk of data for testing.
@@ -734,10 +837,6 @@ Test Suite
     utility.
 
 TODO
-    *   Add the *echo_location* directive that can insert contents of other
-        Nginx locations via GET subrequests, but unlike echo_location_async,
-        it issues subrequests sequentially, *not* concurrently.
-
     *   Add the *echo_subrequest* and *echo_subrequest_async* directives
         that can initiate arbitrary subrequests (not only GET) and insert
         the corresponding contents herein.
