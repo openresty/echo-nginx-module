@@ -6,7 +6,7 @@
 
 = Version =
 
-This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/downloads v0.12] released on Oct 21, 2009.
+This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/downloads v0.13] released on Oct 21, 2009.
 
 = Synopsis =
 
@@ -298,9 +298,35 @@ Consider the following example:
 
 Then on the client side, using curl to access <code>/flush</code>, you'll see the "hello" line immediately, but only after 1 second, the last "world" line. Without calling <code>echo_flush</code> in the example above, you'll most likely see no output until 1 second is elapsed due to the internal buffering of Nginx.
 
+This directive will fail to flush the output buffer in case of subrequests get involved. Consider the following example:
+
+  location /main {
+      echo_location_async /sub;
+      echo hello;
+      echo_flush;
+  }
+  location /sub {
+      echo_sleep 1;
+  }
+
+Then the client won't see "hello" appear even if <code>echo_flush</code> has been executed before the subrequest to <code>/sub</code> has actually started executing. The outputs of <code>/main</code> that are sent ''after'' [[#echo_location_async|echo_location_async]] will be postponed and buffered firmly.
+
+This does ''not'' apply to outputs sent before the subrequest initiated. For a modified version of the example given above:
+
+  location /main {
+      echo hello;
+      echo_flush;
+      echo_location_async /sub;
+  }
+  location /sub {
+      echo_sleep 1;
+  }
+
+The client will immediately see "hello" before <code>/sub</code> enters sleeping.
+
 This command can be mixed with other content handler commands like [[#echo_sleep|echo_sleep]] and [[#echo_client_request_headers|echo_client_request_headers]] and they are executed sequentially.
 
-See also [[#echo|echo]] and [[#echo_sleep|echo_sleep]].
+See also [[#echo|echo]], [[#echo_sleep|echo_sleep]], and [[#echo_location_async|echo_location_async]].
 
 == echo_sleep ==
 '''syntax:''' ''echo_sleep <seconds>''
@@ -426,6 +452,8 @@ This command can be mixed with other content handler commands like [[#echo_sleep
 '''context:''' ''location''
 
 Issue GET subrequest to the location specified (first argument) with optional url arguments specified in the second argument.
+
+As of Nginx 0.8.20, the <code>location</code> argument does ''not'' support named location, due to a limitation in the <code>ngx_http_subrequest</code> function. The same is true for its brother, the [[#echo_location|echo_location]] directive.
 
 A very simple example is
 
@@ -727,6 +755,11 @@ Available on github at [http://github.com/agentzh/echo-nginx-module agentzh/echo
 
 = ChangeLog =
 
+== v0.13 ==
+
+* Fixed the special cases when the outputs of a [[#echo_duplicate|echo_duplicate]] directive is empty.
+* Now we explicitly clears content lenth and accept ranges headers in the content handler.
+
 == v0.12 ==
 
 * Implemented the [[#echo_location|echo_location]] directive, which can issue chained GET subrequests in the Continuation Passing Style (CPS), rather than the parallel subrequest issued by the [[#echo_location_async|echo_location_async]] directive.
@@ -769,6 +802,8 @@ You need to terminate any Nginx processes before running the test suite if you h
 At the moment, [http://search.cpan.org/perldoc?LWP::UserAgent LWP::UserAgent] is used by the [http://github.com/agentzh/echo-nginx-module/blob/master/test/lib/Test/Nginx/Echo.pm test scaffold] for simplicity and it's rather weak in testing ''streaming'' behavior of Nginx (I'm using "curl" to test these aspects manually for now). I'm considering coding up my own Perl HTTP client library based on [http://search.cpan.org/perldoc?IO::Select IO::Select] and [http://search.cpan.org/perldoc?IO::Socket IO::Socket] (there might be already one around?).
 
 Because a single nginx server (by default, <code>localhost:1984</code>) is used across all the test scripts (<code>.t</code> files), it's meaningless to run the test suite in parallel by specifying <code>-jN</code> when invoking the <code>prove</code> utility.
+
+Some parts of the test suite requires standard modules [[#NginxHttpProxyModule|proxy]] and [[#NginxHttpAdditionModule|addition]] to be enabled as well when building Nginx.
 
 = TODO =
 

@@ -6,7 +6,7 @@ Name
     installation instructions.
 
 Version
-    This document describes echo-nginx-module v0.12
+    This document describes echo-nginx-module v0.13
     (<http://github.com/agentzh/echo-nginx-module/downloads>) released on
     Oct 21, 2009.
 
@@ -292,11 +292,42 @@ Content Handler Directives
     likely see no output until 1 second is elapsed due to the internal
     buffering of Nginx.
 
+    This directive will fail to flush the output buffer in case of
+    subrequests get involved. Consider the following example:
+
+      location /main {
+          echo_location_async /sub;
+          echo hello;
+          echo_flush;
+      }
+      location /sub {
+          echo_sleep 1;
+      }
+
+    Then the client won't see "hello" appear even if "echo_flush" has been
+    executed before the subrequest to "/sub" has actually started executing.
+    The outputs of "/main" that are sent *after* echo_location_async will be
+    postponed and buffered firmly.
+
+    This does *not* apply to outputs sent before the subrequest initiated.
+    For a modified version of the example given above:
+
+      location /main {
+          echo hello;
+          echo_flush;
+          echo_location_async /sub;
+      }
+      location /sub {
+          echo_sleep 1;
+      }
+
+    The client will immediately see "hello" before "/sub" enters sleeping.
+
     This command can be mixed with other content handler commands like
     echo_sleep and echo_client_request_headers and they are executed
     sequentially.
 
-    See also echo and echo_sleep.
+    See also echo, echo_sleep, and echo_location_async.
 
   echo_sleep
     syntax: *echo_sleep <seconds>*
@@ -438,6 +469,10 @@ Content Handler Directives
 
     Issue GET subrequest to the location specified (first argument) with
     optional url arguments specified in the second argument.
+
+    As of Nginx 0.8.20, the "location" argument does *not* support named
+    location, due to a limitation in the "ngx_http_subrequest" function. The
+    same is true for its brother, the echo_location directive.
 
     A very simple example is
 
@@ -766,6 +801,13 @@ Source Repository
     (<http://github.com/agentzh/echo-nginx-module>).
 
 ChangeLog
+  v0.13
+    *   Fixed the special cases when the outputs of a echo_duplicate
+        directive is empty.
+
+    *   Now we explicitly clears content lenth and accept ranges headers in
+        the content handler.
+
   v0.12
     *   Implemented the echo_location directive, which can issue chained GET
         subrequests in the Continuation Passing Style (CPS), rather than the
@@ -835,6 +877,9 @@ Test Suite
     across all the test scripts (".t" files), it's meaningless to run the
     test suite in parallel by specifying "-jN" when invoking the "prove"
     utility.
+
+    Some parts of the test suite requires standard modules proxy and
+    addition to be enabled as well when building Nginx.
 
 TODO
     *   Add the *echo_subrequest* and *echo_subrequest_async* directives
