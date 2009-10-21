@@ -90,6 +90,10 @@ ngx_http_echo_send_header_if_needed(ngx_http_request_t* r,
         if (ngx_http_set_content_type(r) != NGX_OK) {
             return NGX_HTTP_INTERNAL_SERVER_ERROR;
         }
+
+        ngx_http_clear_content_length(r);
+        ngx_http_clear_accept_ranges(r);
+
         rc = ngx_http_send_header(r);
     }
     return NGX_OK;

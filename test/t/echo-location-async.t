@@ -184,3 +184,25 @@ Foo Bar
 --- response_body
 Foo Bar
 
+
+=== TEST 10: explicit flush in main request
+flush won't really flush the buffer...
+--- config
+    location /main {
+        echo 'pre main';
+        echo_location_async /sub;
+        echo 'post main';
+        echo_flush;
+    }
+
+    location /sub {
+        echo_sleep 0.02;
+        echo 'sub';
+    }
+--- request
+    GET /main
+--- response_body
+pre main
+sub
+post main
+

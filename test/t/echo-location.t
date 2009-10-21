@@ -228,3 +228,25 @@ post sub
 post main
 --- SKIP
 
+
+
+=== TEST 11: explicit flush in main request
+--- config
+    location /main {
+        echo 'pre main';
+        echo_location /sub;
+        echo 'post main';
+        echo_flush;
+    }
+
+    location /sub {
+        echo_sleep 0.02;
+        echo 'sub';
+    }
+--- request
+    GET /main
+--- response_body
+pre main
+sub
+post main
+
