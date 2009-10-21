@@ -129,6 +129,7 @@ world
 took 0\.0(?:2[5-9]|3[0-5]) sec for total\.$
 
 
+
 === TEST 7: timed multiple subrequests (non-blocking sleep)
 --- config
     location /main {
@@ -167,4 +168,63 @@ took 0\.0(?:2[5-9]|3[0-5]) sec for total\.$
     GET /main
 --- response_body
 Foo Bar
+
+
+
+=== TEST 9: chained subrequests
+--- config
+    location /main {
+        echo 'pre main';
+        echo_location /sub;
+        echo 'post main';
+    }
+
+    location /sub {
+        echo 'pre sub';
+        echo_location /subsub;
+        echo 'post sub';
+    }
+
+    location /subsub {
+        echo 'subsub';
+    }
+--- request
+    GET /main
+--- response_body
+pre main
+pre sub
+subsub
+post sub
+post main
+
+
+
+=== TEST 10: chained subrequests using named locations
+as of 0.8.20, ngx_http_subrequest still does not support
+named location. sigh. this case is a TODO.
+--- config
+    location /main {
+        echo 'pre main';
+        echo_location @sub;
+        echo 'post main';
+    }
+
+    location @sub {
+        echo 'pre sub';
+        echo_location @subsub;
+        echo 'post sub';
+    }
+
+    location @subsub {
+        echo 'subsub';
+    }
+--- request
+    GET /main
+--- response_body
+pre main
+pre sub
+subsub
+post sub
+post main
+--- SKIP
 
