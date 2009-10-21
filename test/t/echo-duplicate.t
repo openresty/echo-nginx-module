@@ -43,3 +43,36 @@ __DATA__
 --- response_body eval
 'A' x 10_000
 
+
+
+=== TEST 4: 0 duplicate 0 empty strings
+--- config
+    location /dup {
+        echo_duplicate 0 "";
+    }
+--- request
+    GET /dup
+--- response_body
+
+
+
+=== TEST 5: 0 duplicate non-empty strings
+--- config
+    location /dup {
+        echo_duplicate 0 "abc";
+    }
+--- request
+    GET /dup
+--- response_body
+
+
+
+=== TEST 6: duplication of empty strings
+--- config
+    location /dup {
+        echo_duplicate 2 "";
+    }
+--- request
+    GET /dup
+--- response_body
+

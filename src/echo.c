@@ -201,6 +201,7 @@ ngx_http_echo_exec_echo_duplicate(ngx_http_request_t *r,
     ssize_t                     i, count;
     ngx_str_t                   *str;
     u_char                      *p;
+    ngx_int_t                   rc;
 
     ngx_buf_t                   *buf;
     ngx_chain_t                 *cl;
@@ -216,6 +217,16 @@ ngx_http_echo_exec_echo_duplicate(ngx_http_request_t *r,
     }
 
     str = &computed_arg_elts[1];
+    if (str->len == 0) {
+    }
+
+    if (count == 0 || str->len == 0) {
+        rc = ngx_http_echo_send_header_if_needed(r, ctx);
+        if (r->header_only || rc >= NGX_HTTP_SPECIAL_RESPONSE) {
+            return rc;
+        }
+        return NGX_OK;
+    }
 
     buf = ngx_create_temp_buf(r->pool, count * str->len);
     if (buf == NULL) {
