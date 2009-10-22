@@ -50,7 +50,7 @@ ngx_http_echo_exec_echo_location(ngx_http_request_t *r,
     ngx_str_t                           *computed_arg_elts;
     ngx_str_t                           location;
     ngx_str_t                           *url_args;
-    ngx_http_post_subrequest_t          *ps;
+    ngx_http_post_subrequest_t          *psr;
 
     computed_arg_elts = computed_args->elts;
 
@@ -70,14 +70,15 @@ ngx_http_echo_exec_echo_location(ngx_http_request_t *r,
         return rc;
     }
 
-    ps = ngx_palloc(r->pool, sizeof(ngx_http_post_subrequest_t));
-    if (ps == NULL) {
+    psr = ngx_palloc(r->pool, sizeof(ngx_http_post_subrequest_t));
+    if (psr == NULL) {
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
-    ps->handler = ngx_http_echo_post_subrequest;
-    ps->data = ctx;
 
-    rc = ngx_http_subrequest(r, &location, url_args, &sr, ps, 0);
+    psr->handler = ngx_http_echo_post_subrequest;
+    psr->data = ctx;
+
+    rc = ngx_http_subrequest(r, &location, url_args, &sr, psr, 0);
     if (rc != NGX_OK) {
         return NGX_ERROR;
     }
