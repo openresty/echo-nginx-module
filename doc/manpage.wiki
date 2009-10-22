@@ -222,6 +222,8 @@ The output on the client side looks like this
     world
 </geshi>
 
+Special characters like newlines (<code>\n</code>) and tabs (<code>\t</code>) can be escaped using C-style escaping sequences. But a notable exception is the dollar sign (<code>$</code>). As of Nginx 0.8.20, there's still no clean way to esacpe this characters. (A work-around might be to use a <code>$echo_dollor</code> variable that is always evaluated to the constant <code>$</code> character. This feature will possibly be introduced in a future version of this module.)
+
 This command can be mixed with other content handler commands like [[#echo_sleep|echo_sleep]] and [[#echo_client_request_headers|echo_client_request_headers]] and they are executed sequentially.
 
 == echo_duplicate ==
@@ -250,6 +252,8 @@ Underscores are allowed in the count number, just like in Perl. For example, to 
       echo_duplicate 1000_000_000 "hello, world";
   }
 </geshi>
+
+The <code>count</code> argument could be zero, but not negative. Likewise, the second <code>string</code> argument could be an empty string ("").
 
 Unlike the [[#echo|echo]] directive, no trailing newline is appended to the result. So it's possible to "abuse" this directive as a no-trailing-newline version of [[#echo|echo]] by using "count" 1, as in
 
@@ -526,18 +530,7 @@ Accessing <code>/main</code> yields
   Foo Bar
 </geshi>
 
-Querystrings could even be concatenated into the location argument directly, for example
-
-    location /main {
-        echo_location_async /sub?foo=Foo&bar=Bar
-    }
-    location /sub {
-        echo $arg_foo $arg_bar
-    }
-
-<code>/main</code> returns
-
-  Foo Bar
+Querystrings is ''not'' allowed to be concatenated onto the <code>location</code> argument with "?" directly, for example, <code>/sub?foo=Foo&bar=Bar</code> is an invalid location, and shouldn't be fed as the first argument to this directive.
 
 Due to an unknown bug in Nginx (it still exists in Nginx 0.8.20), the [[NginxHttpSsiModule|standard SSI module]] is required to ensure that the contents of the subrequests issued by this directive are correctly merged into the output chains of the main one. Fortunately, the SSI module is enabled by default during Nginx's <code>configure</code> process.
 

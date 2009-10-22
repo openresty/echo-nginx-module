@@ -209,6 +209,13 @@ Content Handler Directives
         hello
         world
 
+    Special characters like newlines ("\n") and tabs ("\t") can be escaped
+    using C-style escaping sequences. But a notable exception is the dollar
+    sign ("$"). As of Nginx 0.8.20, there's still no clean way to esacpe
+    this characters. (A work-around might be to use a $echo_dollor variable
+    that is always evaluated to the constant "$" character. This feature
+    will possibly be introduced in a future version of this module.)
+
     This command can be mixed with other content handler commands like
     echo_sleep and echo_client_request_headers and they are executed
     sequentially.
@@ -237,6 +244,9 @@ Content Handler Directives
       location /many_hellos {
           echo_duplicate 1000_000_000 "hello, world";
       }
+
+    The "count" argument could be zero, but not negative. Likewise, the
+    second "string" argument could be an empty string ("").
 
     Unlike the echo directive, no trailing newline is appended to the
     result. So it's possible to "abuse" this directive as a
@@ -541,19 +551,10 @@ Content Handler Directives
       $ curl 'http://localhost/main'
       Foo Bar
 
-    Querystrings could even be concatenated into the location argument
-    directly, for example
-
-        location /main {
-            echo_location_async /sub?foo=Foo&bar=Bar
-        }
-        location /sub {
-            echo $arg_foo $arg_bar
-        }
-
-    "/main" returns
-
-      Foo Bar
+    Querystrings is *not* allowed to be concatenated onto the "location"
+    argument with "?" directly, for example, "/sub?foo=Foo&bar=Bar" is an
+    invalid location, and shouldn't be fed as the first argument to this
+    directive.
 
     Due to an unknown bug in Nginx (it still exists in Nginx 0.8.20), the
     standard SSI module is required to ensure that the contents of the
