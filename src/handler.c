@@ -9,6 +9,7 @@
 #include "var.h"
 #include "timer.h"
 #include "location.h"
+#include "request_info.h"
 
 #include <nginx.h>
 #include <ngx_log.h>

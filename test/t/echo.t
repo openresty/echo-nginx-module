@@ -122,3 +122,33 @@ As of Nginx 0.8.20, there's still no way to escape the '$' character.
 $
 --- SKIP
 
+
+
+=== TEST 10: request_body
+--- config
+    location /echo {
+        echo [$request_body];
+    }
+--- request
+POST /echo
+body here
+heh
+--- response_body
+[]
+
+
+=== TEST 11: request_body
+--- config
+    location /echo {
+        echo_before_body [$request_body];
+        proxy_pass $scheme://127.0.0.1:$server_port/blah;
+    }
+    location /blah { echo_duplicate 0 ''; }
+--- request
+POST /echo
+body here
+heh
+--- response_body
+[body here
+heh]
+
