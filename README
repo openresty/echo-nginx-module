@@ -6,9 +6,9 @@ Name
     installation instructions.
 
 Version
-    This document describes echo-nginx-module v0.13
+    This document describes echo-nginx-module v0.14
     (<http://github.com/agentzh/echo-nginx-module/downloads>) released on
-    Oct 21, 2009.
+    Oct 22, 2009.
 
 Synopsis
       location /hello {
@@ -121,6 +121,13 @@ Synopsis
         echo_duplicate 1000_000_000 'hello';
       }
 
+      # echo back the client request
+      location /echoback {
+        echo_client_request_headers;
+        echo_read_request_body;
+        echo $request_body;
+      }
+
 Description
     This module provides various utilities that help testing and debugging
     of other modules by trivially emulating different kinds of faked
@@ -135,6 +142,10 @@ Description
         the addition module but with contents read directly from the config
         file and Nginx variables).
 
+    3.  merge contents of various "Nginx locations" (i.e., subrequests)
+        together in a single main request (using echo_location and its
+        friends).
+
     This is a special dual-role module that can *lazily* serve as a content
     handler or register itself as an output filter only upon demand. By
     default, this module does not do anything at all.
@@ -142,6 +153,28 @@ Description
     Use of any of this module's directives (no matter content handler
     directives or filter directives) will force the chunked encoding to be
     used for the HTTP response due to the streaming nature of this module.
+
+    Technially, this module has also demonstrated the following techniques
+    that might be helpful for module writers:
+
+    1.  Issue parallel subreqeusts directly from content handler.
+
+    2.  Issue chained subrequests directly from content handler, by passing
+        contination along the subrequest chain.
+
+    3.  Interact with the Nginx event model directly from content handler
+        using custom events and timers, and resume the content handler back
+        if necessary.
+
+    4.  Dual-role module that can (lazily) serve as a content handler or an
+        output filter or both.
+
+    5.  Nginx config file variable creation and interpolation.
+
+    6.  Streaming output control using output_chain, flush and its friends.
+
+    7.  Read client request body from the content handler, and returns back
+        (asynchronously) to the content handler after completion.
 
 Content Handler Directives
     Use of the following directives register this module to the current
@@ -466,6 +499,54 @@ Content Handler Directives
     Behind the scene, it recovers "r->main->header_in" on the C level and
     does not construct the headers itself by traversing parsed results in
     the request object.
+
+    This command can be mixed with other content handler commands like
+    echo_sleep and echo_flush and they are executed sequentially.
+
+  echo_read_request_body
+    Explicitly reads request body so that the $request_body variable will
+    always have non-empty values (unless the body is so big that it has been
+    saved by Nginx to a local temporary file).
+
+    Note that this might not be the original client request body because the
+    current request might be a subrequest with a "artificial" body specified
+    by its parent.
+
+    This directive does not generate any output itself, just like
+    echo_sleep.
+
+    Here's an example for echo'ing back the original HTTP client request
+    (both headers and body are included):
+
+      location /echoback {
+        echo_client_request_headers;
+        echo_read_request_body;
+        echo $request_body;
+      }
+
+    The content of "/echoback" looks like this on my side (I was using
+    Perl's LWP utility to access this location on the server):
+
+      $ (echo hello; echo world) | lwp-request -m POST 'http://localhost/echoback'
+      POST /echoback HTTP/1.1
+      TE: deflate,gzip;q=0.3
+      Connection: TE, close
+      Host: localhost
+      User-Agent: lwp-request/5.818 libwww-perl/5.820
+      Content-Length: 12
+      Content-Type: application/x-www-form-urlencoded
+
+      hello
+      world
+
+    Because "/echoback" is the main request, $request_body holds the
+    original client request body.
+
+    Before Nginx 0.7.56, it makes no sense to use this directive because
+    $request_body was first introduced in Nginx 0.7.58.
+
+    This directive itself was first introduced in the echo module's v0.14
+    release.
 
     This command can be mixed with other content handler commands like
     echo_sleep and echo_flush and they are executed sequentially.
@@ -802,6 +883,15 @@ Source Repository
     (<http://github.com/agentzh/echo-nginx-module>).
 
 ChangeLog
+  v0.14
+    *   Added new directive echo_read_request_body to explicitly read client
+        request body so that the [[NginxHttpCoreModule#$request_body]]
+        variable will always have non-empty values.
+
+    *   Now we shuffer test cases automatically in .t files and fixed bugs
+        in the tests themselves which are hidden by config reload fallback
+        in failure.
+
   v0.13
     *   Fixed the special cases when the outputs of a echo_duplicate
         directive is empty.
@@ -883,9 +973,12 @@ Test Suite
     addition to be enabled as well when building Nginx.
 
 TODO
-    *   Add the *echo_subrequest* and *echo_subrequest_async* directives
-        that can initiate arbitrary subrequests (not only GET) and insert
-        the corresponding contents herein.
+    *   Add directives *echo_read_client_request_body* and
+        *echo_request_headers*.
+
+    *   Add directives *echo_subrequest* and *echo_subrequest_async* that
+        can initiate arbitrary subrequests (not only GET) and insert the
+        corresponding contents herein.
 
     *   Add the *echo_file* and *echo_cached_file* directives.
 

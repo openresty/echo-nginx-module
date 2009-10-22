@@ -7,7 +7,7 @@
 
 #include <nginx.h>
 
-static void ngx_http_echo_post_read_client_request_body(ngx_http_request_t *r);
+static void ngx_http_echo_post_read_request_body(ngx_http_request_t *r);
 
 ngx_int_t
 ngx_http_echo_exec_echo_client_request_headers(
@@ -57,11 +57,11 @@ ngx_http_echo_exec_echo_client_request_headers(
 }
 
 ngx_int_t
-ngx_http_echo_exec_echo_read_client_request_body(
+ngx_http_echo_exec_echo_read_request_body(
         ngx_http_request_t* r, ngx_http_echo_ctx_t *ctx) {
     ngx_int_t           rc;
 
-    rc = ngx_http_read_client_request_body(r, ngx_http_echo_post_read_client_request_body);
+    rc = ngx_http_read_client_request_body(r, ngx_http_echo_post_read_request_body);
     if (rc >= NGX_HTTP_SPECIAL_RESPONSE) {
         return rc;
     }
@@ -69,7 +69,7 @@ ngx_http_echo_exec_echo_read_client_request_body(
 }
 
 static void
-ngx_http_echo_post_read_client_request_body(ngx_http_request_t *r) {
+ngx_http_echo_post_read_request_body(ngx_http_request_t *r) {
     ngx_http_echo_ctx_t         *ctx;
 
     ctx = ngx_http_get_module_ctx(r, ngx_http_echo_module);

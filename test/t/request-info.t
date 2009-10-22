@@ -77,10 +77,10 @@ heh]
 
 
 
-=== TEST 5: use echo_read_client_request_body to read it!
+=== TEST 5: use echo_read_request_body to read it!
 --- config
     location /echo {
-        echo_read_client_request_body;
+        echo_read_request_body;
         echo [$request_body];
     }
 --- request
@@ -96,7 +96,7 @@ heh]
 === TEST 6: how about sleep after that?
 --- config
     location /echo {
-        echo_read_client_request_body;
+        echo_read_request_body;
         echo_sleep 0.002;
         echo [$request_body];
     }
@@ -115,7 +115,7 @@ heh]
   # echo back the client request
   location /echoback {
     echo_client_request_headers;
-    echo_read_client_request_body;
+    echo_read_request_body;
     echo $request_body;
   }
 --- request
