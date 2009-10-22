@@ -32,7 +32,7 @@ hello
         proxy_pass http://127.0.0.1:$server_port$request_uri/more;
     }
     location /echo/more {
-        echo world
+        echo world;
     }
 --- request
     GET /echo
@@ -136,7 +136,8 @@ world
 igor
 
 
-=== TEST 2: echo around proxy
+
+=== TEST 9: echo around proxy
 --- config
     location /echo {
         echo_before_body hello;

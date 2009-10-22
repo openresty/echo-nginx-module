@@ -171,24 +171,72 @@ Foo Bar
 
 
 
-=== TEST 9: querystring in url
+=== TEST 9: encoded chars in query strings
 --- config
     location /main {
-        echo_location_async /sub?foo=Foo&bar=Bar
+        echo_location_async /sub 'foo=a%20b&bar=Bar';
     }
     location /sub {
-        echo $arg_foo $arg_bar
+        echo $arg_foo $arg_bar;
     }
 --- request
     GET /main
 --- response_body
-Foo Bar
+a%20b Bar
 
 
-=== TEST 10: explicit flush in main request
-flush won't really flush the buffer...
+
+=== TEST 10: UTF-8 chars in query strings
 --- config
     location /main {
+        echo_location_async /sub 'foo=你好';
+    }
+    location /sub {
+        echo $arg_foo;
+    }
+--- request
+    GET /main
+--- response_body
+你好
+
+
+
+=== TEST 11: encoded chars in location url
+--- config
+    location /main {
+        echo_location_async /sub%31 'foo=Foo&bar=Bar';
+    }
+    location /sub1 {
+        echo 'sub1';
+    }
+    location /sub%31 {
+        echo 'sub%31';
+    }
+--- request
+    GET /main
+--- response_body
+sub%31
+
+
+
+=== TEST 12: querystring in url
+--- config
+    location /main {
+        echo_location_async /sub?foo=Foo&bar=Bar;
+    }
+    location /sub {
+        echo $arg_foo $arg_bar;
+    }
+--- request
+    GET /main
+--- response_body eval: " \n"
+
+
+
+=== TEST 13: explicit flush in main request
+flush won't really flush the buffer...
+--- config
+    location /main_flush {
         echo 'pre main';
         echo_location_async /sub;
         echo 'post main';
@@ -200,7 +248,7 @@ flush won't really flush the buffer...
         echo 'sub';
     }
 --- request
-    GET /main
+    GET /main_flush
 --- response_body
 pre main
 sub

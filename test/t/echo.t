@@ -62,3 +62,16 @@ world !
 --- response_body eval
 "\n\n"
 
+
+
+=== TEST 5: escapes
+--- config
+    location /echo {
+        echo "hello\nworld";
+    }
+--- request
+    GET /echo
+--- response_body
+hello
+world
+

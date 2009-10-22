@@ -8,6 +8,7 @@ use Time::HiRes qw(sleep);
 use LWP::UserAgent; # XXX should use a socket level lib here
 use Test::Base -Base;
 use Module::Install::Can;
+use List::Util qw( shuffle );
 use File::Spec ();
 use Cwd qw( cwd );
 
@@ -22,7 +23,7 @@ our $LogLevel               = 'debug';
 #our $DaemonEnabled          = 'on';
 our $ServerPort             = 1984;
 
-our ($PrevRequest, $PrevConfig);
+#our ($PrevRequest, $PrevConfig);
 
 our $ServRoot   = File::Spec->catfile(cwd(), 't/servroot');
 our $LogDir     = File::Spec->catfile($ServRoot, 'logs');
@@ -38,7 +39,7 @@ our @EXPORT = qw( run_tests run_test );
 sub trim ($);
 
 sub run_tests () {
-    for my $block (blocks()) {
+    for my $block (shuffle blocks()) {
         run_test($block);
     }
 }
@@ -136,12 +137,17 @@ sub run_test ($) {
     my $name = $block->name;
     my $request = $block->request;
     if (!defined $request) {
-        $request = $PrevRequest;
-        $PrevRequest = $request;
+        #$request = $PrevRequest;
+        #$PrevRequest = $request;
+        Test::More::BAIL_OUT("$name - No '--- request' section specified");
+        die;
     }
+
     my $config = $block->config;
     if (!defined $config) {
-        $config = $PrevConfig;
+        Test::More::BAIL_OUT("$name - No '--- config' section specified");
+        #$config = $PrevConfig;
+        die;
     }
 
     my $nginx_is_running = 1;
@@ -152,7 +158,7 @@ sub run_test ($) {
             if (kill(1, $pid) == 0) { # send HUP signal
                 Test::More::BAIL_OUT("$name - Failed to send signal to the nginx process with PID $pid using signal HUP");
             }
-            sleep 0.05;
+            sleep 0.02;
         } else {
             unlink $PidFile or
                 die "Failed to remove pid file $PidFile\n";
