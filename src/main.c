@@ -3,6 +3,7 @@
 #include "ddebug.h"
 #include "handler.h"
 #include "filter.h"
+#include "request_info.h"
 
 #include <nginx.h>
 #include <ngx_config.h>
@@ -40,13 +41,10 @@ static char* ngx_http_echo_echo_location_async(ngx_conf_t *cf,
 static char* ngx_http_echo_echo_location(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
 
-/*
- * TODO
-static char* ngx_http_echo_echo_location(ngx_conf_t *cf,
-        ngx_command_t *cmd, void *conf);
-*/
-
 static char* ngx_http_echo_echo_duplicate(ngx_conf_t *cf,
+        ngx_command_t *cmd, void *conf);
+
+static char* ngx_http_echo_echo_read_client_request_body(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
 
 static char* ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
@@ -148,6 +146,13 @@ static ngx_command_t  ngx_http_echo_commands[] = {
       ngx_http_echo_echo_duplicate,
       NGX_HTTP_LOC_CONF_OFFSET,
       0,
+      NULL },
+
+    { ngx_string("echo_read_client_request_body"),
+      NGX_HTTP_LOC_CONF|NGX_CONF_NOARGS,
+      ngx_http_echo_echo_read_client_request_body,
+      NGX_HTTP_LOC_CONF_OFFSET,
+      offsetof(ngx_http_echo_loc_conf_t, handler_cmds),
       NULL },
 
       ngx_null_command
@@ -372,6 +377,15 @@ static char*
 ngx_http_echo_echo_duplicate(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf) {
     return ngx_http_echo_helper(echo_opcode_echo_duplicate,
+            echo_handler_cmd,
+            cf, cmd, conf);
+}
+
+static char*
+ngx_http_echo_echo_read_client_request_body(ngx_conf_t *cf,
+        ngx_command_t *cmd, void *conf) {
+    return ngx_http_echo_helper(
+            echo_opcode_echo_read_client_request_body,
             echo_handler_cmd,
             cf, cmd, conf);
 }

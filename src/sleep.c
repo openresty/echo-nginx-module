@@ -64,8 +64,6 @@ ngx_http_echo_post_sleep(ngx_http_request_t *r) {
     ctx->sleep.timedout = 0;
 
     ngx_http_finalize_request(r, ngx_http_echo_handler(r));
-
-    return;
 }
 
 void

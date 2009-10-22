@@ -21,7 +21,8 @@ typedef enum {
     echo_opcode_echo_after_body,
     echo_opcode_echo_location_async,
     echo_opcode_echo_location,
-    echo_opcode_echo_duplicate
+    echo_opcode_echo_duplicate,
+    echo_opcode_echo_read_client_request_body
 } ngx_http_echo_opcode_t;
 
 /* all the various config directives (or commands) are

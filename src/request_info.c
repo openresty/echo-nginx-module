@@ -3,8 +3,11 @@
 
 #include "request_info.h"
 #include "util.h"
+#include "handler.h"
 
 #include <nginx.h>
+
+static void ngx_http_echo_post_read_client_request_body(ngx_http_request_t *r);
 
 ngx_int_t
 ngx_http_echo_exec_echo_client_request_headers(
@@ -51,5 +54,31 @@ ngx_http_echo_exec_echo_client_request_headers(
 
     cl->buf = buf;
     return ngx_http_echo_send_chain_link(r, ctx, cl);
+}
+
+ngx_int_t
+ngx_http_echo_exec_echo_read_client_request_body(
+        ngx_http_request_t* r, ngx_http_echo_ctx_t *ctx) {
+    ngx_int_t           rc;
+
+    rc = ngx_http_read_client_request_body(r, ngx_http_echo_post_read_client_request_body);
+    if (rc >= NGX_HTTP_SPECIAL_RESPONSE) {
+        return rc;
+    }
+    return NGX_DONE;
+}
+
+static void
+ngx_http_echo_post_read_client_request_body(ngx_http_request_t *r) {
+    ngx_http_echo_ctx_t         *ctx;
+
+    ctx = ngx_http_get_module_ctx(r, ngx_http_echo_module);
+    if (ctx == NULL) {
+        return ngx_http_finalize_request(r, NGX_HTTP_INTERNAL_SERVER_ERROR);
+    }
+
+    ctx->next_handler_cmd++;
+
+    ngx_http_finalize_request(r, ngx_http_echo_handler(r));
 }
 
