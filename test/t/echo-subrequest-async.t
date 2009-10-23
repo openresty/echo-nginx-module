@@ -273,3 +273,48 @@ pre main
 sub
 post main
 
+
+
+=== TEST 15: POST subrequest with body (with proxy in the middle) and without read body explicitly
+--- config
+    location /main {
+        echo_subrequest_async POST /proxy -b 'hello, world';
+    }
+    location /proxy {
+        proxy_pass $scheme://127.0.0.1:$server_port/sub;
+    }
+    location /sub {
+        echo "sub method: $echo_request_method.";
+        # we need to read body explicitly here...or $echo_request_body
+        #   will evaluate to empty ("")
+        echo "sub body: $echo_request_body.";
+    }
+--- request
+    GET /main
+--- response_body
+sub method: POST.
+sub body: .
+
+
+
+=== TEST 16: POST subrequest with body (with proxy in the middle) and read body explicitly
+--- config
+    location /main {
+        echo_subrequest_async POST /proxy -b 'hello, world';
+    }
+    location /proxy {
+        proxy_pass $scheme://127.0.0.1:$server_port/sub;
+    }
+    location /sub {
+        echo "sub method: $echo_request_method.";
+        # we need to read body explicitly here...or $echo_request_body
+        #   will evaluate to empty ("")
+        echo_read_request_body;
+        echo "sub body: $echo_request_body.";
+    }
+--- request
+    GET /main
+--- response_body
+sub method: POST.
+sub body: hello, world.
+

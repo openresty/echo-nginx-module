@@ -358,6 +358,13 @@ ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr, ngx_http_echo_subrequest
         h->key = ngx_http_echo_content_length_header_key;
         h->value = sr->headers_in.content_length->value;
 
+        h->lowcase_key = ngx_pnalloc(sr->pool, h->key.len);
+        if (h->lowcase_key == NULL) {
+            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        }
+
+        ngx_strlow(h->lowcase_key, h->key.data, h->key.len);
+
         DD("sr content length: %s", sr->headers_in.content_length->value.data);
     }
     return NGX_OK;
