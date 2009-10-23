@@ -41,6 +41,12 @@ static char* ngx_http_echo_echo_location_async(ngx_conf_t *cf,
 static char* ngx_http_echo_echo_location(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
 
+static char* ngx_http_echo_echo_subrequest_async(ngx_conf_t *cf,
+        ngx_command_t *cmd, void *conf);
+
+static char* ngx_http_echo_echo_subrequest(ngx_conf_t *cf,
+        ngx_command_t *cmd, void *conf);
+
 static char* ngx_http_echo_echo_duplicate(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
 
@@ -137,6 +143,20 @@ static ngx_command_t  ngx_http_echo_commands[] = {
     { ngx_string("echo_location"),
       NGX_HTTP_LOC_CONF|NGX_CONF_TAKE12,
       ngx_http_echo_echo_location,
+      NGX_HTTP_LOC_CONF_OFFSET,
+      0,
+      NULL },
+
+    { ngx_string("echo_subrequest_async"),
+      NGX_HTTP_LOC_CONF|NGX_CONF_2MORE,
+      ngx_http_echo_echo_subrequest_async,
+      NGX_HTTP_LOC_CONF_OFFSET,
+      0,
+      NULL },
+
+    { ngx_string("echo_subrequest"),
+      NGX_HTTP_LOC_CONF|NGX_CONF_2MORE,
+      ngx_http_echo_echo_subrequest,
       NGX_HTTP_LOC_CONF_OFFSET,
       0,
       NULL },
@@ -372,6 +392,49 @@ static char*
 
 }
 
+static char*
+ ngx_http_echo_echo_subrequest_async(ngx_conf_t *cf, ngx_command_t *cmd,
+         void *conf) {
+
+#if ! defined(nginx_version)
+
+    ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
+            "Directive echo_subrequest_async does not work with nginx "
+            "versions ealier than 0.7.46.");
+
+    return NGX_CONF_ERROR;
+
+#else
+
+    return ngx_http_echo_helper(echo_opcode_echo_subrequest_async,
+            echo_handler_cmd,
+            cf, cmd, conf);
+
+#endif
+
+}
+
+static char*
+ ngx_http_echo_echo_subrequest(ngx_conf_t *cf, ngx_command_t *cmd,
+         void *conf) {
+
+#if ! defined(nginx_version)
+
+    ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
+            "Directive echo_subrequest does not work with nginx "
+            "versions ealier than 0.7.46.");
+
+    return NGX_CONF_ERROR;
+
+#else
+
+    return ngx_http_echo_helper(echo_opcode_echo_subrequest,
+            echo_handler_cmd,
+            cf, cmd, conf);
+
+#endif
+
+}
 
 static char*
 ngx_http_echo_echo_duplicate(ngx_conf_t *cf,

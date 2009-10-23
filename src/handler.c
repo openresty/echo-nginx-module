@@ -9,6 +9,7 @@
 #include "var.h"
 #include "timer.h"
 #include "location.h"
+#include "subrequest.h"
 #include "request_info.h"
 
 #include <nginx.h>
@@ -85,6 +86,7 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
                     return rc;
                 }
                 break;
+
             case echo_opcode_echo_client_request_headers:
                 rc = ngx_http_echo_exec_echo_client_request_headers(r,
                         ctx);
@@ -92,6 +94,7 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
                     return rc;
                 }
                 break;
+
             case echo_opcode_echo_location_async:
                 DD("found opcode echo location async...");
                 rc = ngx_http_echo_exec_echo_location_async(r, ctx,
@@ -103,9 +106,41 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
                     return NGX_HTTP_INTERNAL_SERVER_ERROR;
                 }
                 break;
+
+            case echo_opcode_echo_location:
+                rc = ngx_http_echo_exec_echo_location(r, ctx, computed_args);
+                if (rc != NGX_OK) {
+                    return NGX_HTTP_INTERNAL_SERVER_ERROR;
+                }
+
+                return NGX_OK;
+                break;
+
+            case echo_opcode_echo_subrequest_async:
+                DD("found opcode echo subrequest async...");
+                rc = ngx_http_echo_exec_echo_subrequest_async(r, ctx,
+                        computed_args);
+                if (rc != NGX_OK) {
+                    ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
+                            "Failed to issue subrequest for "
+                            "echo_subrequest_async");
+                    return NGX_HTTP_INTERNAL_SERVER_ERROR;
+                }
+                break;
+
+            case echo_opcode_echo_subrequest:
+                rc = ngx_http_echo_exec_echo_subrequest(r, ctx, computed_args);
+                if (rc != NGX_OK) {
+                    return NGX_HTTP_INTERNAL_SERVER_ERROR;
+                }
+
+                return NGX_OK;
+                break;
+
             case echo_opcode_echo_sleep:
                 return ngx_http_echo_exec_echo_sleep(r, ctx, computed_args);
                 break;
+
             case echo_opcode_echo_flush:
                 rc = ngx_http_echo_exec_echo_flush(r, ctx);
 
@@ -120,6 +155,7 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
                 }
 
                 break;
+
             case echo_opcode_echo_blocking_sleep:
                 rc = ngx_http_echo_exec_echo_blocking_sleep(r, ctx,
                         computed_args);
@@ -130,12 +166,14 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
                 }
 
                 break;
+
             case echo_opcode_echo_reset_timer:
                 rc = ngx_http_echo_exec_echo_reset_timer(r, ctx);
                 if (rc != NGX_OK) {
                     return NGX_HTTP_INTERNAL_SERVER_ERROR;
                 }
                 break;
+
             case echo_opcode_echo_duplicate:
                 rc = ngx_http_echo_exec_echo_duplicate(r, ctx, computed_args);
                 if (rc != NGX_OK) {
@@ -143,17 +181,11 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
                 }
 
                 break;
-            case echo_opcode_echo_location:
-                rc = ngx_http_echo_exec_echo_location(r, ctx, computed_args);
-                if (rc != NGX_OK) {
-                    return NGX_HTTP_INTERNAL_SERVER_ERROR;
-                }
 
-                return NGX_OK;
-                break;
             case echo_opcode_echo_read_request_body:
                 return ngx_http_echo_exec_echo_read_request_body(r, ctx);
                 break;
+
             default:
                 ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
                         "Unknown opcode: %d", cmd->opcode);
