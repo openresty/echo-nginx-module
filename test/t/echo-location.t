@@ -25,6 +25,23 @@ __DATA__
 hello
 
 
+=== TEST 1: sanity with proxy in the middle
+--- config
+    location /main {
+        echo_location /proxy;
+    }
+    location /proxy {
+        proxy_pass $scheme://127.0.0.1:$server_port/sub;
+    }
+    location /sub {
+        echo hello;
+    }
+--- request
+    GET /main
+--- response_body
+hello
+
+
 
 === TEST 2: trailing echo
 --- config

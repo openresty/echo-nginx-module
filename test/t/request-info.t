@@ -49,7 +49,7 @@ User-Agent: Test::Nginx::Echo\r
 === TEST 3: does not explicitly request_body
 --- config
     location /echo {
-        echo [$request_body];
+        echo [$echo_request_body];
     }
 --- request
 POST /echo
@@ -63,7 +63,7 @@ heh
 === TEST 4: let proxy read request_body
 --- config
     location /echo {
-        echo_before_body [$request_body];
+        echo_before_body [$echo_request_body];
         proxy_pass $scheme://127.0.0.1:$server_port/blah;
     }
     location /blah { echo_duplicate 0 ''; }
@@ -81,7 +81,7 @@ heh]
 --- config
     location /echo {
         echo_read_request_body;
-        echo [$request_body];
+        echo [$echo_request_body];
     }
 --- request
 POST /echo
@@ -98,7 +98,7 @@ heh]
     location /echo {
         echo_read_request_body;
         echo_sleep 0.002;
-        echo [$request_body];
+        echo [$echo_request_body];
     }
 --- request
 POST /echo
@@ -116,7 +116,7 @@ heh]
   location /echoback {
     echo_client_request_headers;
     echo_read_request_body;
-    echo $request_body;
+    echo $echo_request_body;
   }
 --- request
 POST /echoback

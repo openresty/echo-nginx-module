@@ -5,6 +5,25 @@
 #include "subrequest.h"
 #include "handler.h"
 
+ngx_str_t  ngx_http_echo_get_method = { 3, (u_char *) "GET " };
+ngx_str_t  ngx_http_echo_put_method = { 3, (u_char *) "PUT " };
+
+ngx_str_t  ngx_http_echo_post_method = { 4, (u_char *) "POST " };
+ngx_str_t  ngx_http_echo_head_method = { 4, (u_char *) "HEAD " };
+ngx_str_t  ngx_http_echo_copy_method = { 4, (u_char *) "COPY " };
+ngx_str_t  ngx_http_echo_move_method = { 4, (u_char *) "MOVE " };
+ngx_str_t  ngx_http_echo_lock_method = { 4, (u_char *) "LOCK " };
+
+ngx_str_t  ngx_http_echo_mkcol_method = { 5, (u_char *) "MKCOL " };
+ngx_str_t  ngx_http_echo_trace_method = { 5, (u_char *) "TRACE " };
+
+ngx_str_t  ngx_http_echo_delete_method = { 6, (u_char *) "DELETE " };
+ngx_str_t  ngx_http_echo_unlock_method = { 6, (u_char *) "UNLOCK " };
+
+ngx_str_t  ngx_http_echo_options_method = { 7, (u_char *) "OPTIONS " };
+ngx_str_t  ngx_http_echo_propfind_method = { 8, (u_char *) "PROPFIND " };
+ngx_str_t  ngx_http_echo_proppatch_method = { 9, (u_char *) "PROPPATCH " };
+
 typedef struct ngx_http_echo_subrequest_s {
     ngx_uint_t      method;
     ngx_str_t       *method_name;
@@ -146,10 +165,12 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
         case 3:
             if (ngx_strncmp("GET", method_name->data, method_name->len) == 0) {
                 method = NGX_HTTP_GET;
+                method_name = &ngx_http_echo_get_method;
                 break;
             }
             if (ngx_strncmp("PUT", method_name->data, method_name->len) == 0) {
                 method = NGX_HTTP_PUT;
+                method_name = &ngx_http_echo_put_method;
                 break;
             }
             method = NGX_HTTP_UNKNOWN;
@@ -158,22 +179,27 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
         case 4:
             if (ngx_strncmp("POST", method_name->data, method_name->len) == 0) {
                 method = NGX_HTTP_POST;
+                method_name = &ngx_http_echo_post_method;
                 break;
             }
             if (ngx_strncmp("HEAD", method_name->data, method_name->len) == 0) {
                 method = NGX_HTTP_HEAD;
+                method_name = &ngx_http_echo_head_method;
                 break;
             }
             if (ngx_strncmp("COPY", method_name->data, method_name->len) == 0) {
                 method = NGX_HTTP_COPY;
+                method_name = &ngx_http_echo_copy_method;
                 break;
             }
             if (ngx_strncmp("MOVE", method_name->data, method_name->len) == 0) {
                 method = NGX_HTTP_MOVE;
+                method_name = &ngx_http_echo_move_method;
                 break;
             }
             if (ngx_strncmp("LOCK", method_name->data, method_name->len) == 0) {
                 method = NGX_HTTP_LOCK;
+                method_name = &ngx_http_echo_lock_method;
                 break;
             }
             method = NGX_HTTP_UNKNOWN;
@@ -182,10 +208,12 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
         case 5:
             if (ngx_strncmp("MKCOL", method_name->data, method_name->len) == 0) {
                 method = NGX_HTTP_MKCOL;
+                method_name = &ngx_http_echo_mkcol_method;
                 break;
             }
             if (ngx_strncmp("TRACE", method_name->data, method_name->len) == 0) {
                 method = NGX_HTTP_TRACE;
+                method_name = &ngx_http_echo_trace_method;
                 break;
             }
             method = NGX_HTTP_UNKNOWN;
@@ -194,10 +222,12 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
         case 6:
             if (ngx_strncmp("DELETE", method_name->data, method_name->len) == 0) {
                 method = NGX_HTTP_DELETE;
+                method_name = &ngx_http_echo_delete_method;
                 break;
             }
             if (ngx_strncmp("UNLOCK", method_name->data, method_name->len) == 0) {
                 method = NGX_HTTP_UNLOCK;
+                method_name = &ngx_http_echo_unlock_method;
                 break;
             }
             method = NGX_HTTP_UNKNOWN;
@@ -206,6 +236,7 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
         case 7:
             if (ngx_strncmp("OPTIONS", method_name->data, method_name->len) == 0) {
                 method = NGX_HTTP_OPTIONS;
+                method_name = &ngx_http_echo_options_method;
                 break;
             }
             method = NGX_HTTP_UNKNOWN;
@@ -214,6 +245,7 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
         case 8:
             if (ngx_strncmp("PROPFIND", method_name->data, method_name->len) == 0) {
                 method = NGX_HTTP_PROPFIND;
+                method_name = &ngx_http_echo_propfind_method;
                 break;
             }
             method = NGX_HTTP_UNKNOWN;
@@ -222,6 +254,7 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
         case 9:
             if (ngx_strncmp("PROPPATCH", method_name->data, method_name->len) == 0) {
                 method = NGX_HTTP_PROPPATCH;
+                method_name = &ngx_http_echo_proppatch_method;
                 break;
             }
             method = NGX_HTTP_UNKNOWN;

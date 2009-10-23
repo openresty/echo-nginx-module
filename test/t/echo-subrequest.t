@@ -250,3 +250,42 @@ pre main
 sub
 post main
 
+
+
+=== TEST 12: DELETE subrequest
+--- config
+    location /main {
+        echo_subrequest DELETE /sub;
+    }
+    location /sub {
+        echo "sub method: $echo_request_method";
+        echo "main method: $echo_client_request_method";
+    }
+--- request
+    GET /main
+--- response_body
+sub method: DELETE
+main method: GET
+
+
+
+=== TEST 13: DELETE subrequest
+--- config
+    location /main {
+        echo "main method: $echo_client_request_method";
+        echo_subrequest GET /proxy;
+        echo_subrequest DELETE /proxy;
+    }
+    location /proxy {
+        proxy_pass $scheme://127.0.0.1:$server_port/sub;
+    }
+    location /sub {
+        echo "sub method: $echo_request_method";
+    }
+--- request
+    GET /main
+--- response_body
+main method: GET
+sub method: GET
+sub method: DELETE
+
