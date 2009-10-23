@@ -5,6 +5,8 @@
 #include "subrequest.h"
 #include "handler.h"
 
+ngx_str_t  ngx_http_echo_content_length_header_key = ngx_string("Content-Length");
+
 ngx_str_t  ngx_http_echo_get_method = { 3, (u_char *) "GET " };
 ngx_str_t  ngx_http_echo_put_method = { 3, (u_char *) "PUT " };
 
@@ -25,13 +27,15 @@ ngx_str_t  ngx_http_echo_propfind_method = { 8, (u_char *) "PROPFIND " };
 ngx_str_t  ngx_http_echo_proppatch_method = { 9, (u_char *) "PROPPATCH " };
 
 typedef struct ngx_http_echo_subrequest_s {
-    ngx_uint_t      method;
-    ngx_str_t       *method_name;
-    ngx_str_t       *location;
-    ngx_str_t       *query_string;
+    ngx_uint_t                  method;
+    ngx_str_t                   *method_name;
+    ngx_str_t                   *location;
+    ngx_str_t                   *query_string;
+    ssize_t                     content_length_n;
+    ngx_http_request_body_t     *request_body;
 } ngx_http_echo_subrequest_t;
 
-static void ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr,
+static ngx_int_t ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr,
         ngx_http_echo_subrequest_t *parsed_sr);
 
 static ngx_int_t ngx_http_echo_post_subrequest(ngx_http_request_t *r,
@@ -67,7 +71,10 @@ ngx_http_echo_exec_echo_subrequest_async(ngx_http_request_t *r,
         return NGX_ERROR;
     }
 
-    ngx_http_echo_adjust_subrequest(sr, &parsed_sr);
+    rc = ngx_http_echo_adjust_subrequest(sr, &parsed_sr);
+    if (rc != NGX_OK) {
+        return rc;
+    }
 
     return NGX_OK;
 }
@@ -106,6 +113,9 @@ ngx_http_echo_exec_echo_subrequest(ngx_http_request_t *r,
     }
 
     ngx_http_echo_adjust_subrequest(sr, &parsed_sr);
+    if (rc != NGX_OK) {
+        return rc;
+    }
 
     return NGX_OK;
 }
@@ -127,10 +137,15 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
     ngx_str_t                   *computed_arg_elts, *arg;
     ngx_str_t                   **to_write = NULL;
     ngx_str_t                   *location, *method_name;
+    ngx_str_t                   *request_body = NULL;
     ngx_str_t                   *query_string = NULL;
     ngx_uint_t                  i;
     ngx_int_t                   method;
     ngx_flag_t                  expecting_opt;
+    ngx_http_request_body_t     *rb = NULL;
+    ngx_buf_t                   *b;
+
+    ngx_memzero(parsed_sr, sizeof(ngx_http_echo_subrequest_t));
 
     computed_arg_elts = computed_args->elts;
 
@@ -154,11 +169,43 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
         if (ngx_strncmp("-q", arg->data, arg->len) == 0) {
             to_write = &query_string;
             expecting_opt = 0;
+        } else if (ngx_strncmp("-b", arg->data, arg->len) == 0) {
+            to_write = &request_body;
+            expecting_opt = 0;
         } else {
             ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
                     "Unknown option for echo_subrequest_async: %V", arg);
             return NGX_HTTP_INTERNAL_SERVER_ERROR;
         }
+    }
+
+    if (request_body != NULL && request_body->len != 0) {
+        rb = ngx_pcalloc(r->pool, sizeof(ngx_http_request_body_t));
+        if (rb == NULL) {
+            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        }
+
+        parsed_sr->content_length_n = request_body->len;
+
+        b = ngx_calloc_buf(r->pool);
+        if (b == NULL) {
+            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        }
+
+        b->temporary = 1;
+        /* b->memory = 1; */
+        b->start = b->pos = request_body->data;
+        b->end = b->last = request_body->data + request_body->len;
+
+        rb->bufs = ngx_alloc_chain_link(r->pool);
+        if (rb->bufs == NULL) {
+            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        }
+
+        rb->bufs->buf = b;
+        rb->bufs->next = NULL;
+
+        rb->buf = b;
     }
 
     switch (method_name->len) {
@@ -269,13 +316,50 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
     parsed_sr->method_name  = method_name;
     parsed_sr->location     = location;
     parsed_sr->query_string = query_string;
+    parsed_sr->request_body = rb;
 
     return NGX_OK;
 }
 
-static void
+static ngx_int_t
 ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr, ngx_http_echo_subrequest_t *parsed_sr) {
+    ngx_table_elt_t            *h;
+
     sr->method = parsed_sr->method;
     sr->method_name = *(parsed_sr->method_name);
+    if (parsed_sr->content_length_n > 0) {
+        sr->headers_in.content_length_n = parsed_sr->content_length_n;
+        sr->request_body = parsed_sr->request_body;
+
+        sr->headers_in.content_length = ngx_pcalloc(sr->pool,
+                sizeof(ngx_table_elt_t));
+        sr->headers_in.content_length->value.data =
+            ngx_palloc(sr->pool, NGX_OFF_T_LEN);
+        if (sr->headers_in.content_length->value.data == NULL) {
+            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        }
+        sr->headers_in.content_length->value.len = ngx_sprintf(
+                sr->headers_in.content_length->value.data, "%O",
+                sr->headers_in.content_length_n) -
+                sr->headers_in.content_length->value.data;
+
+        if (ngx_list_init(&sr->headers_in.headers, sr->pool, 20,
+                    sizeof(ngx_table_elt_t)) != NGX_OK) {
+            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        }
+
+        h = ngx_list_push(&sr->headers_in.headers);
+        if (h == NULL) {
+            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        }
+
+        h->hash = sr->header_hash;
+
+        h->key = ngx_http_echo_content_length_header_key;
+        h->value = sr->headers_in.content_length->value;
+
+        DD("sr content length: %s", sr->headers_in.content_length->value.data);
+    }
+    return NGX_OK;
 }
 

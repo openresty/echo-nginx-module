@@ -1,3 +1,6 @@
+#define DDEBUG 0
+
+#include "ddebug.h"
 #include "var.h"
 #include "timer.h"
 
@@ -84,6 +87,18 @@ ngx_http_echo_request_body_variable(ngx_http_request_t *r,
     size_t        len;
     ngx_buf_t    *buf, *next;
     ngx_chain_t  *cl;
+
+#if 0
+
+    DD("rrr request_body null ? %d", r->request_body == NULL);
+    if (r->request_body) {
+        DD("rrr request_body bufs null ? %d", r->request_body->bufs == NULL);
+        DD("rrr request_body temp file ? %d", r->request_body->temp_file != NULL);
+    }
+    DD("rrr request_body content length ? %ld", (long) r->headers_in.content_length_n);
+
+#endif
+
 
     if (r->request_body == NULL
         || r->request_body->bufs == NULL

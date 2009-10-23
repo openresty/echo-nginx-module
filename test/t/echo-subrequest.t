@@ -5,7 +5,7 @@ use Test::Nginx::Echo;
 
 plan tests => 1 * blocks();
 
-#$Test::Nginx::Echo::LogLevel = 'debug';
+$Test::Nginx::Echo::LogLevel = 'debug';
 
 run_tests();
 
@@ -288,4 +288,87 @@ main method: GET
 main method: GET
 sub method: GET
 sub method: DELETE
+
+
+
+=== TEST 14: POST subrequest with body
+--- config
+    location /main {
+        echo_subrequest POST /sub -b 'hello, world';
+    }
+    location /sub {
+        echo "sub method: $echo_request_method";
+        # we don't need to call echo_read_client_body explicitly here
+        echo "sub body: $echo_request_body";
+    }
+--- request
+    GET /main
+--- response_body
+sub method: POST
+sub body: hello, world
+
+
+
+=== TEST 15: POST subrequest with body (explicitly read the body)
+--- config
+    location /main {
+        echo_subrequest POST /sub -b 'hello, world';
+    }
+    location /sub {
+        echo "sub method: $echo_request_method";
+        # we call echo_read_client_body explicitly here even
+        #   though it's not necessary.
+        echo_read_request_body;
+        echo "sub body: $echo_request_body";
+    }
+--- request
+    GET /main
+--- response_body
+sub method: POST
+sub body: hello, world
+
+
+
+=== TEST 16: POST subrequest with body (with proxy in the middle) and without read body explicitly
+--- config
+    location /main {
+        echo_subrequest POST /proxy -b 'hello, world';
+    }
+    location /proxy {
+        proxy_pass $scheme://127.0.0.1:$server_port/sub;
+    }
+    location /sub {
+        echo "sub method: $echo_request_method.";
+        # we need to read body explicitly here...or $echo_request_body
+        #   will evaluate to empty ("")
+        echo "sub body: $echo_request_body.";
+    }
+--- request
+    GET /main
+--- response_body
+sub method: POST.
+sub body: .
+
+
+
+=== TEST 17: POST subrequest with body (with proxy in the middle) and read body explicitly
+--- config
+    location /main {
+        echo_subrequest POST /proxy -b 'hello, world';
+    }
+    location /proxy {
+        proxy_pass $scheme://127.0.0.1:$server_port/sub;
+    }
+    location /sub {
+        echo "sub method: $echo_request_method.";
+        # we need to read body explicitly here...or $echo_request_body
+        #   will evaluate to empty ("")
+        echo_read_request_body;
+        echo "sub body: $echo_request_body.";
+    }
+--- request
+    GET /main
+--- response_body
+sub method: POST.
+sub body: hello, world.
 
