@@ -145,6 +145,7 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
     size_t                      size;
     u_char                      *p, *last;
     ngx_buf_t                   *header_in;
+    ngx_flag_t                  just_seen_crlf;
 
     if (r != r->main) {
         header_in = r->main->header_in;
@@ -160,20 +161,32 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
     size = header_in->pos - header_in->start;
 
     v->data = ngx_palloc(r->pool, size);
-    v->len  = size;
     last = ngx_cpymem(v->data, header_in->start, size);
 
-    /* fix \0 introduced by the nginx header parser */
+    /* fix \0 introduced by the nginx header parser and
+     * locate the end of the header */
+    just_seen_crlf = 0;
     for (p = (u_char*)v->data; p != last; p++) {
         if (*p == '\0') {
             if (p + 1 != last && *(p + 1) == LF) {
+                just_seen_crlf = 1;
                 *p = CR;
             } else {
                 *p = ':';
+                just_seen_crlf = 0;
             }
+        } else if (*p == CR) {
+            if (just_seen_crlf) {
+                *p = '\0';
+                last = p;
+                break;
+            }
+        } else if (*p != LF) {
+            just_seen_crlf = 0;
         }
     }
 
+    v->len = last - v->data;
     v->valid = 1;
     v->no_cacheable = 0;
     v->not_found = 0;

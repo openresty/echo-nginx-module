@@ -22,7 +22,6 @@ __DATA__
 GET /echo HTTP/1.1\r
 Host: localhost:\$ServerPort\r
 User-Agent: Test::Nginx::Echo\r
-\r
 
 "
 
@@ -40,7 +39,6 @@ User-Agent: Test::Nginx::Echo\r
 "GET /echo HTTP/1.1\r
 Host: localhost:\$ServerPort\r
 User-Agent: Test::Nginx::Echo\r
-\r
 
 ...these are the headers
 "
@@ -61,7 +59,6 @@ User-Agent: Test::Nginx::Echo\r
 GET /echo HTTP/1.1\r
 Host: localhost:\$ServerPort\r
 User-Agent: Test::Nginx::Echo\r
-\r
 
 ...these are the headers
 "

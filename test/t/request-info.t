@@ -20,7 +20,6 @@ __DATA__
 "GET /echo HTTP/1.1\r
 Host: localhost:\$ServerPort\r
 User-Agent: Test::Nginx::Echo\r
-\r
 
 "
 
@@ -38,12 +37,10 @@ User-Agent: Test::Nginx::Echo\r
 "GET /echo HTTP/1.1\r
 Host: localhost:\$ServerPort\r
 User-Agent: Test::Nginx::Echo\r
-\r
 
 GET /echo HTTP/1.1\r
 Host: localhost:\$ServerPort\r
 User-Agent: Test::Nginx::Echo\r
-\r
 
 "
 
@@ -130,9 +127,30 @@ haha
 Host: localhost:\$ServerPort\r
 User-Agent: Test::Nginx::Echo\r
 Content-Length: 14\r
-\r
 
 body here
 haha
+"
+
+
+
+=== TEST 8: preread body should not be included
+--- config
+    location /preread {
+        echo_subrequest_async POST /proxy -b 'hello world';
+    }
+    location /proxy {
+        proxy_pass $scheme://127.0.0.1:$server_port/sub;
+    }
+    location /sub {
+        echo_duplicate 1 $echo_client_request_headers;
+    }
+--- request
+    GET /preread
+--- response_body eval
+"POST /sub HTTP/1.0\r
+Host: 127.0.0.1:\$ServerPort\r
+Connection: close\r
+Content-Length: 11\r
 "
 
