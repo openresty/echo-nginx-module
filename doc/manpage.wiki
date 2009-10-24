@@ -6,7 +6,7 @@
 
 = Version =
 
-This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/downloads v0.14] released on Oct 22, 2009.
+This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/downloads v0.15] released on Oct 24, 2009.
 
 = Synopsis =
 
@@ -23,24 +23,6 @@ This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-
     echo "'hello world' takes about $echo_timer_elapsed sec.";
     echo hiya igor;
     echo "'hiya igor' takes about $echo_timer_elapsed sec.";
-  }
-</geshi>
-
-<geshi lang="nginx">
-  location /echoback {
-    echo "you request header looks like this:";
-    echo;
-    echo_client_request_headers;
-    echo "--------------- END ----------------";
-  }
-</geshi>
-
-<geshi lang="nginx">
-  location /serverinfo {
-    echo "Server name: $server_name";
-    echo "Server address: $server_addr";
-    echo "Server port: $server_port";
-    echo "Server protocol: $server_protocol";
   }
 </geshi>
 
@@ -143,9 +125,37 @@ This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-
 <geshi lang="nginx">
   # echo back the client request
   location /echoback {
-    echo_client_request_headers;
+    echo_duplicate 1 $echo_client_request_headers;
+    echo "\r";
+    
     echo_read_request_body;
+    
     echo $request_body;
+  }
+</geshi>
+
+<geshi lang="nginx">
+  # GET /multi will yields
+  #   querystring: foo=Foo
+  #   method: POST
+  #   body: hi
+  #   content length: 2
+  #   ///
+  #   querystring: bar=Bar
+  #   method: PUT
+  #   body: hello
+  #   content length: 5
+  #   ///
+  location /multi {
+      echo_subrequest_async POST '/sub' -q 'foo=Foo' -b 'hi';
+      echo_subrequest_async PUT '/sub' -q 'bar=Bar' -b 'hello';
+  }
+  location /sub {
+      echo "querystring: $query_string";
+      echo "method: $echo_request_method";
+      echo "body: $echo_request_body";
+      echo "content length: $http_content_length";
+      echo '///';
   }
 </geshi>
 
@@ -244,8 +254,6 @@ The output on the client side looks like this
 
 Special characters like newlines (<code>\n</code>) and tabs (<code>\t</code>) can be escaped using C-style escaping sequences. But a notable exception is the dollar sign (<code>$</code>). As of Nginx 0.8.20, there's still no clean way to esacpe this characters. (A work-around might be to use a <code>$echo_dollor</code> variable that is always evaluated to the constant <code>$</code> character. This feature will possibly be introduced in a future version of this module.)
 
-This command can be mixed with other content handler commands like [[#echo_sleep|echo_sleep]] and [[#echo_client_request_headers|echo_client_request_headers]] and they are executed sequentially.
-
 == echo_duplicate ==
 '''syntax:''' ''echo_duplicate <count> <string>''
 
@@ -291,8 +299,6 @@ You get
   ------ END ------
 
 This directive was first introduced in [[#v0.11|version 0.11]].
-
-This command can be mixed with other content handler commands like [[#echo_sleep|echo_sleep]] and [[#echo_client_request_headers|echo_client_request_headers]] and they are executed sequentially.
 
 == echo_flush ==
 '''syntax:''' ''echo_flush''
@@ -348,8 +354,6 @@ This does ''not'' apply to outputs sent before the subrequest initiated. For a m
 
 The client will immediately see "hello" before <code>/sub</code> enters sleeping.
 
-This command can be mixed with other content handler commands like [[#echo_sleep|echo_sleep]] and [[#echo_client_request_headers|echo_client_request_headers]] and they are executed sequentially.
-
 See also [[#echo|echo]], [[#echo_sleep|echo_sleep]], and [[#echo_location_async|echo_location_async]].
 
 == echo_sleep ==
@@ -375,8 +379,6 @@ An example is
 </geshi>
 
 Behind the scene, it sets up a per-request "sleep" ngx_event_t object, and adds a timer using that custom event to the Nginx event model and just waits for a timeout on that event. Because the "sleep" event is per-request, this directive can work in parallel subrequests.
-
-This command can be mixed with other content handler commands like [[#echo_reset_timer|echo_reset_timer]] and [[#echo_client_request_headers|echo_client_request_headers]] and they are executed sequentially.
 
 == echo_blocking_sleep ==
 '''syntax:''' ''echo_blocking_sleep <seconds>''
@@ -428,45 +430,7 @@ The actual figures you get on your side may vary a bit due to your system's curr
 
 Invocation of this directive will force the underlying Nginx timer to get updated to the current system time (regardless the timer resolution specified elsewhere in the config file). Furthermore, references of the [[#$echo_timer_elapsed|$echo_timer_elapsed]] variable will also trigger timer update forcibly.
 
-This command can be mixed with other content handler commands like [[#echo_sleep|echo_sleep]] and [[#echo_client_request_headers|echo_client_request_headers]] and they are executed sequentially.
-
 See also [[#echo_sleep|echo_sleep]] and [[#$echo_timer_elapsed|$echo_timer_elapsed]].
-
-== echo_client_request_headers ==
-'''syntax:''' ''echo_reset_timer''
-
-'''default:''' ''no''
-
-'''context:''' ''location''
-
-Outputs the original client request's headers.
-
-Just as the name suggests, it will always take the main request even if it's currently executed in a subrequest.
-
-A simple example is below:
-
-<geshi lang="nginx">
-  location /echoback {
-     echo "headers are:"
-     echo_client_request_headers;
-  }
-</geshi>
-
-Accessing <code>/echoback</code> yields
-
-<geshi lang="bash">
-  $ curl 'http://localhost/echoback'
-  headers are
-  GET /echoback HTTP/1.1
-  User-Agent: curl/7.18.2 (i486-pc-linux-gnu) libcurl/7.18.2 OpenSSL/0.9.8g
-  Host: localhost:1984
-  Accept: */*
-  
-</geshi>
-
-Behind the scene, it recovers <code>r->main->header_in</code> on the C level and does not construct the headers itself by traversing parsed results in the request object.
-
-This command can be mixed with other content handler commands like [[#echo_sleep|echo_sleep]] and [[#echo_flush|echo_flush]] and they are executed sequentially.
 
 == echo_read_request_body ==
 
@@ -480,7 +444,8 @@ Here's an example for echo'ing back the original HTTP client request (both heade
 
 <geshi lang="nginx">
   location /echoback {
-    echo_client_request_headers;
+    echo_duplicate 1 $echo_client_request_headers;
+    echo "\r";
     echo_read_request_body;
     echo $request_body;
   }
@@ -507,8 +472,6 @@ Because <code>/echoback</code> is the main request, [[NginxHttpCoreModule#$reque
 Before Nginx 0.7.56, it makes no sense to use this directive because [[NginxHttpCoreModule#$request_body|$request_body]] was first introduced in Nginx 0.7.58.
 
 This directive itself was first introduced in the echo module's [[#v0.14|v0.14 release]].
-
-This command can be mixed with other content handler commands like [[#echo_sleep|echo_sleep]] and [[#echo_flush|echo_flush]] and they are executed sequentially.
 
 == echo_location_async ==
 '''syntax:''' ''echo_location_async <location> [<url_args>]''
@@ -602,9 +565,19 @@ If calling this directive without SSI module enabled, you'll get truncated respo
 
 Technically speaking, this directive is an example that Nginx content handler issues one or more subrequests directly. AFAIK, the [https://connectical.com/projects/ngx-fancyindex/wiki fancyindex module] also does such kind of things ;)
 
-This directive is first introduced in [[#v0.09|version 0.09]] of this module and requires at least Nginx 0.7.46.
+Nginx named locations like <code>@foo</code> is ''not'' supported here.
 
-This command can be mixed with other content handler commands like [[#echo|echo]] and [[#echo_sleep|echo_sleep]] and they are executed sequentially.
+This directive is logically equivalent to the GET version of [[#echo_subrequest_async|echo_subrequest_async]]. For example,
+
+  echo_location_async /foo 'bar=Bar';
+
+is logically equivalent to
+
+  echo_subrequest_async GET /foo -q 'bar=Bar';
+
+But calling this directive is slightly faster than calling [[#echo_subrequest_async|echo_subrequest_async]] using <code>GET</code> because we don't have to parse the HTTP method names like <code>GET</code> and options like <code>-q</code>.
+
+This directive is first introduced in [[#v0.09|version 0.09]] of this module and requires at least Nginx 0.7.46.
 
 == echo_location ==
 '''syntax:''' ''echo_location <location> [<url_args>]''
@@ -645,11 +618,115 @@ The location <code>/main</code> above will take for total 3 sec to complete (com
   user	0m0.020s
   sys	0m0.004s
 
+This directive is logically equivalent to the GET version of [[#echo_subrequest|echo_subrequest]]. For example,
+
+  echo_location /foo 'bar=Bar';
+
+is logically equivalent to
+
+  echo_subrequest GET /foo -q 'bar=Bar';
+
+But calling this directive is slightly faster than calling [[#echo_subrequest|echo_subrequest]] using <code>GET</code> because we don't have to parse the HTTP method names like <code>GET</code> and options like <code>-q</code>.
+
 Behind the scene, it creates an <code>ngx_http_post_subrequest_t</code> object as a ''continuation'' and passes it into the <code>ngx_http_subrequest</code> function call. Nginx will later reopen this "continuation" in the subrequest's <code>ngx_http_finalize_request</code> function call. We resumes the execution of the parent-request's content handler and starts to run the next directive (command) if any.
 
-See [[#echo_location_async|echo_location_async]] for more details about the meaning of the arguments.
+Nginx named locations like <code>@foo</code> is ''not'' supported here.
 
 This directive was first introduced in the [[#v0.12|release v0.12]].
+
+See also [[#echo_location_async|echo_location_async]] for more details about the meaning of the arguments.
+
+== echo_subrequest_async ==
+'''syntax:''' ''echo_subrequest_async <HTTP_method> <location> [-q <url_args>] [-b <request_body>]''
+
+'''default:''' ''no''
+
+'''context:''' ''location''
+
+Initiate an asynchronous subrequest using HTTP method, an optional url arguments (or querystring), and an option request body.
+
+This directive is very much like a generalized version of the [[#echo_location_async|echo_location_async]] directive.
+
+Here's a small example demonstrating its usage:
+
+<geshi lang="nginx">
+    location /multi {
+        echo_subrequest_async POST '/sub' -q 'foo=Foo' -b 'hi';
+        echo_subrequest_async PUT '/sub' -q 'bar=Bar' -b 'hello';
+    }
+    location /sub {
+        echo "querystring: $query_string";
+        echo "method: $echo_request_method";
+        echo "body: $echo_request_body";
+        echo "content length: $http_content_length";
+        echo '///';
+    }
+</geshi>
+
+Then on the client side:
+
+<geshi lang="bash">
+  $ curl 'http://localhost/multi'
+  querystring: foo=Foo
+  method: POST
+  body: hi
+  content length: 2
+  ///
+  querystring: bar=Bar
+  method: PUT
+  body: hello
+  content length: 5
+  ///
+</geshi>
+
+Here's more funny example using the standard [[#NginxHttpProxyModule|proxy module]] to handle the subrequest:
+
+<geshi lang="nginx">
+    location /main {
+        echo_subrequest_async POST /sub -b 'hello, world';
+    }
+    location /sub {
+        proxy_pass $scheme://127.0.0.1:$server_port/proxied;
+    }
+    location /proxied {
+        echo "method: $echo_request_method.";
+        
+        # we need to read body explicitly here...or $echo_request_body
+        #   will evaluate to empty ("")
+        echo_read_request_body;
+        
+        echo "body: $echo_request_body.";
+    }
+</geshi>
+
+Then on the client side, we can see that
+
+<geshi lang="bash">
+  $ curl 'http://localhost/main'
+  method: POST.
+  body: hello, world.
+</geshi>
+
+Nginx named locations like <code>@foo</code> is ''not'' supported here.
+
+This directive was first introduced in the [[#v0.15|release v0.15]].
+
+See also the [[#echo_subrequest|echo_subrequest]] and [[#echo_location_async|echo_location_async]] directives.
+
+== echo_subrequest ==
+'''syntax:''' ''echo_subrequest_async <HTTP_method> <location> [-q <url_args>] [-b <request_body>]''
+
+'''default:''' ''no''
+
+'''context:''' ''location''
+
+This is the synchronous version of the [[#echo_subrequest_async|echo_subrequest_async]] directive. And just like [[#echo_location|echo_location]], it does not block the Nginx worker process as [[#echo_blocking_sleep|echo_blocking_sleep]], rather, it uses continuation to pass control along the subrequest chain.
+
+See [[#echo_subrequest_async|echo_subrequest_async]] for more details.
+
+Nginx named locations like <code>@foo</code> is ''not'' supported here.
+
+This directive was first introduced in the [[#v0.15|release v0.15]].
 
 = Filter Directives =
 
@@ -764,6 +841,58 @@ The timing result takes three digits after the decimal point.
 
 References of this variable will force the underlying Nginx timer to update to the current system time, regardless the timer resolution settings elsewhere in the config file, just like the [[#echo_reset_timer|echo_reset_timer]] directive.
 
+== $echo_request_method ==
+
+Evaluates to the HTTP request method of the current request (it can be a subrequest).
+
+Behind the scene, it just takes the string data stored in <code>r->method_name</code>.
+
+Compare it to the [[#$echo_client_request_method|$echo_client_request_method]] variable.
+
+At least for Nginx 0.8.20 and older, the [[NginxHttpCoreModule#$request_method|$request_method]] variable provided by the [[NginxHttpCoreModule|http core module]] is actually doing what our [[#$echo_client_request_method|$echo_client_request_method]] is doing.
+
+This variable was first introduced in our [[#v0.15|v0.15 release]].
+
+== $echo_client_request_method ==
+
+Always evaluates to the main request's HTTP method even if the current request is a subrequest.
+
+Behind the scene, it just takes the string data stored in <code>r->main->method_name</code>.
+
+Compare it to the [[#$echo_request_method|$echo_request_method]] variable.
+
+This variable was first introduced in our [[#v0.15|v0.15 release]].
+
+== $echo_client_request_headers ==
+
+Evaluates to the original client request's headers.
+
+Just as the name suggests, it will always take the main request (or the client request) even if it's currently executed in a subrequest.
+
+A simple example is below:
+
+<geshi lang="nginx">
+  location /echoback {
+     echo "headers are:"
+     echo $echo_client_request_headers;
+  }
+</geshi>
+
+Accessing <code>/echoback</code> yields
+
+<geshi lang="bash">
+  $ curl 'http://localhost/echoback'
+  headers are
+  GET /echoback HTTP/1.1
+  User-Agent: curl/7.18.2 (i486-pc-linux-gnu) libcurl/7.18.2 OpenSSL/0.9.8g
+  Host: localhost:1984
+  Accept: */*
+</geshi>
+
+Behind the scene, it recovers <code>r->main->header_in</code> on the C level and does not construct the headers itself by traversing parsed results in the request object, and strips the last (trailing) CRLF.
+
+This variable was first introduced in [[#v0.15|version 0.15]].
+
 = Installation =
 
 Grab the nginx source code from [http://nginx.net/ nginx.net], for example,
@@ -809,6 +938,12 @@ Although a lot of effort has been put into testing and code tuning, there must b
 Available on github at [http://github.com/agentzh/echo-nginx-module agentzh/echo-nginx-module].
 
 = ChangeLog =
+
+== v0.15 ==
+
+* Added new directives [[#echo_subrequest|echo_subrequest]] and [[#echo_subrequest_async|echo_subrequest_async]] for the full nginx subrequest API.
+* Removed the <code>echo_client_request_headers</code> directive, and provided the [[#$echo_client_request_headers|$echo_client_request_headers]] variable instead.
+* Added new variables [[#$echo_request_method|$echo_request_method]] and [[#$echo_client_request_method|$echo_client_request_method]].
 
 == v0.14 ==
 

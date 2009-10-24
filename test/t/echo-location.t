@@ -25,7 +25,8 @@ __DATA__
 hello
 
 
-=== TEST 1: sanity with proxy in the middle
+
+=== TEST 2: sanity with proxy in the middle
 --- config
     location /main {
         echo_location /proxy;
@@ -43,7 +44,7 @@ hello
 
 
 
-=== TEST 2: trailing echo
+=== TEST 3: trailing echo
 --- config
     location /main {
         echo_location /sub;
@@ -60,7 +61,7 @@ after subrequest
 
 
 
-=== TEST 3: leading echo
+=== TEST 4: leading echo
 --- config
     location /main {
         echo before subrequest;
@@ -77,7 +78,7 @@ hello
 
 
 
-=== TEST 4: leading & trailing echo
+=== TEST 5: leading & trailing echo
 --- config
     location /main {
         echo before subrequest;
@@ -96,7 +97,7 @@ after subrequest
 
 
 
-=== TEST 5: multiple subrequests
+=== TEST 6: multiple subrequests
 --- config
     location /main {
         echo before sr 1;
@@ -121,7 +122,7 @@ after sr 2
 
 
 
-=== TEST 6: timed multiple subrequests (blocking sleep)
+=== TEST 7: timed multiple subrequests (blocking sleep)
 --- config
     location /main {
         echo_reset_timer;
@@ -147,7 +148,7 @@ took 0\.0(?:2[5-9]|3[0-5]) sec for total\.$
 
 
 
-=== TEST 7: timed multiple subrequests (non-blocking sleep)
+=== TEST 8: timed multiple subrequests (non-blocking sleep)
 --- config
     location /main {
         echo_reset_timer;
@@ -173,7 +174,7 @@ took 0\.0(?:2[5-9]|3[0-5]) sec for total\.$
 
 
 
-=== TEST 8: location with args
+=== TEST 9: location with args
 --- config
     location /main {
         echo_location /sub 'foo=Foo&bar=Bar';
@@ -188,7 +189,7 @@ Foo Bar
 
 
 
-=== TEST 9: chained subrequests
+=== TEST 10: chained subrequests
 --- config
     location /main {
         echo 'pre main';
@@ -216,7 +217,7 @@ post main
 
 
 
-=== TEST 10: chained subrequests using named locations
+=== TEST 11: chained subrequests using named locations
 as of 0.8.20, ngx_http_subrequest still does not support
 named location. sigh. this case is a TODO.
 --- config
@@ -247,7 +248,7 @@ post main
 
 
 
-=== TEST 11: explicit flush in main request
+=== TEST 12: explicit flush in main request
 --- config
     location /main {
         echo 'pre main';
