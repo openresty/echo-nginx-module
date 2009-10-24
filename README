@@ -141,7 +141,11 @@ Synopsis
       }
 
 Description
-    This module provides various utilities that help testing and debugging
+    This module wraps lots of Nginx internal APIs for streaming input and
+    output, parallel/sequential subrequests, timers and sleeping, as well as
+    various meta data.
+
+    Basically it provides various utilities that help testing and debugging
     of other modules by trivially emulating different kinds of faked
     subrequest locations.
 
@@ -174,19 +178,25 @@ Description
     2.  Issue chained subrequests directly from content handler, by passing
         contination along the subrequest chain.
 
-    3.  Interact with the Nginx event model directly from content handler
+    3.  Issue subrequests with all HTTP 1.1 methods and even an optional
+        faked HTTP request body.
+
+    4.  Interact with the Nginx event model directly from content handler
         using custom events and timers, and resume the content handler back
         if necessary.
 
-    4.  Dual-role module that can (lazily) serve as a content handler or an
+    5.  Dual-role module that can (lazily) serve as a content handler or an
         output filter or both.
 
-    5.  Nginx config file variable creation and interpolation.
+    6.  Nginx config file variable creation and interpolation.
 
-    6.  Streaming output control using output_chain, flush and its friends.
+    7.  Streaming output control using output_chain, flush and its friends.
 
-    7.  Read client request body from the content handler, and returns back
+    8.  Read client request body from the content handler, and returns back
         (asynchronously) to the content handler after completion.
+
+    9.  Use Perl-based declarative test suite to drive the development of
+        Nginx C modules.
 
 Content Handler Directives
     Use of the following directives register this module to the current
@@ -286,8 +296,8 @@ Content Handler Directives
           echo_duplicate 1000_000_000 "hello, world";
       }
 
-    The "count" argument could be zero, but not negative. Likewise, the
-    second "string" argument could be an empty string ("").
+    The "count" argument could be zero, but not negative. The second
+    "string" argument could be an empty string ("") likewise.
 
     Unlike the echo directive, no trailing newline is appended to the
     result. So it's possible to "abuse" this directive as a
@@ -1114,9 +1124,8 @@ TODO
     *   Add directives *echo_read_client_request_body* and
         *echo_request_headers*.
 
-    *   Add directives *echo_subrequest* and *echo_subrequest_async* that
-        can initiate arbitrary subrequests (not only GET) and insert the
-        corresponding contents herein.
+    *   Add directives *echo_debug*, *echo_alert*, *echo_error*, and
+        *echo_info* for Nginx's logging facility at various loglevel.
 
     *   Add the *echo_file* and *echo_cached_file* directives.
 
