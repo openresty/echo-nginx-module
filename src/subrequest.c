@@ -1,4 +1,4 @@
-#define DDEBUG 1
+#define DDEBUG 0
 
 #include "ddebug.h"
 #include "util.h"
@@ -42,13 +42,13 @@ static ngx_int_t ngx_http_echo_post_subrequest(ngx_http_request_t *r,
         void *data, ngx_int_t rc);
 
 static ngx_int_t ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
-        ngx_array_t *computed_args, ngx_http_echo_subrequest_t *parsed_sr);
+        ngx_array_t *computed_args, ngx_http_echo_subrequest_t **parsed_sr_ptr);
 
 ngx_int_t
 ngx_http_echo_exec_echo_subrequest_async(ngx_http_request_t *r,
         ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args) {
     ngx_int_t                       rc;
-    ngx_http_echo_subrequest_t      parsed_sr;
+    ngx_http_echo_subrequest_t      *parsed_sr;
     ngx_http_request_t              *sr; /* subrequest object */
 
     rc = ngx_http_echo_parse_subrequest_spec(r, computed_args, &parsed_sr);
@@ -56,22 +56,22 @@ ngx_http_echo_exec_echo_subrequest_async(ngx_http_request_t *r,
         return rc;
     }
 
-    DD("location: %s", parsed_sr.location->data);
-    DD("location args: %s", (char*) (parsed_sr.query_string ?
-                parsed_sr.query_string->data : (u_char*)"NULL"));
+    DD("location: %s", parsed_sr->location->data);
+    DD("location args: %s", (char*) (parsed_sr->query_string ?
+                parsed_sr->query_string->data : (u_char*)"NULL"));
 
     rc = ngx_http_echo_send_header_if_needed(r, ctx);
     if (r->header_only || rc >= NGX_HTTP_SPECIAL_RESPONSE) {
         return rc;
     }
 
-    rc = ngx_http_subrequest(r, parsed_sr.location, parsed_sr.query_string,
+    rc = ngx_http_subrequest(r, parsed_sr->location, parsed_sr->query_string,
             &sr, NULL, 0);
     if (rc != NGX_OK) {
         return NGX_ERROR;
     }
 
-    rc = ngx_http_echo_adjust_subrequest(sr, &parsed_sr);
+    rc = ngx_http_echo_adjust_subrequest(sr, parsed_sr);
     if (rc != NGX_OK) {
         return rc;
     }
@@ -85,7 +85,7 @@ ngx_http_echo_exec_echo_subrequest(ngx_http_request_t *r,
     ngx_int_t                           rc;
     ngx_http_request_t                  *sr; /* subrequest object */
     ngx_http_post_subrequest_t          *psr;
-    ngx_http_echo_subrequest_t          parsed_sr;
+    ngx_http_echo_subrequest_t          *parsed_sr;
 
     rc = ngx_http_echo_parse_subrequest_spec(r, computed_args, &parsed_sr);
     if (rc != NGX_OK) {
@@ -106,13 +106,13 @@ ngx_http_echo_exec_echo_subrequest(ngx_http_request_t *r,
     psr->data = ctx;
 
 
-    rc = ngx_http_subrequest(r, parsed_sr.location, parsed_sr.query_string,
+    rc = ngx_http_subrequest(r, parsed_sr->location, parsed_sr->query_string,
             &sr, psr, 0);
     if (rc != NGX_OK) {
         return NGX_ERROR;
     }
 
-    ngx_http_echo_adjust_subrequest(sr, &parsed_sr);
+    ngx_http_echo_adjust_subrequest(sr, parsed_sr);
     if (rc != NGX_OK) {
         return rc;
     }
@@ -133,7 +133,7 @@ ngx_http_echo_post_subrequest(ngx_http_request_t *r,
 
 static ngx_int_t
 ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
-        ngx_array_t *computed_args, ngx_http_echo_subrequest_t *parsed_sr) {
+        ngx_array_t *computed_args, ngx_http_echo_subrequest_t **parsed_sr_ptr) {
     ngx_str_t                   *computed_arg_elts, *arg;
     ngx_str_t                   **to_write = NULL;
     ngx_str_t                   *method_name;
@@ -142,8 +142,10 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
     ngx_flag_t                  expecting_opt;
     ngx_http_request_body_t     *rb = NULL;
     ngx_buf_t                   *b;
+    ngx_http_echo_subrequest_t  *parsed_sr;
 
-    ngx_memzero(parsed_sr, sizeof(ngx_http_echo_subrequest_t));
+    *parsed_sr_ptr = ngx_pcalloc(r->pool, sizeof(ngx_http_echo_subrequest_t));
+    parsed_sr = *parsed_sr_ptr;
 
     computed_arg_elts = computed_args->elts;
 
@@ -162,7 +164,7 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
             }
             *to_write = arg;
             to_write = NULL;
-            expecting_opt = 0;
+            expecting_opt = 1;
             continue;
         }
         if (ngx_strncmp("-q", arg->data, arg->len) == 0) {
@@ -217,9 +219,20 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
 static ngx_int_t
 ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr, ngx_http_echo_subrequest_t *parsed_sr) {
     ngx_table_elt_t            *h;
+    ngx_http_core_main_conf_t  *cmcf;
 
     sr->method = parsed_sr->method;
     sr->method_name = *(parsed_sr->method_name);
+
+
+    /* we do not inherit the parent request's variables */
+    cmcf = ngx_http_get_module_main_conf(sr, ngx_http_core_module);
+    sr->variables = ngx_pcalloc(sr->pool, cmcf->variables.nelts
+                                        * sizeof(ngx_http_variable_value_t));
+    if (sr->variables == NULL) {
+        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+    }
+
     if (parsed_sr->content_length_n > 0) {
         sr->headers_in.content_length_n = parsed_sr->content_length_n;
         sr->request_body = parsed_sr->request_body;

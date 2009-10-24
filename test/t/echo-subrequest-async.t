@@ -318,3 +318,31 @@ sub body: .
 sub method: POST.
 sub body: hello, world.
 
+
+=== TEST 17: multiple subrequests
+--- config
+    location /multi {
+        echo_subrequest_async POST '/sub' -q 'foo=Foo' -b 'hi';
+        echo_subrequest_async PUT '/sub' -q 'bar=Bar' -b 'hello';
+    }
+    location /sub {
+        echo "querystring: $query_string";
+        echo "method: $echo_request_method";
+        echo "body: $echo_request_body";
+        echo "content length: $http_content_length";
+        echo '///';
+    }
+--- request
+    GET /multi
+--- response_body
+querystring: foo=Foo
+method: POST
+body: hi
+content length: 2
+///
+querystring: bar=Bar
+method: PUT
+body: hello
+content length: 5
+///
+
