@@ -87,14 +87,6 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
                 }
                 break;
 
-            case echo_opcode_echo_client_request_headers:
-                rc = ngx_http_echo_exec_echo_client_request_headers(r,
-                        ctx);
-                if (rc != NGX_OK) {
-                    return rc;
-                }
-                break;
-
             case echo_opcode_echo_location_async:
                 DD("found opcode echo location async...");
                 rc = ngx_http_echo_exec_echo_location_async(r, ctx,

@@ -13,7 +13,7 @@ __DATA__
 --- config
     location /echo {
         echo "headers:";
-        echo_client_request_headers;
+        echo $echo_client_request_headers;
     }
 --- request
     GET /echo
@@ -23,6 +23,7 @@ GET /echo HTTP/1.1\r
 Host: localhost:\$ServerPort\r
 User-Agent: Test::Nginx::Echo\r
 \r
+
 "
 
 
@@ -30,7 +31,7 @@ User-Agent: Test::Nginx::Echo\r
 === TEST 2: echo_client_request_headers before echo
 --- config
     location /echo {
-        echo_client_request_headers;
+        echo $echo_client_request_headers;
         echo "...these are the headers";
     }
 --- request
@@ -40,6 +41,7 @@ User-Agent: Test::Nginx::Echo\r
 Host: localhost:\$ServerPort\r
 User-Agent: Test::Nginx::Echo\r
 \r
+
 ...these are the headers
 "
 
@@ -49,7 +51,7 @@ User-Agent: Test::Nginx::Echo\r
 --- config
     location /echo {
         echo "headers are";
-        echo_client_request_headers;
+        echo $echo_client_request_headers;
         echo "...these are the headers";
     }
 --- request
@@ -60,6 +62,7 @@ GET /echo HTTP/1.1\r
 Host: localhost:\$ServerPort\r
 User-Agent: Test::Nginx::Echo\r
 \r
+
 ...these are the headers
 "
 

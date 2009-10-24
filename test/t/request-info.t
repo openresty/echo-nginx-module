@@ -12,7 +12,7 @@ __DATA__
 === TEST 1: standalone directive
 --- config
     location /echo {
-        echo_client_request_headers;
+        echo $echo_client_request_headers;
     }
 --- request
     GET /echo
@@ -21,6 +21,7 @@ __DATA__
 Host: localhost:\$ServerPort\r
 User-Agent: Test::Nginx::Echo\r
 \r
+
 "
 
 
@@ -28,8 +29,8 @@ User-Agent: Test::Nginx::Echo\r
 === TEST 2: multiple instances
 --- config
     location /echo {
-        echo_client_request_headers;
-        echo_client_request_headers;
+        echo $echo_client_request_headers;
+        echo $echo_client_request_headers;
     }
 --- request
     GET /echo
@@ -38,10 +39,12 @@ User-Agent: Test::Nginx::Echo\r
 Host: localhost:\$ServerPort\r
 User-Agent: Test::Nginx::Echo\r
 \r
+
 GET /echo HTTP/1.1\r
 Host: localhost:\$ServerPort\r
 User-Agent: Test::Nginx::Echo\r
 \r
+
 "
 
 
@@ -114,7 +117,7 @@ heh]
 --- config
   # echo back the client request
   location /echoback {
-    echo_client_request_headers;
+    echo $echo_client_request_headers;
     echo_read_request_body;
     echo $echo_request_body;
   }
@@ -128,6 +131,7 @@ Host: localhost:\$ServerPort\r
 User-Agent: Test::Nginx::Echo\r
 Content-Length: 14\r
 \r
+
 body here
 haha
 "
