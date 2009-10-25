@@ -269,7 +269,8 @@ sub
 post main
 
 
-=== TEST 14: no varaiable inheritance
+
+=== TEST 13: no varaiable inheritance
 --- config
     location /main {
         echo $echo_cached_request_uri;

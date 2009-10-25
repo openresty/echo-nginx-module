@@ -6,7 +6,7 @@
 
 = Version =
 
-This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/downloads v0.15] released on Oct 24, 2009.
+This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/downloads v0.16] released on Oct 25, 2009.
 
 = Synopsis =
 
@@ -185,7 +185,7 @@ Technially, this module has also demonstrated the following techniques that migh
 # Nginx config file variable creation and interpolation.
 # Streaming output control using output_chain, flush and its friends.
 # Read client request body from the content handler, and returns back (asynchronously) to the content handler after completion.
-# Use Perl-based declarative test suite to drive the development of Nginx C modules.
+# Use Perl-based declarative [[#Test Suite|test suite]] to drive the development of Nginx C modules.
 
 = Content Handler Directives =
 
@@ -943,6 +943,10 @@ Available on github at [http://github.com/agentzh/echo-nginx-module agentzh/echo
 
 = ChangeLog =
 
+== v0.16 ==
+* Now the subrequests issued by the [[#echo_location|echo_location_async]] and [[#echo_location|echo_location]] directives no longer inherit cached variable values from its parent request. (The underlying <code>ngx_http_subrequest</code> function, however, does automatic cachable variable value inheritance.)
+* Added an undocumented variable ''echo_cached_request_uri'' to help testing of this module.
+
 == v0.15 ==
 
 * Added new directives [[#echo_subrequest|echo_subrequest]] and [[#echo_subrequest_async|echo_subrequest_async]] for the full nginx subrequest API.
@@ -1002,13 +1006,32 @@ At the moment, [http://search.cpan.org/perldoc?LWP::UserAgent LWP::UserAgent] is
 
 Because a single nginx server (by default, <code>localhost:1984</code>) is used across all the test scripts (<code>.t</code> files), it's meaningless to run the test suite in parallel by specifying <code>-jN</code> when invoking the <code>prove</code> utility.
 
-Some parts of the test suite requires standard modules [[#NginxHttpProxyModule|proxy]] and [[#NginxHttpAdditionModule|addition]] to be enabled as well when building Nginx.
+Some parts of the test suite requires standard modules [[NginxHttpProxyModule|proxy]] and [[NginxHttpSsiModule|SSI]] to be enabled as well when building Nginx.
 
 = TODO =
 
 * Add directives ''echo_read_client_request_body'' and ''echo_request_headers''.
-* Add directives ''echo_debug'', ''echo_alert'', ''echo_error'', and ''echo_info'' for Nginx's logging facility at various loglevel.
+* Add new directive ''echo_log'' to use Nginx's logging facility directly from the config file and specific loglevel can be specified, as in
+
+  echo_log debug "I am being called.";
+
+* Add support for options <code>-h</code> and <code>-t</code> to [[#echo_subrequest_async|echo_subrequest_async]] and [[#echo_subrequest|echo_subrequest]]. For example
+
+  echo_subrequest POST /sub -q 'foo=Foo&bar=Bar' -b 'hello' -t 'text/plan' -h 'X-My-Header: blah blah'
+
+* Add options to control whether a subrequest should inherit cached variables from its parent request (i.e. the current request that is calling the subrequest in question). Currently none of the subrequests issued by this module inherit the cached variables from the parent request.
+* Add new variable ''$echo_active_subrequests'' to show <code>r->main->count - 1</code>.
 * Add the ''echo_file'' and ''echo_cached_file'' directives.
+* Add new varaible ''$echo_request_headers'' to accompany the existing [[#$echo_client_request_headers|$echo_client_request_headers]] variable.
+* Add new directive ''echo_exec'' which can do an internal redirect to another normal location or named location. This will implemented as a thin wrapper around the Nginx internal C functions <code>ngx_http_internal_redirect</code> and <code>ngx_http_named_location</code>. For instance:
+
+  location /main {
+     ...
+     echo_exec /sub;
+  }
+  location /sub {
+     ...
+  }
 
 = Getting involved =
 

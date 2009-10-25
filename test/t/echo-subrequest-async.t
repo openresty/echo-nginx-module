@@ -349,7 +349,7 @@ content length: 5
 
 
 
-=== TEST 14: no varaiable inheritance
+=== TEST 18: no varaiable inheritance
 --- config
     location /main {
         echo $echo_cached_request_uri;
