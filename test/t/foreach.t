@@ -33,3 +33,61 @@ body { font-size: 12pt; }
 table { color: 'red'; }
 /* end */
 
+
+
+=== TEST 2: split in a url argument
+--- config
+    location /main {
+        echo_foreach ',' $arg_cssfiles;
+            echo_location_async $echo_it;
+        echo_end;
+    }
+    location /foo.css {
+        echo foo;
+    }
+    location /bar.css {
+        echo bar;
+    }
+    location /baz.css {
+        echo baz;
+    }
+--- request
+    GET /main?cssfiles=/foo.css,/bar.css,/baz.css
+--- response_body
+foo
+bar
+baz
+
+
+
+=== TEST 3: empty loop
+--- config
+    location /main {
+        echo "start";
+        echo_foreach ',' $arg_cssfiles;
+        echo_end;
+        echo "end";
+    }
+--- request
+    GET /main?cssfiles=/foo.css,/bar.css,/baz.css
+--- response_body
+start
+end
+
+
+
+=== TEST 4: trailing delimiter
+--- config
+    location /main {
+        echo_foreach ',' $arg_cssfiles;
+            echo_location_async $echo_it;
+        echo_end;
+    }
+    location /foo.css {
+        echo foo;
+    }
+--- request
+    GET /main?cssfiles=/foo.css,
+--- response_body
+foo
+
