@@ -35,9 +35,9 @@ table { color: 'red'; }
 
 
 
-=== TEST 2: split in a url argument
+=== TEST 2: split in a url argument (echo_location_async)
 --- config
-    location /main {
+    location /main_async {
         echo_foreach ',' $arg_cssfiles;
             echo_location_async $echo_it;
         echo_end;
@@ -52,7 +52,7 @@ table { color: 'red'; }
         echo baz;
     }
 --- request
-    GET /main?cssfiles=/foo.css,/bar.css,/baz.css
+    GET /main_async?cssfiles=/foo.css,/bar.css,/baz.css
 --- response_body
 foo
 bar
@@ -60,7 +60,32 @@ baz
 
 
 
-=== TEST 3: empty loop
+=== TEST 3: split in a url argument (echo_location)
+--- config
+    location /main_sync {
+        echo_foreach ',' $arg_cssfiles;
+            echo_location $echo_it;
+        echo_end;
+    }
+    location /foo.css {
+        echo foo;
+    }
+    location /bar.css {
+        echo bar;
+    }
+    location /baz.css {
+        echo baz;
+    }
+--- request
+    GET /main_sync?cssfiles=/foo.css,/bar.css,/baz.css
+--- response_body
+foo
+bar
+baz
+
+
+
+=== TEST 4: empty loop
 --- config
     location /main {
         echo "start";
@@ -76,9 +101,9 @@ end
 
 
 
-=== TEST 4: trailing delimiter
+=== TEST 5: trailing delimiter
 --- config
-    location /main {
+    location /main_t {
         echo_foreach ',' $arg_cssfiles;
             echo_location_async $echo_it;
         echo_end;
@@ -87,7 +112,42 @@ end
         echo foo;
     }
 --- request
-    GET /main?cssfiles=/foo.css,
+    GET /main_t?cssfiles=/foo.css,
 --- response_body
 foo
+
+
+
+=== TEST 6: multi-char delimiter
+--- config
+    location /main_sleep {
+        echo_foreach '-a-' $arg_list;
+            echo $echo_it;
+        echo_end;
+    }
+--- request
+    GET /main_sleep?list=foo-a-bar-A-baz
+--- response_body
+foo
+bar
+baz
+
+
+
+=== TEST 7: loop with sleep
+--- config
+    location /main_sleep {
+        echo_foreach '-' $arg_list;
+            echo_sleep 0.001;
+            echo $echo_it;
+        echo_end;
+    }
+--- request
+    GET /main_sleep?list=foo-a-bar-A-baz
+--- response_body
+foo
+a
+bar
+A
+baz
 
