@@ -23,7 +23,9 @@ typedef enum {
     echo_opcode_echo_subrequest_async,
     echo_opcode_echo_subrequest,
     echo_opcode_echo_duplicate,
-    echo_opcode_echo_read_request_body
+    echo_opcode_echo_read_request_body,
+    echo_opcode_echo_foreach,
+    echo_opcode_echo_end
 } ngx_http_echo_opcode_t;
 
 /* all the various config directives (or commands) are
@@ -34,6 +36,7 @@ typedef enum {
 typedef enum {
     echo_handler_cmd,
     echo_filter_cmd
+
 } ngx_http_echo_cmd_category_t;
 
 /* compiled form of a config directive argument's value */
@@ -47,6 +50,7 @@ typedef struct {
      * nginx variables like "$foo" */
     ngx_array_t     *lengths;
     ngx_array_t     *values;
+
 } ngx_http_echo_arg_template_t;
 
 /* represent a config directive (or command) like "echo". */
@@ -64,7 +68,15 @@ typedef struct {
     ngx_array_t     *handler_cmds;
     ngx_array_t     *before_body_cmds;
     ngx_array_t     *after_body_cmds;
+
 } ngx_http_echo_loc_conf_t;
+
+typedef struct {
+    ngx_array_t     *choices; /* items after splitting */
+    ngx_uint_t      next_choice;  /* current item index */
+    ngx_uint_t      cmd_index; /* cmd index for the echo_foreach direcitve */
+
+} ngx_http_echo_foreach_ctx_t;
 
 /* context struct in the request handling cycle, holding
  * the current states of the command evaluator */
@@ -81,6 +93,8 @@ typedef struct {
      * ngx_http_echo_loc_conf_t's "after_body_cmds" array. */
     ngx_uint_t       next_after_body_cmd;
 
+    ngx_http_echo_foreach_ctx_t   *foreach;
+
     ngx_flag_t       headers_sent;
     ngx_flag_t       before_body_sent;
     ngx_flag_t       skip_filter;
@@ -88,6 +102,7 @@ typedef struct {
     ngx_time_t       timer_begin;
 
     ngx_event_t      sleep;
+
 } ngx_http_echo_ctx_t;
 
 #endif /* NGX_HTTP_ECHO_MODULE_H */

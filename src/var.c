@@ -4,6 +4,7 @@
 #include "var.h"
 #include "timer.h"
 #include "request_info.h"
+#include "foreach.h"
 
 static ngx_http_variable_t ngx_http_echo_variables[] = {
     { ngx_string("echo_timer_elapsed"), NULL,
@@ -28,6 +29,10 @@ static ngx_http_variable_t ngx_http_echo_variables[] = {
 
     { ngx_string("echo_client_request_headers"), NULL,
       ngx_http_echo_client_request_headers_variable, 0,
+      NGX_HTTP_VAR_NOCACHEABLE, 0 },
+
+    { ngx_string("echo_it"), NULL,
+      ngx_http_echo_it_variable, 0,
       NGX_HTTP_VAR_NOCACHEABLE, 0 },
 
     { ngx_string(""), NULL, NULL, 0, 0, 0 }

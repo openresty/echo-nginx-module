@@ -50,6 +50,12 @@ static char* ngx_http_echo_echo_duplicate(ngx_conf_t *cf,
 static char* ngx_http_echo_echo_read_request_body(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
 
+static char* ngx_http_echo_echo_foreach(ngx_conf_t *cf,
+        ngx_command_t *cmd, void *conf);
+
+static char* ngx_http_echo_echo_end(ngx_conf_t *cf,
+        ngx_command_t *cmd, void *conf);
+
 static char* ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
         ngx_http_echo_cmd_category_t cat,
         ngx_conf_t *cf, ngx_command_t *cmd, void* conf);
@@ -158,6 +164,20 @@ static ngx_command_t  ngx_http_echo_commands[] = {
     { ngx_string("echo_read_request_body"),
       NGX_HTTP_LOC_CONF|NGX_CONF_NOARGS,
       ngx_http_echo_echo_read_request_body,
+      NGX_HTTP_LOC_CONF_OFFSET,
+      offsetof(ngx_http_echo_loc_conf_t, handler_cmds),
+      NULL },
+
+    { ngx_string("echo_foreach"),
+      NGX_HTTP_LOC_CONF|NGX_CONF_TAKE2,
+      ngx_http_echo_echo_foreach,
+      NGX_HTTP_LOC_CONF_OFFSET,
+      offsetof(ngx_http_echo_loc_conf_t, handler_cmds),
+      NULL },
+
+    { ngx_string("echo_end"),
+      NGX_HTTP_LOC_CONF|NGX_CONF_NOARGS,
+      ngx_http_echo_echo_end,
       NGX_HTTP_LOC_CONF_OFFSET,
       offsetof(ngx_http_echo_loc_conf_t, handler_cmds),
       NULL },
@@ -427,6 +447,22 @@ ngx_http_echo_echo_read_request_body(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf) {
     return ngx_http_echo_helper(
             echo_opcode_echo_read_request_body,
+            echo_handler_cmd,
+            cf, cmd, conf);
+}
+
+static char*
+ngx_http_echo_echo_foreach(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+    return ngx_http_echo_helper(
+            echo_opcode_echo_foreach,
+            echo_handler_cmd,
+            cf, cmd, conf);
+}
+
+static char*
+ngx_http_echo_echo_end(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+    return ngx_http_echo_helper(
+            echo_opcode_echo_end,
             echo_handler_cmd,
             cf, cmd, conf);
 }

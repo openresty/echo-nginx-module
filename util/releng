@@ -2,4 +2,5 @@
 
 ack '(?<=\#define)\s*DDEBUG\s*1' src
 ack '(?<=This document describes echo-nginx-module v)\d+\.\d+' README
+./update-readme
 
