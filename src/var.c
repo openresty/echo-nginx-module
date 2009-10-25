@@ -14,6 +14,10 @@ static ngx_http_variable_t ngx_http_echo_variables[] = {
       ngx_http_echo_request_method_variable, 0,
       NGX_HTTP_VAR_NOCACHEABLE, 0 },
 
+    { ngx_string("echo_cached_request_uri"), NULL,
+      ngx_http_echo_cached_request_uri_variable, 0,
+      0, 0 },
+
     { ngx_string("echo_client_request_method"), NULL,
       ngx_http_echo_client_request_method_variable, 0,
       NGX_HTTP_VAR_NOCACHEABLE, 0 },

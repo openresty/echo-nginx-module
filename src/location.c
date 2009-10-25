@@ -5,6 +5,8 @@
 #include "location.h"
 #include "handler.h"
 
+static ngx_int_t ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr);
+
 static ngx_int_t ngx_http_echo_post_subrequest(ngx_http_request_t *r,
         void *data, ngx_int_t rc);
 
@@ -39,6 +41,12 @@ ngx_http_echo_exec_echo_location_async(ngx_http_request_t *r,
     if (rc != NGX_OK) {
         return NGX_ERROR;
     }
+
+    rc = ngx_http_echo_adjust_subrequest(sr);
+    if (rc != NGX_OK) {
+        return rc;
+    }
+
     return NGX_OK;
 }
 
@@ -62,9 +70,6 @@ ngx_http_echo_exec_echo_location(ngx_http_request_t *r,
         url_args = NULL;
     }
 
-    DD("location: %s", location.data);
-    DD("location args: %s", (char*) (url_args ? url_args->data : (u_char*)"NULL"));
-
     rc = ngx_http_echo_send_header_if_needed(r, ctx);
     if (r->header_only || rc >= NGX_HTTP_SPECIAL_RESPONSE) {
         return rc;
@@ -83,6 +88,11 @@ ngx_http_echo_exec_echo_location(ngx_http_request_t *r,
         return NGX_ERROR;
     }
 
+    rc = ngx_http_echo_adjust_subrequest(sr);
+    if (rc != NGX_OK) {
+        return rc;
+    }
+
     return NGX_OK;
 }
 
@@ -95,5 +105,21 @@ ngx_http_echo_post_subrequest(ngx_http_request_t *r,
     ctx->next_handler_cmd++;
 
     return ngx_http_echo_handler(r->parent);
+}
+
+static ngx_int_t
+ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr) {
+    ngx_http_core_main_conf_t  *cmcf;
+
+    /* we do not inherit the parent request's variables */
+    cmcf = ngx_http_get_module_main_conf(sr, ngx_http_core_module);
+    sr->variables = ngx_pcalloc(sr->pool, cmcf->variables.nelts
+                                        * sizeof(ngx_http_variable_value_t));
+
+    if (sr->variables == NULL) {
+        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+    }
+
+    return NGX_OK;
 }
 

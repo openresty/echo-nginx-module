@@ -254,3 +254,26 @@ pre main
 sub
 post main
 
+
+
+=== TEST 14: no varaiable inheritance
+--- config
+    location /main {
+        echo $echo_cached_request_uri;
+        echo_location_async /sub;
+        echo_location_async /sub2;
+    }
+    location /sub {
+        echo $echo_cached_request_uri;
+    }
+    location /sub2 {
+        echo $echo_cached_request_uri;
+    }
+
+--- request
+    GET /main
+--- response_body
+/main
+/sub
+/sub2
+

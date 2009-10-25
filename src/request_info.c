@@ -194,3 +194,19 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
     return NGX_OK;
 }
 
+ngx_int_t
+ngx_http_echo_cached_request_uri_variable(ngx_http_request_t *r,
+        ngx_http_variable_value_t *v, uintptr_t data) {
+    if (r->uri.len) {
+        v->len = r->uri.len;
+        v->valid = 1;
+        v->no_cacheable = 0;
+        v->not_found = 0;
+        v->data = r->uri.data;
+    } else {
+        v->not_found = 1;
+    }
+
+    return NGX_OK;
+}
+

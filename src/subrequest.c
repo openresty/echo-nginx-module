@@ -1,4 +1,4 @@
-#define DDEBUG 0
+#define DDEBUG 1
 
 #include "ddebug.h"
 #include "util.h"
@@ -112,7 +112,7 @@ ngx_http_echo_exec_echo_subrequest(ngx_http_request_t *r,
         return NGX_ERROR;
     }
 
-    ngx_http_echo_adjust_subrequest(sr, parsed_sr);
+    rc = ngx_http_echo_adjust_subrequest(sr, parsed_sr);
     if (rc != NGX_OK) {
         return rc;
     }
@@ -224,11 +224,11 @@ ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr, ngx_http_echo_subrequest
     sr->method = parsed_sr->method;
     sr->method_name = *(parsed_sr->method_name);
 
-
     /* we do not inherit the parent request's variables */
     cmcf = ngx_http_get_module_main_conf(sr, ngx_http_core_module);
     sr->variables = ngx_pcalloc(sr->pool, cmcf->variables.nelts
                                         * sizeof(ngx_http_variable_value_t));
+
     if (sr->variables == NULL) {
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
