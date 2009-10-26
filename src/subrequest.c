@@ -153,6 +153,10 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
 
     parsed_sr->location     = &computed_arg_elts[1];
 
+    if (parsed_sr->location->len == 0) {
+        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+    }
+
     expecting_opt = 1;
     for (i = 2; i < computed_args->nelts; i++) {
         arg = &computed_arg_elts[i];

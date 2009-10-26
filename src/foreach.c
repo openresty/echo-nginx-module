@@ -41,16 +41,26 @@ ngx_http_echo_it_variable(ngx_http_request_t *r,
 ngx_int_t
 ngx_http_echo_exec_echo_foreach_split(ngx_http_request_t *r,
         ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args) {
+    ngx_http_echo_loc_conf_t    *elcf;
     ngx_str_t                   *delimiter, *compound;
     u_char                      *pos, *last, *end;
     ngx_str_t                   *choice;
     ngx_str_t                   *computed_arg_elts;
+    ngx_array_t                 *cmds;
+    ngx_http_echo_cmd_t         *cmd;
+    ngx_http_echo_cmd_t         *cmd_elts;
 
     if (ctx->foreach != NULL) {
         ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
                 "Nested echo_foreach not supported yet.");
         return NGX_ERROR;
     }
+
+    computed_arg_elts = computed_args->elts;
+
+    compound  = &computed_arg_elts[1];
+
+    DD("HEY coumpound len: %u", compound->len);
 
     ctx->foreach = ngx_palloc(r->pool, sizeof(ngx_http_echo_foreach_ctx_t));
     if (ctx->foreach == NULL) {
@@ -66,15 +76,20 @@ ngx_http_echo_exec_echo_foreach_split(ngx_http_request_t *r,
         return NGX_ERROR;
     }
 
-    computed_arg_elts = computed_args->elts;
-
     delimiter = &computed_arg_elts[0];
-    compound  = &computed_arg_elts[1];
 
     pos = compound->data;
     end = compound->data + compound->len;
     while ((last = ngx_http_echo_strlstrn(pos, end, delimiter->data, delimiter->len - 1))
                 != NULL) {
+        DD("entered the loop");
+
+        if (last == pos) {
+            DD("!!! len == 0");
+            pos = last + delimiter->len;
+            continue;
+        }
+
         choice = ngx_array_push(ctx->foreach->choices);
         if (choice == NULL) {
             return NGX_ERROR;
@@ -95,6 +110,21 @@ ngx_http_echo_exec_echo_foreach_split(ngx_http_request_t *r,
         choice->len  = end - pos;
     }
 
+    if (ctx->foreach->choices->nelts == 0) {
+        /* skip the foreach body entirely */
+        elcf = ngx_http_get_module_loc_conf(r, ngx_http_echo_module);
+        cmds = elcf->handler_cmds;
+        cmd_elts = cmds->elts;
+        for (; ctx->next_handler_cmd < cmds->nelts;
+                ctx->next_handler_cmd++) {
+            cmd = &cmd_elts[ctx->next_handler_cmd + 1];
+            if (cmd->opcode == echo_opcode_echo_end) {
+                return NGX_OK;
+            }
+        }
+
+    }
+
     return NGX_OK;
 }
 
@@ -111,6 +141,10 @@ ngx_http_echo_exec_echo_end(ngx_http_request_t *r,
     ctx->foreach->next_choice++;
 
     if (ctx->foreach->next_choice >= ctx->foreach->choices->nelts) {
+        /* TODO We need to explicitly free the foreach ctx from
+         * the pool */
+        ctx->foreach = NULL;
+
         return NGX_OK;
     }
 

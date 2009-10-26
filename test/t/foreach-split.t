@@ -151,3 +151,94 @@ bar
 A
 baz
 
+
+
+=== TEST 8: empty
+--- config
+  location /merge {
+      default_type 'text/javascript';
+      echo_foreach_split '&' $query_string;
+          echo "/* JS File $echo_it */";
+          echo_location_async $echo_it;
+          echo;
+      echo_end;
+  }
+--- request
+    GET /merge
+--- response_body
+
+
+
+=== TEST 9: single &
+--- config
+  location /merge {
+      default_type 'text/javascript';
+      echo_foreach_split '&' $query_string;
+          echo "/* JS File $echo_it */";
+          echo_location_async $echo_it;
+          echo;
+      echo_end;
+  }
+--- request
+    GET /merge?&
+--- response_body
+
+
+
+=== TEST 10: pure &'s
+--- config
+  location /merge {
+      default_type 'text/javascript';
+      echo_foreach_split '&' $query_string;
+          echo "/* JS File $echo_it */";
+          echo_location_async $echo_it;
+          echo;
+      echo_end;
+  }
+--- request
+    GET /merge?&&&
+--- response_body
+
+
+
+=== TEST 11: pure & and spaces
+TODO: needs to uri_decode $echo_it...
+--- config
+  location /merge {
+      default_type 'text/javascript';
+      echo_foreach_split '&' $query_string;
+          echo "/* JS File $echo_it */";
+          echo_location_async $echo_it;
+          echo;
+      echo_end;
+  }
+--- request
+    GET /merge?&%20&%20&
+--- response_body
+--- SKIP
+
+
+
+=== TEST 12: multiple foreach_split
+--- config
+    location /multi {
+        echo_foreach_split '&' $query_string;
+            echo [$echo_it];
+        echo_end;
+
+        echo '...';
+
+        echo_foreach_split '-' $query_string;
+            echo [$echo_it];
+        echo_end;
+    }
+--- request
+    GET /multi?a-b&c-d
+--- response_body
+[a-b]
+[c-d]
+...
+[a]
+[b&c]
+[d]
+

@@ -23,6 +23,10 @@ ngx_http_echo_exec_echo_location_async(ngx_http_request_t *r,
 
     location = computed_arg_elts[0];
 
+    if (location.len == 0) {
+        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+    }
+
     if (computed_args->nelts > 1) {
         url_args = &computed_arg_elts[1];
     } else {
@@ -63,6 +67,10 @@ ngx_http_echo_exec_echo_location(ngx_http_request_t *r,
     computed_arg_elts = computed_args->elts;
 
     location = computed_arg_elts[0];
+
+    if (location.len == 0) {
+        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+    }
 
     if (computed_args->nelts > 1) {
         url_args = &computed_arg_elts[1];
