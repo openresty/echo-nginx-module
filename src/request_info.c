@@ -210,3 +210,19 @@ ngx_http_echo_cacheable_request_uri_variable(ngx_http_request_t *r,
     return NGX_OK;
 }
 
+ngx_int_t
+ngx_http_echo_request_uri_variable(ngx_http_request_t *r,
+        ngx_http_variable_value_t *v, uintptr_t data) {
+    if (r->uri.len) {
+        v->len = r->uri.len;
+        v->valid = 1;
+        v->no_cacheable = 1;
+        v->not_found = 0;
+        v->data = r->uri.data;
+    } else {
+        v->not_found = 1;
+    }
+
+    return NGX_OK;
+}
+
