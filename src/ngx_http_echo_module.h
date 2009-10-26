@@ -24,7 +24,7 @@ typedef enum {
     echo_opcode_echo_subrequest,
     echo_opcode_echo_duplicate,
     echo_opcode_echo_read_request_body,
-    echo_opcode_echo_foreach,
+    echo_opcode_echo_foreach_split,
     echo_opcode_echo_end
 } ngx_http_echo_opcode_t;
 

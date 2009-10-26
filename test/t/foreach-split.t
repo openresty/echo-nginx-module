@@ -14,7 +14,7 @@ __DATA__
 === TEST 1: sanity
 --- config
     location /main {
-        echo_foreach '&' $query_string;
+        echo_foreach_split '&' $query_string;
             echo_location_async $echo_it;
             echo '/* end */';
         echo_end;
@@ -38,7 +38,7 @@ table { color: 'red'; }
 === TEST 2: split in a url argument (echo_location_async)
 --- config
     location /main_async {
-        echo_foreach ',' $arg_cssfiles;
+        echo_foreach_split ',' $arg_cssfiles;
             echo_location_async $echo_it;
         echo_end;
     }
@@ -63,7 +63,7 @@ baz
 === TEST 3: split in a url argument (echo_location)
 --- config
     location /main_sync {
-        echo_foreach ',' $arg_cssfiles;
+        echo_foreach_split ',' $arg_cssfiles;
             echo_location $echo_it;
         echo_end;
     }
@@ -89,7 +89,7 @@ baz
 --- config
     location /main {
         echo "start";
-        echo_foreach ',' $arg_cssfiles;
+        echo_foreach_split ',' $arg_cssfiles;
         echo_end;
         echo "end";
     }
@@ -104,7 +104,7 @@ end
 === TEST 5: trailing delimiter
 --- config
     location /main_t {
-        echo_foreach ',' $arg_cssfiles;
+        echo_foreach_split ',' $arg_cssfiles;
             echo_location_async $echo_it;
         echo_end;
     }
@@ -121,7 +121,7 @@ foo
 === TEST 6: multi-char delimiter
 --- config
     location /main_sleep {
-        echo_foreach '-a-' $arg_list;
+        echo_foreach_split '-a-' $arg_list;
             echo $echo_it;
         echo_end;
     }
@@ -137,7 +137,7 @@ baz
 === TEST 7: loop with sleep
 --- config
     location /main_sleep {
-        echo_foreach '-' $arg_list;
+        echo_foreach_split '-' $arg_list;
             echo_sleep 0.001;
             echo $echo_it;
         echo_end;

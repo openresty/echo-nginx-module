@@ -179,8 +179,8 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
                 return ngx_http_echo_exec_echo_read_request_body(r, ctx);
                 break;
 
-            case echo_opcode_echo_foreach:
-                rc = ngx_http_echo_exec_echo_foreach(r, ctx, computed_args);
+            case echo_opcode_echo_foreach_split:
+                rc = ngx_http_echo_exec_echo_foreach_split(r, ctx, computed_args);
                 if (rc != NGX_OK) {
                     return NGX_HTTP_INTERNAL_SERVER_ERROR;
                 }
