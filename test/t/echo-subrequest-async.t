@@ -352,15 +352,15 @@ content length: 5
 === TEST 18: no varaiable inheritance
 --- config
     location /main {
-        echo $echo_cached_request_uri;
+        echo $echo_cacheable_request_uri;
         echo_subrequest_async GET /sub;
         echo_subrequest_async GET /sub2;
     }
     location /sub {
-        echo $echo_cached_request_uri;
+        echo $echo_cacheable_request_uri;
     }
     location /sub2 {
-        echo $echo_cached_request_uri;
+        echo $echo_cacheable_request_uri;
     }
 
 --- request
