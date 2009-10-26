@@ -6,6 +6,9 @@
 #include "request_info.h"
 #include "foreach.h"
 
+static ngx_int_t ngx_http_echo_incr_variable(ngx_http_request_t *r,
+        ngx_http_variable_value_t *v, uintptr_t data);
+
 static ngx_http_variable_t ngx_http_echo_variables[] = {
     { ngx_string("echo_timer_elapsed"), NULL,
       ngx_http_echo_timer_elapsed_variable, 0,
@@ -39,6 +42,10 @@ static ngx_http_variable_t ngx_http_echo_variables[] = {
       ngx_http_echo_it_variable, 0,
       NGX_HTTP_VAR_NOCACHEABLE, 0 },
 
+    { ngx_string("echo_incr"), NULL,
+      ngx_http_echo_incr_variable, 0,
+      NGX_HTTP_VAR_NOCACHEABLE, 0 },
+
     { ngx_string(""), NULL, NULL, 0, 0, 0 }
 };
 
@@ -53,6 +60,35 @@ ngx_http_echo_add_variables(ngx_conf_t *cf) {
         var->get_handler = v->get_handler;
         var->data = v->data;
     }
+    return NGX_OK;
+}
+
+static ngx_int_t
+ngx_http_echo_incr_variable(ngx_http_request_t *r,
+        ngx_http_variable_value_t *v, uintptr_t data) {
+    ngx_http_echo_ctx_t         *ctx;
+    u_char                      *p;
+
+    ctx = ngx_http_get_module_ctx(r->main, ngx_http_echo_module);
+
+    if (ctx == NULL) {
+        return NGX_ERROR;
+    }
+
+    ctx->counter++;
+
+    p = ngx_palloc(r->pool, NGX_INT_T_LEN);
+    if (p == NULL) {
+        return NGX_ERROR;
+    }
+
+    v->len = ngx_sprintf(p, "%ui", ctx->counter) - p;
+    v->data = p;
+
+    v->valid = 1;
+    v->not_found = 0;
+    v->no_cacheable = 1;
+
     return NGX_OK;
 }
 
