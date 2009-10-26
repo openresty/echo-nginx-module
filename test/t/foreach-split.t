@@ -126,7 +126,7 @@ foo
         echo_end;
     }
 --- request
-    GET /main_sleep?list=foo-a-bar-A-baz
+    GET /main_sleep?list=foo-a-bar-a-baz
 --- response_body
 foo
 bar

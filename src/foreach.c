@@ -2,6 +2,7 @@
 #include "ddebug.h"
 
 #include "foreach.h"
+#include "util.h"
 
 #include <nginx.h>
 
@@ -72,7 +73,7 @@ ngx_http_echo_exec_echo_foreach_split(ngx_http_request_t *r,
 
     pos = compound->data;
     end = compound->data + compound->len;
-    while ((last = ngx_strlcasestrn(pos, end, delimiter->data, delimiter->len - 1))
+    while ((last = ngx_http_echo_strlstrn(pos, end, delimiter->data, delimiter->len - 1))
                 != NULL) {
         choice = ngx_array_push(ctx->foreach->choices);
         if (choice == NULL) {

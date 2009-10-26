@@ -126,3 +126,28 @@ ngx_http_echo_atosz(u_char *line, size_t n) {
     }
 }
 
+/* Modified from the ngx_strlcasestrn function in ngx_string.h
+ * Copyright (C) by Igor Sysoev */
+u_char *
+ngx_http_echo_strlstrn(u_char *s1, u_char *last, u_char *s2, size_t n)
+{
+    ngx_uint_t  c1, c2;
+
+    c2 = (ngx_uint_t) *s2++;
+    last -= n;
+
+    do {
+        do {
+            if (s1 >= last) {
+                return NULL;
+            }
+
+            c1 = (ngx_uint_t) *s1++;
+
+        } while (c1 != c2);
+
+    } while (ngx_strncmp(s1, s2, n) != 0);
+
+    return --s1;
+}
+

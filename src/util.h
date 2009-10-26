@@ -16,5 +16,7 @@ ngx_int_t ngx_http_echo_send_chain_link(ngx_http_request_t* r,
 
 ssize_t ngx_http_echo_atosz(u_char *line, size_t n);
 
+u_char * ngx_http_echo_strlstrn(u_char *s1, u_char *last, u_char *s2, size_t n);
+
 #endif /* ECHO_UTIL_H */
 
