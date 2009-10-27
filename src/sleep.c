@@ -35,7 +35,7 @@ ngx_http_echo_exec_echo_sleep(
 #if defined(nginx_version) && nginx_version >= 8011
 
     r->main->count++;
-    DD("request main count : %u", r->main->count);
+    DD("<> request main count : %u", r->main->count);
 
 #endif
 
@@ -47,6 +47,7 @@ ngx_http_echo_exec_echo_sleep(
 static void
 ngx_http_echo_post_sleep(ngx_http_request_t *r) {
     ngx_http_echo_ctx_t         *ctx;
+    ngx_int_t                   rc;
 
     DD("entered echo post sleep...");
 
@@ -55,15 +56,32 @@ ngx_http_echo_post_sleep(ngx_http_request_t *r) {
         return ngx_http_finalize_request(r, NGX_HTTP_INTERNAL_SERVER_ERROR);
     }
 
+    DD("timed out? %d", ctx->sleep.timedout);
+    DD("timer set? %d", ctx->sleep.timer_set);
+    if ( ! ctx->sleep.timedout ) {
+        DD("HERE reached!");
+        return;
+    }
+    ctx->sleep.timedout = 0;
+
     ctx->next_handler_cmd++;
 
     if (ctx->sleep.timer_set) {
         ngx_del_timer(&ctx->sleep);
     }
 
-    ctx->sleep.timedout = 0;
+    rc = ngx_http_echo_handler(r);
 
-    ngx_http_finalize_request(r, ngx_http_echo_handler(r));
+#if defined(nginx_version) && nginx_version >= 8011
+
+    if (rc == NGX_OK) {
+        r->main->count--;
+        DD("<> request main count : %u", r->main->count);
+    }
+
+#endif
+
+    ngx_http_finalize_request(r, rc);
 }
 
 void
@@ -109,6 +127,7 @@ ngx_http_echo_exec_echo_blocking_sleep(ngx_http_request_t *r,
     DD("blocking DELAY = %.02lf sec", delay);
 
     ngx_msleep((ngx_msec_t) (1000 * delay));
+
     return NGX_OK;
 }
 

@@ -6,14 +6,18 @@
 
 ngx_int_t
 ngx_http_echo_init_ctx(ngx_http_request_t *r, ngx_http_echo_ctx_t **ctx_ptr) {
+    ngx_http_echo_ctx_t         *ctx;
+
     *ctx_ptr = ngx_pcalloc(r->pool, sizeof(ngx_http_echo_ctx_t));
     if (*ctx_ptr == NULL) {
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
 
-    (*ctx_ptr)->sleep.handler   = ngx_http_echo_sleep_event_handler;
-    (*ctx_ptr)->sleep.data      = r;
-    (*ctx_ptr)->sleep.log       = r->connection->log;
+    ctx = *ctx_ptr;
+
+    ctx->sleep.handler   = ngx_http_echo_sleep_event_handler;
+    ctx->sleep.data      = r;
+    ctx->sleep.log       = r->connection->log;
 
     return NGX_OK;
 }
