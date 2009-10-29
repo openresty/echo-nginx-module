@@ -212,6 +212,9 @@ sub run_test ($) {
         $req->header('Content-Length' => 0);
     }
     my $res = $UserAgent->request($req);
+    if (defined $block->error_code) {
+        is($res->code, $block->error_code, "$name - status code ok");
+    }
     if (defined $block->response_body) {
         if (!$res->is_success) {
             fail("$name - response_body - response indicates failure: " . $res->status_line);

@@ -18,6 +18,8 @@ ngx_http_echo_exec_echo_location_async(ngx_http_request_t *r,
     ngx_str_t                   *computed_arg_elts;
     ngx_str_t                   location;
     ngx_str_t                   *url_args;
+    ngx_str_t                   args;
+    ngx_uint_t                  flags;
 
     computed_arg_elts = computed_args->elts;
 
@@ -35,6 +37,17 @@ ngx_http_echo_exec_echo_location_async(ngx_http_request_t *r,
 
     DD("location: %s", location.data);
     DD("location args: %s", (char*) (url_args ? url_args->data : (u_char*)"NULL"));
+
+    args.data = NULL;
+    args.len = 0;
+    if (ngx_http_parse_unsafe_uri(r, &location, &args, &flags) != NGX_OK) {
+        ctx->headers_sent = 1;
+        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+    }
+
+    if (args.len > 0 && url_args == NULL) {
+        url_args = &args;
+    }
 
     rc = ngx_http_echo_send_header_if_needed(r, ctx);
     if (r->header_only || rc >= NGX_HTTP_SPECIAL_RESPONSE) {
@@ -63,6 +76,8 @@ ngx_http_echo_exec_echo_location(ngx_http_request_t *r,
     ngx_str_t                           location;
     ngx_str_t                           *url_args;
     ngx_http_post_subrequest_t          *psr;
+    ngx_str_t                           args;
+    ngx_uint_t                          flags;
 
     computed_arg_elts = computed_args->elts;
 
@@ -76,6 +91,17 @@ ngx_http_echo_exec_echo_location(ngx_http_request_t *r,
         url_args = &computed_arg_elts[1];
     } else {
         url_args = NULL;
+    }
+
+    args.data = NULL;
+    args.len = 0;
+    if (ngx_http_parse_unsafe_uri(r, &location, &args, &flags) != NGX_OK) {
+        ctx->headers_sent = 1;
+        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+    }
+
+    if (args.len > 0 && url_args == NULL) {
+        url_args = &args;
     }
 
     rc = ngx_http_echo_send_header_if_needed(r, ctx);

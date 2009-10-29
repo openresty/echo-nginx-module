@@ -50,6 +50,8 @@ ngx_http_echo_exec_echo_subrequest_async(ngx_http_request_t *r,
     ngx_int_t                       rc;
     ngx_http_echo_subrequest_t      *parsed_sr;
     ngx_http_request_t              *sr; /* subrequest object */
+    ngx_str_t                       args;
+    ngx_uint_t                      flags;
 
     rc = ngx_http_echo_parse_subrequest_spec(r, computed_args, &parsed_sr);
     if (rc != NGX_OK) {
@@ -59,6 +61,18 @@ ngx_http_echo_exec_echo_subrequest_async(ngx_http_request_t *r,
     DD("location: %s", parsed_sr->location->data);
     DD("location args: %s", (char*) (parsed_sr->query_string ?
                 parsed_sr->query_string->data : (u_char*)"NULL"));
+
+    args.data = NULL;
+    args.len = 0;
+    if (ngx_http_parse_unsafe_uri(r, parsed_sr->location, &args, &flags)
+            != NGX_OK) {
+        ctx->headers_sent = 1;
+        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+    }
+
+    if (args.len > 0 && parsed_sr->query_string == NULL) {
+        parsed_sr->query_string = &args;
+    }
 
     rc = ngx_http_echo_send_header_if_needed(r, ctx);
     if (r->header_only || rc >= NGX_HTTP_SPECIAL_RESPONSE) {
@@ -86,10 +100,24 @@ ngx_http_echo_exec_echo_subrequest(ngx_http_request_t *r,
     ngx_http_request_t                  *sr; /* subrequest object */
     ngx_http_post_subrequest_t          *psr;
     ngx_http_echo_subrequest_t          *parsed_sr;
+    ngx_str_t                           args;
+    ngx_uint_t                          flags;
 
     rc = ngx_http_echo_parse_subrequest_spec(r, computed_args, &parsed_sr);
     if (rc != NGX_OK) {
         return rc;
+    }
+
+    args.data = NULL;
+    args.len = 0;
+    if (ngx_http_parse_unsafe_uri(r, parsed_sr->location, &args, &flags)
+            != NGX_OK) {
+        ctx->headers_sent = 1;
+        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+    }
+
+    if (args.len > 0 && parsed_sr->query_string == NULL) {
+        parsed_sr->query_string = &args;
     }
 
     rc = ngx_http_echo_send_header_if_needed(r, ctx);
@@ -104,7 +132,6 @@ ngx_http_echo_exec_echo_subrequest(ngx_http_request_t *r,
 
     psr->handler = ngx_http_echo_post_subrequest;
     psr->data = ctx;
-
 
     rc = ngx_http_subrequest(r, parsed_sr->location, parsed_sr->query_string,
             &sr, psr, 0);

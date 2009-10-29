@@ -152,6 +152,7 @@ A
 baz
 
 
+
 === TEST 8: empty
 --- config
   location /merge {

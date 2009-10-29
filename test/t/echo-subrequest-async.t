@@ -248,11 +248,27 @@ sub%31
     }
 --- request
     GET /main
---- response_body eval: " \n"
+--- response_body
+Foo Bar
 
 
 
-=== TEST 14: explicit flush in main request
+=== TEST 14: querystring in url *AND* an explicit querystring
+--- config
+    location /main {
+        echo_subrequest_async GET /sub?foo=Foo&bar=Bar -q blah=Blah;
+    }
+    location /sub {
+        echo $arg_foo $arg_bar $arg_blah;
+    }
+--- request
+    GET /main
+--- response_body
+  Blah
+
+
+
+=== TEST 15: explicit flush in main request
 flush won't really flush the buffer...
 --- config
     location /main_flush {
@@ -275,7 +291,7 @@ post main
 
 
 
-=== TEST 15: POST subrequest with body (with proxy in the middle) and without read body explicitly
+=== TEST 16: POST subrequest with body (with proxy in the middle) and without read body explicitly
 --- config
     location /main {
         echo_subrequest_async POST /proxy -b 'hello, world';
@@ -297,7 +313,7 @@ sub body: .
 
 
 
-=== TEST 16: POST subrequest with body (with proxy in the middle) and read body explicitly
+=== TEST 17: POST subrequest with body (with proxy in the middle) and read body explicitly
 --- config
     location /main {
         echo_subrequest_async POST /proxy -b 'hello, world';
@@ -320,7 +336,7 @@ sub body: hello, world.
 
 
 
-=== TEST 17: multiple subrequests
+=== TEST 18: multiple subrequests
 --- config
     location /multi {
         echo_subrequest_async POST '/sub' -q 'foo=Foo' -b 'hi';
@@ -349,7 +365,7 @@ content length: 5
 
 
 
-=== TEST 18: no varaiable inheritance
+=== TEST 19: no varaiable inheritance
 --- config
     location /main {
         echo $echo_cacheable_request_uri;
@@ -369,4 +385,15 @@ content length: 5
 /main
 /sub
 /sub2
+
+
+
+=== TEST 20: unsafe uri
+--- config
+    location /unsafe {
+        echo_subrequest_async GET '/../foo';
+    }
+--- request
+    GET /unsafe
+--- error_code: 500
 

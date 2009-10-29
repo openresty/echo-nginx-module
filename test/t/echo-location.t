@@ -291,3 +291,44 @@ post main
 /sub
 /sub2
 
+
+
+=== TEST 14: unsafe uri
+--- config
+    location /unsafe {
+        echo_location '/../foo';
+    }
+--- request
+    GET /unsafe
+--- error_code: 500
+
+
+
+=== TEST 15: querystring in url
+--- config
+    location /main {
+        echo_location /sub?foo=Foo&bar=Bar;
+    }
+    location /sub {
+        echo $arg_foo $arg_bar;
+    }
+--- request
+    GET /main
+--- response_body
+Foo Bar
+
+
+
+=== TEST 16: querystring in url *AND* an explicit querystring
+--- config
+    location /main {
+        echo_location /sub?foo=Foo&bar=Bar blah=Blah;
+    }
+    location /sub {
+        echo $arg_foo $arg_bar $arg_blah;
+    }
+--- request
+    GET /main
+--- response_body
+  Blah
+
