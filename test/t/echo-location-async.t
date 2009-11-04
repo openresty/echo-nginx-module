@@ -305,6 +305,7 @@ post main
 --- error_code: 500
 
 
+
 === TEST 17: access/deny
 --- config
     location /main {
@@ -319,4 +320,20 @@ post main
 --- error_code: 403
 --- response_body
 --- SKIP
+
+
+
+=== TEST 17: rewrite is honored.
+--- config
+    location /main {
+        echo_location_async /rewrite;
+    }
+    location /rewrite {
+        rewrite ^ /foo break;
+        echo $uri;
+    }
+--- request
+    GET /main
+--- response_body
+/foo
 

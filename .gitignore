@@ -22,3 +22,5 @@ t.sh
 t/t.sh
 test/t/servroot/
 releng
+reset
+*.t_
