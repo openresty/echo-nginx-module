@@ -4,6 +4,8 @@
 *.la
 *.swo
 *.lo
+*.mobi
+genmobi.sh
 *~
 *.o
 print.txt
