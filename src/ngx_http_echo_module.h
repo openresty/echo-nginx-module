@@ -12,6 +12,7 @@ extern ngx_module_t ngx_http_echo_module;
 /* config directive's opcode */
 typedef enum {
     echo_opcode_echo,
+    echo_opcode_echo_request_body,
     echo_opcode_echo_sleep,
     echo_opcode_echo_flush,
     echo_opcode_echo_blocking_sleep,

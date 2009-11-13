@@ -15,6 +15,9 @@ static void* ngx_http_echo_create_conf(ngx_conf_t *cf);
 /* config directive handlers */
 static char* ngx_http_echo_echo(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
 
+static char* ngx_http_echo_echo_request_body(ngx_conf_t *cf,
+        ngx_command_t *cmd, void *conf);
+
 static char* ngx_http_echo_echo_sleep(ngx_conf_t *cf, ngx_command_t *cmd,
         void *conf);
 
@@ -80,6 +83,13 @@ static ngx_command_t  ngx_http_echo_commands[] = {
     { ngx_string("echo"),
       NGX_HTTP_LOC_CONF|NGX_CONF_ANY,
       ngx_http_echo_echo,
+      NGX_HTTP_LOC_CONF_OFFSET,
+      offsetof(ngx_http_echo_loc_conf_t, handler_cmds),
+      NULL },
+
+    { ngx_string("echo_request_body"),
+      NGX_HTTP_LOC_CONF|NGX_CONF_NOARGS,
+      ngx_http_echo_echo_request_body,
       NGX_HTTP_LOC_CONF_OFFSET,
       offsetof(ngx_http_echo_loc_conf_t, handler_cmds),
       NULL },
@@ -293,6 +303,15 @@ static char*
 ngx_http_echo_echo(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     DD("in echo_echo...");
     return ngx_http_echo_helper(echo_opcode_echo,
+            echo_handler_cmd,
+            cf, cmd, conf);
+}
+
+static char*
+ngx_http_echo_echo_request_body(ngx_conf_t *cf,
+        ngx_command_t *cmd, void *conf) {
+    DD("in echo_echo_request_body...");
+    return ngx_http_echo_helper(echo_opcode_echo_request_body,
             echo_handler_cmd,
             cf, cmd, conf);
 }

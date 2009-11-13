@@ -95,7 +95,6 @@ ngx_http_echo_request_body_variable(ngx_http_request_t *r,
 
 #endif
 
-
     if (r->request_body == NULL
         || r->request_body->bufs == NULL
         || r->request_body->temp_file)

@@ -132,3 +132,18 @@ body here
 haha
 "
 
+=== TEST 8: echo_request_body
+--- config
+    location /body {
+      client_body_buffer_size    5;
+      echo_read_request_body;
+      echo "[$echo_request_body]";
+      echo_request_body;
+    }
+--- request eval
+"POST /body
+" . ('a' x 2048) . "b"
+--- response_body eval
+"[]\n" .
+('a' x 2048) . "b"
+
