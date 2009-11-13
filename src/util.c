@@ -53,11 +53,38 @@ ngx_http_echo_eval_cmd_args(ngx_http_request_t *r,
 ngx_int_t
 ngx_http_echo_send_chain_link(ngx_http_request_t* r,
         ngx_http_echo_ctx_t *ctx, ngx_chain_t *cl) {
-    ngx_int_t   rc;
+    ngx_int_t       rc;
+    size_t          size;
+    ngx_chain_t     *p;
 
     rc = ngx_http_echo_send_header_if_needed(r, ctx);
     if (r->header_only || rc >= NGX_HTTP_SPECIAL_RESPONSE) {
         return rc;
+    }
+
+    if (r->http_version < NGX_HTTP_VERSION_11 && !ctx->headers_sent) {
+        ctx->headers_sent = 1;
+
+        size = 0;
+        for (p = cl; p; p = p->next) {
+            if (p->buf->memory) {
+                size += p->buf->last - p->buf->pos;
+            }
+        }
+        DD("content length for HTTP 1.0: %d", size);
+        r->headers_out.content_length_n = (off_t) size;
+
+        if (r->headers_out.content_length) {
+            r->headers_out.content_length->hash = 0;
+        }
+
+        r->headers_out.content_length = NULL;
+
+        rc = ngx_http_send_header(r);
+
+        if (rc >= NGX_HTTP_SPECIAL_RESPONSE) {
+            return rc;
+        }
     }
 
     if (cl == NULL) {
@@ -86,10 +113,9 @@ ngx_http_echo_send_chain_link(ngx_http_request_t* r,
 ngx_int_t
 ngx_http_echo_send_header_if_needed(ngx_http_request_t* r,
         ngx_http_echo_ctx_t *ctx) {
-    ngx_int_t   rc;
+    /* ngx_int_t   rc; */
 
     if ( ! ctx->headers_sent ) {
-        ctx->headers_sent = 1;
         r->headers_out.status = NGX_HTTP_OK;
         if (ngx_http_set_content_type(r) != NGX_OK) {
             return NGX_HTTP_INTERNAL_SERVER_ERROR;
@@ -98,7 +124,10 @@ ngx_http_echo_send_header_if_needed(ngx_http_request_t* r,
         ngx_http_clear_content_length(r);
         ngx_http_clear_accept_ranges(r);
 
-        rc = ngx_http_send_header(r);
+        if (r->http_version >= NGX_HTTP_VERSION_11) {
+            ctx->headers_sent = 1;
+            return ngx_http_send_header(r);
+        }
     }
     return NGX_OK;
 }
