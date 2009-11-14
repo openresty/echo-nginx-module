@@ -51,7 +51,7 @@ ngx_http_echo_exec_echo(ngx_http_request_t *r,
     ngx_str_t                   *computed_arg_elts;
 
     ngx_chain_t *cl  = NULL; /* the head of the chain link */
-    ngx_chain_t **ll = NULL;  /* always point to the address of the last link */
+    ngx_chain_t **ll = &cl;  /* always point to the address of the last link */
 
     DD("now exec echo...");
 
@@ -62,14 +62,19 @@ ngx_http_echo_exec_echo(ngx_http_request_t *r,
     computed_arg_elts = computed_args->elts;
     for (i = 0; i < computed_args->nelts; i++) {
         computed_arg = &computed_arg_elts[i];
-        buf = ngx_pcalloc(r->pool, sizeof(ngx_buf_t));
-        if (buf == NULL) {
-            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+
+        if (computed_arg->len == 0) {
+            buf = NULL;
+        } else {
+            buf = ngx_pcalloc(r->pool, sizeof(ngx_buf_t));
+            if (buf == NULL) {
+                return NGX_HTTP_INTERNAL_SERVER_ERROR;
+            }
+            buf->start = buf->pos = computed_arg->data;
+            buf->last = buf->end = computed_arg->data +
+                computed_arg->len;
+            buf->memory = 1;
         }
-        buf->start = buf->pos = computed_arg->data;
-        buf->last = buf->end = computed_arg->data +
-            computed_arg->len;
-        buf->memory = 1;
 
         if (cl == NULL) {
             cl = ngx_alloc_chain_link(r->pool);
@@ -99,17 +104,23 @@ ngx_http_echo_exec_echo(ngx_http_request_t *r,
 
             ll = &(*ll)->next;
 
-            /* then append the buf */
-            *ll = ngx_alloc_chain_link(r->pool);
-            if (*ll == NULL) {
-                return NGX_HTTP_INTERNAL_SERVER_ERROR;
-            }
-            (*ll)->buf  = buf;
-            (*ll)->next = NULL;
+            /* then append the buf only if it's non-empty */
+            if (buf) {
+                *ll = ngx_alloc_chain_link(r->pool);
+                if (*ll == NULL) {
+                    return NGX_HTTP_INTERNAL_SERVER_ERROR;
+                }
+                (*ll)->buf  = buf;
+                (*ll)->next = NULL;
 
-            ll = &(*ll)->next;
+                ll = &(*ll)->next;
+            }
         }
     } /* end for */
+
+    if (cl && !cl->buf) {
+        cl = cl->next;
+    }
 
     /* append the newline character */
     /* TODO add support for -n option to suppress
