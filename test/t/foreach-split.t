@@ -82,7 +82,7 @@ baz
 foo
 bar
 baz
-
+--- SKIP
 
 
 === TEST 4: empty loop

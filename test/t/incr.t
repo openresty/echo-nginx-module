@@ -15,8 +15,8 @@ __DATA__
 --- config
     location /main {
         echo "main pre: $echo_incr";
-        echo_location /sub;
-        echo_location /sub;
+        echo_location_async /sub;
+        echo_location_async /sub;
         echo "main post: $echo_incr";
     }
     location /sub {
@@ -26,7 +26,7 @@ __DATA__
     GET /main
 --- response_body
 main pre: 1
-sub: 2
 sub: 3
-main post: 4
+sub: 4
+main post: 2
 
