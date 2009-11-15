@@ -6,9 +6,9 @@ Name
     installation instructions.
 
 Version
-    This document describes echo-nginx-module v0.17
+    This document describes echo-nginx-module v0.18
     (<http://github.com/agentzh/echo-nginx-module/downloads>) released on
-    Oct 26, 2009.
+    Nov 15, 2009.
 
 Synopsis
       location /hello {
@@ -178,7 +178,10 @@ Description
 
     Use of any of this module's directives (no matter content handler
     directives or filter directives) will force the chunked encoding to be
-    used for the HTTP response due to the streaming nature of this module.
+    used for the HTTP response due to the streaming nature of this module
+    (unless HTTP 1.0 is enforced by the client and the Content-Length header
+    will be set to the size of the first handler directive that generates
+    contents).
 
     Technially, this module has also demonstrated the following techniques
     that might be helpful for module writers:
@@ -658,6 +661,9 @@ Content Handler Directives
 
     context: *location*
 
+    *WARNING: This directive is now deprecated and will horribly hang the
+    server for Nginx 0.8.x >= 0.8.21.*
+
     Just like the echo_location_async directive, but "echo_location" issues
     subrequests *in series* rather than in parallel. That is, the content
     handler directives following this directive won't be executed until the
@@ -805,6 +811,9 @@ Content Handler Directives
 
     context: *location*
 
+    *WARNING: This directive is now deprecated and will horribly hang the
+    server for Nginx 0.8.x >= 0.8.21.*
+
     This is the synchronous version of the echo_subrequest_async directive.
     And just like echo_location, it does not block the Nginx worker process
     as echo_blocking_sleep, rather, it uses continuation to pass control
@@ -846,6 +855,13 @@ Content Handler Directives
     Parallel "echo_foreach_split" loops are allowed, but nested ones are
     currently forbidden.
 
+    The "delimiter" argument could contain *multiple* arbitrary characters,
+    like
+
+      echo_foreach_split '-a-' 'cat-a-dog-a-mouse';
+        echo $echo_it;
+      echo_end;
+
     Logically speaking, this looping structure is just the "foreach" loop
     combined with a "split" function call in Perl (using the previous
     example):
@@ -859,6 +875,7 @@ Content Handler Directives
 
       location /merge {
           default_type 'text/javascript';
+
           echo_foreach_split '&' $query_string;
               echo "/* JS File $echo_it */";
               echo_location_async $echo_it;
@@ -887,6 +904,31 @@ Content Handler Directives
     control structures like echo_foreach_split.
 
     This directive was first introduced in the release v0.17.
+
+  echo_request_body
+    syntax: *echo_request_body*
+
+    default: *no*
+
+    context: *location*
+
+    Outputs the contents of the request body previous read.
+
+    Behind the scene, it's implemented roughly like this:
+
+      if (r->request_body && r->request_body->bufs) {
+          return ngx_http_output_filter(r, r->request_body->bufs);
+      }
+
+    Unlike the $echo_request_body and $request_body variables, this
+    directive will show the whole request body even if some parts or all
+    parts of it are saved in temporary files on the disk.
+
+    It is a "no-op" if no request body has been read yet.
+
+    This directive was first introduced in the release v0.18.
+
+    See also echo_read_request_body.
 
 Filter Directives
     Use of the following directives trigger the filter registration of this
@@ -1006,6 +1048,12 @@ Variables
     settings elsewhere in the config file, just like the echo_reset_timer
     directive.
 
+  $echo_request_body
+    Evaluates to the current (sub)request's request body previously read if
+    no part of the body has been saved to a temporary file. To always show
+    the request body even if it's very large, use the echo_request_body
+    directive.
+
   $echo_request_method
     Evaluates to the HTTP request method of the current request (it can be a
     subrequest).
@@ -1080,6 +1128,30 @@ Variables
 
     This variable was first introduced in version 0.17.
 
+  $echo_incr
+    It is a counter that always generate the current counting number,
+    starting from 1. The counter is always associated with the main request
+    even if it is accessed within a subrequest.
+
+    Consider the following example
+
+        location /main {
+            echo "main pre: $echo_incr";
+            echo_location_async /sub;
+            echo_location_async /sub;
+            echo "main post: $echo_incr";
+        }
+        location /sub {
+            echo "sub: $echo_incr";
+        }
+
+    Accessing "/main" yields
+
+        main pre: 1
+        sub: 3
+        sub: 4
+        main post: 2
+
 Installation
     Grab the nginx source code from nginx.net (<http://nginx.net/>), for
     example, the version 0.8.20 (see nginx compatibility), and then build
@@ -1103,12 +1175,12 @@ Installation
 Compatibility
     The following versions of Nginx should work with this module:
 
-    *   0.8.x (last tested version is 0.8.20)
+    *   0.8.x (last tested version is 0.8.24)
 
-    *   0.7.x >= 0.7.21 (last tested version is 0.7.62)
+    *   0.7.x >= 0.7.21 (last tested version is 0.7.63)
 
-    In particular, the echo_location_async and its brother echo_location
-    directives do *not* work with 0.7.x < 0.7.46.
+    In particular, the directive echo_location_async and its brother
+    echo_subrequest_async do *not* work with 0.7.x < 0.7.46.
 
     Earlier versions of Nginx like 0.6.x and 0.5.x will *not* work.
 
@@ -1131,6 +1203,22 @@ Source Repository
     (<http://github.com/agentzh/echo-nginx-module>).
 
 ChangeLog
+  v0.18
+    *   Fixed the "zero size buf in output" alerts in error.log.
+
+    *   Added the new directive echo_request_body.
+
+    *   Now we use the "ngx_http_parse_unsafe_uri" function to check the
+        locations to echo_location_async and its friends. Thanks Arvind
+        Jayaprakash for suggesting this fix.
+
+    *   Deprecated the echo_location and echo_subrequest directives.
+
+    *   For HTTP 1.0 clients, use the buf length of the first chain link as
+        the output header Content-Length.
+
+    *   Implemented new variable $echo_incr.
+
   v0.17
     *   Added new directives echo_foreach_split and echo_end. Also
         introduced a "topic variable" named $echo_it.
