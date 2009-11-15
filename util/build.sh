@@ -9,11 +9,13 @@ opts=$2
 lwp-mirror "http://sysoev.ru/nginx/nginx-$version.tar.gz" nginx-$version.tar.gz
 tar -xzvf nginx-$version.tar.gz
 cd nginx-$version/
-if [[ "$BUILD_CLEAN" -eq 1 || ! -f Makefile || "$root/config" -nt Makefile ]]; then
+if [[ "$BUILD_CLEAN" -eq 1 || ! -f Makefile \
+        || "$root/config" -nt Makefile
+        || "$root/util/build.sh" -nt Makefile ]]; then
     ./configure --prefix=/opt/nginx \
           --with-http_addition_module \
-          --add-module=$root $opts \
-          --with-debug
+          --add-module=$root $opts #\
+          #--with-debug
   #--without-http_ssi_module  # we cannot disable ssi because echo_location_async depends on it (i dunno why?!)
 
 fi

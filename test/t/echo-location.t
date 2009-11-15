@@ -1,7 +1,9 @@
 # vi:filetype=perl
 
 use lib 'lib';
-use Test::Nginx::Echo;
+
+use Test::Nginx::Echo skip_all =>
+    "echo_subrequest is now deprecated.";
 
 plan tests => 1 * blocks();
 
