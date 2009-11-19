@@ -6,9 +6,9 @@ Name
     installation instructions.
 
 Version
-    This document describes echo-nginx-module v0.18
+    This document describes echo-nginx-module v0.19
     (<http://github.com/agentzh/echo-nginx-module/downloads>) released on
-    Nov 15, 2009.
+    Nov 19, 2009.
 
 Synopsis
       location /hello {
@@ -114,7 +114,7 @@ Synopsis
 
         echo_read_request_body;
 
-        echo $request_body;
+        echo_request_body;
       }
 
       # GET /multi will yields
@@ -153,7 +153,7 @@ Synopsis
 Description
     This module wraps lots of Nginx internal APIs for streaming input and
     output, parallel/sequential subrequests, timers and sleeping, as well as
-    various meta data.
+    various meta data accessing.
 
     Basically it provides various utilities that help testing and debugging
     of other modules by trivially emulating different kinds of faked
@@ -661,9 +661,6 @@ Content Handler Directives
 
     context: *location*
 
-    *WARNING: This directive is now deprecated and will horribly hang the
-    server for Nginx 0.8.x >= 0.8.21.*
-
     Just like the echo_location_async directive, but "echo_location" issues
     subrequests *in series* rather than in parallel. That is, the content
     handler directives following this directive won't be executed until the
@@ -811,9 +808,6 @@ Content Handler Directives
 
     context: *location*
 
-    *WARNING: This directive is now deprecated and will horribly hang the
-    server for Nginx 0.8.x >= 0.8.21.*
-
     This is the synchronous version of the echo_subrequest_async directive.
     And just like echo_location, it does not block the Nginx worker process
     as echo_blocking_sleep, rather, it uses continuation to pass control
@@ -928,7 +922,7 @@ Content Handler Directives
 
     This directive was first introduced in the release v0.18.
 
-    See also echo_read_request_body.
+    See also echo_read_request_body and the chunkin module.
 
 Filter Directives
     Use of the following directives trigger the filter registration of this
@@ -1175,9 +1169,9 @@ Installation
 Compatibility
     The following versions of Nginx should work with this module:
 
-    *   0.8.x (last tested version is 0.8.24)
+    *   0.8.x (last tested version is 0.8.27)
 
-    *   0.7.x >= 0.7.21 (last tested version is 0.7.63)
+    *   0.7.x >= 0.7.21 (last tested version is 0.7.64)
 
     In particular, the directive echo_location_async and its brother
     echo_subrequest_async do *not* work with 0.7.x < 0.7.46.
@@ -1203,6 +1197,16 @@ Source Repository
     (<http://github.com/agentzh/echo-nginx-module>).
 
 ChangeLog
+  v0.19
+    *   Fixed the CPS-style chained subrequest model for the echo_location
+        and echo_subrequest directives. they are now working perfectly and
+        will not hang the server with the recent nginx 0.8.21 ~ 0.8.27
+        releases. To be specifically, the chained subrequest should call
+        "ngx_http_finalize_request" on its parent request if the content
+        handler of the parent request does not return "NGX_DONE".
+
+    *   Undeprecated the echo_location and echo_subrequest directives.
+
   v0.18
     *   Fixed the "zero size buf in output" alerts in error.log.
 
@@ -1332,8 +1336,8 @@ Test Suite
     test suite in parallel by specifying "-jN" when invoking the "prove"
     utility.
 
-    Some parts of the test suite requires standard modules proxy and SSI to
-    be enabled as well when building Nginx.
+    Some parts of the test suite requires standard modules proxy, rewrite
+    and SSI to be enabled as well when building Nginx.
 
 TODO
     *   Add directives *echo_read_client_request_body* and
@@ -1432,9 +1436,9 @@ Copyright & License
 See Also
     *   The original blog post
         (<http://agentzh.spaces.live.com/blog/cns!FF3A735632E41548!478.entry
-        >) about this module's initial development
+        >) about this module's initial development.
 
-    *   The standard addition filter module
+    *   The standard addition filter module.
 
-    *   The standard proxy module
+    *   The standard proxy module.
 

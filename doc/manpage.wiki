@@ -6,7 +6,7 @@
 
 = Version =
 
-This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/downloads v0.18] released on Nov 15, 2009.
+This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/downloads v0.19] released on Nov 19, 2009.
 
 = Synopsis =
 
@@ -130,7 +130,7 @@ This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-
     
     echo_read_request_body;
     
-    echo $request_body;
+    echo_request_body;
   }
 </geshi>
 
@@ -173,7 +173,7 @@ This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-
 
 = Description =
 
-This module wraps lots of Nginx internal APIs for streaming input and output, parallel/sequential subrequests, timers and sleeping, as well as various meta data.
+This module wraps lots of Nginx internal APIs for streaming input and output, parallel/sequential subrequests, timers and sleeping, as well as various meta data accessing.
 
 Basically it provides various utilities that help testing and debugging of other modules by trivially emulating different kinds of faked subrequest locations.
 
@@ -604,8 +604,6 @@ This directive is first introduced in [[#v0.09|version 0.09]] of this module and
 
 '''context:''' ''location''
 
-''WARNING: This directive is now deprecated and will horribly hang the server for Nginx 0.8.x >= 0.8.21.''
-
 Just like the [[#echo_location_async|echo_location_async]] directive, but <code>echo_location</code> issues subrequests ''in series'' rather than in parallel. That is, the content handler directives following this directive won't be executed until the subrequest issued by this directive completes.
 
 The final response body is almost always equivalent to the case when [[#echo_location_async|echo_location_async]] is used instead, only if timing variables is used in the outputs.
@@ -740,8 +738,6 @@ See also the [[#echo_subrequest|echo_subrequest]] and [[#echo_location_async|ech
 
 '''context:''' ''location''
 
-''WARNING: This directive is now deprecated and will horribly hang the server for Nginx 0.8.x >= 0.8.21.''
-
 This is the synchronous version of the [[#echo_subrequest_async|echo_subrequest_async]] directive. And just like [[#echo_location|echo_location]], it does not block the Nginx worker process as [[#echo_blocking_sleep|echo_blocking_sleep]], rather, it uses continuation to pass control along the subrequest chain.
 
 See [[#echo_subrequest_async|echo_subrequest_async]] for more details.
@@ -854,7 +850,7 @@ It is a "no-op" if no request body has been read yet.
 
 This directive was first introduced in the [[#v0.18|release v0.18]].
 
-See also [[#echo_read_request_body|echo_read_request_body]].
+See also [[#echo_read_request_body|echo_read_request_body]] and the [[NginxHttpChunkinModule|chunkin module]].
 
 = Filter Directives =
 
@@ -1094,8 +1090,8 @@ Download the latest version of the release tarball of this module from [http://g
 
 The following versions of Nginx should work with this module:
 
-* '''0.8.x'''                       (last tested version is 0.8.24)
-* '''0.7.x >= 0.7.21'''             (last tested version is 0.7.63)
+* '''0.8.x'''                       (last tested version is 0.8.27)
+* '''0.7.x >= 0.7.21'''             (last tested version is 0.7.64)
 
 In particular, the directive [[#echo_location_async|echo_location_async]] and its brother [[#echo_subrequest_async|echo_subrequest_async]] do ''not'' work with '''0.7.x < 0.7.46'''.
 
@@ -1115,6 +1111,10 @@ Although a lot of effort has been put into testing and code tuning, there must b
 Available on github at [http://github.com/agentzh/echo-nginx-module agentzh/echo-nginx-module].
 
 = ChangeLog =
+
+== v0.19 ==
+* Fixed the CPS-style chained subrequest model for the [[#echo_location|echo_location]] and [[#echo_subrequest|echo_subrequest]] directives. they are now working perfectly and will not hang the server with the recent nginx 0.8.21 ~ 0.8.27 releases. To be specifically, the chained subrequest should call <code>ngx_http_finalize_request</code> on its parent request if the content handler of the parent request does not return <code>NGX_DONE</code>.
+* Undeprecated the [[#echo_location|echo_location]] and [[#echo_subrequest|echo_subrequest]] directives.
 
 == v0.18 ==
 * Fixed the "zero size buf in output" alerts in error.log.
@@ -1191,7 +1191,7 @@ At the moment, [http://search.cpan.org/perldoc?LWP::UserAgent LWP::UserAgent] is
 
 Because a single nginx server (by default, <code>localhost:1984</code>) is used across all the test scripts (<code>.t</code> files), it's meaningless to run the test suite in parallel by specifying <code>-jN</code> when invoking the <code>prove</code> utility.
 
-Some parts of the test suite requires standard modules [[NginxHttpProxyModule|proxy]] and [[NginxHttpSsiModule|SSI]] to be enabled as well when building Nginx.
+Some parts of the test suite requires standard modules [[NginxHttpProxyModule|proxy]], [[NginxHttpRewriteModule|rewrite]] and [[NginxHttpSsiModule|SSI]] to be enabled as well when building Nginx.
 
 = TODO =
 
@@ -1272,7 +1272,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 = See Also =
 
-* The original [http://agentzh.spaces.live.com/blog/cns!FF3A735632E41548!478.entry blog post] about this module's initial development
-* The standard [[NginxHttpAdditionModule|addition filter module]]
-* The standard [[NginxHttpProxyModule|proxy module]]
+* The original [http://agentzh.spaces.live.com/blog/cns!FF3A735632E41548!478.entry blog post] about this module's initial development.
+* The standard [[NginxHttpAdditionModule|addition filter module]].
+* The standard [[NginxHttpProxyModule|proxy module]].
 
