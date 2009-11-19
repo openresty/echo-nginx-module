@@ -1232,6 +1232,44 @@ Some parts of the test suite requires standard modules [[NginxHttpProxyModule|pr
   echo_end;
 </geshi>
 
+* Add new directive ''echo_foreach_range'', as in
+
+<geshi lang="nginx">
+  echo_foreach_range '[1..100]' '[a-zA-z0-9]';
+    echo_location_async "/item/$echo_it";
+  echo_end;
+</geshi>
+
+* Add new directive ''echo_repeat'', as in
+
+<geshi lang="nginx">
+  echo_repeat 10 $i {
+      echo "Page $i";
+      echo_location "/path/to/page/$i";
+  }
+</geshi>
+
+This is just another way of saying
+
+<geshi lang="nginx">
+  echo_foreach_range $i [1..10];
+      echo "Page $i";
+      echo_location "/path/to/page/$i";
+  echo_end;
+</geshi>
+
+Thanks Marcus Clyne for providing this idea.
+
+* Add new variable $echo_random which always returns a random non-negative integer with the lower/upper limit specified by the new directives <code>echo_random_min</code> and <code>echo_random_max</code>. For example,
+
+<geshi lang="nginx">
+  echo_random_min  10
+  echo_random_max  200
+  echo "random number: $echo_random";
+</geshi>
+
+Thanks Marcus Clyne for providing this idea.
+
 = Getting involved =
 
 You'll be very welcomed to submit patches to the [[#Author|author]] or just ask for a commit bit to the [[#Source Repository|source repository]] on GitHub.
