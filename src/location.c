@@ -134,11 +134,17 @@ static ngx_int_t
 ngx_http_echo_post_subrequest(ngx_http_request_t *r,
         void *data, ngx_int_t rc) {
     ngx_http_echo_ctx_t         *ctx;
+    ngx_int_t                   parent_rc;
 
     ctx = data;
     ctx->next_handler_cmd++;
 
-    return ngx_http_echo_handler(r->parent);
+    parent_rc = ngx_http_echo_handler(r->parent);
+    if (parent_rc != NGX_DONE) {
+        ngx_http_finalize_request(r->parent, parent_rc);
+    }
+
+    return rc;
 }
 
 static ngx_int_t

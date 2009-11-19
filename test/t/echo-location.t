@@ -2,8 +2,7 @@
 
 use lib 'lib';
 
-use Test::Nginx::Echo skip_all =>
-    "echo_subrequest is now deprecated.";
+use Test::Nginx::Echo;
 
 plan tests => 1 * blocks();
 
