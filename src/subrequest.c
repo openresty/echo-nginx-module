@@ -204,17 +204,24 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
             expecting_opt = 1;
             continue;
         }
-        if (ngx_strncmp("-q", arg->data, arg->len) == 0) {
-            to_write = &parsed_sr->query_string;
-            expecting_opt = 0;
-        } else if (ngx_strncmp("-b", arg->data, arg->len) == 0) {
-            to_write = &body_str;
-            expecting_opt = 0;
-        } else {
-            ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
-                    "Unknown option for echo_subrequest_async: %V", arg);
-            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+
+        if (arg->len == 2) {
+            if (ngx_strncmp("-q", arg->data, arg->len) == 0) {
+                to_write = &parsed_sr->query_string;
+                expecting_opt = 0;
+                continue;
+            }
+
+            if (ngx_strncmp("-b", arg->data, arg->len) == 0) {
+                to_write = &body_str;
+                expecting_opt = 0;
+                continue;
+            }
         }
+
+        ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
+                "Unknown option for echo_subrequest_async: %V", arg);
+        return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
 
     if (body_str != NULL && body_str->len != 0) {
@@ -319,41 +326,43 @@ ngx_http_echo_parse_method_name(ngx_str_t **method_name_ptr) {
 
     switch (method_name->len) {
         case 3:
-            if (ngx_strncmp("GET", method_name->data, method_name->len) == 0) {
+            if (ngx_str3cmp(method_name->data, 'G', 'E', 'T')) {
                 *method_name_ptr = &ngx_http_echo_get_method;
                 return NGX_HTTP_GET;
                 break;
             }
-            if (ngx_strncmp("PUT", method_name->data, method_name->len) == 0) {
+
+            if (ngx_str3cmp(method_name->data, 'P', 'U', 'T')) {
                 *method_name_ptr = &ngx_http_echo_put_method;
                 return NGX_HTTP_PUT;
                 break;
             }
+
             return NGX_HTTP_UNKNOWN;
             break;
 
         case 4:
-            if (ngx_strncmp("POST", method_name->data, method_name->len) == 0) {
+            if (ngx_str4cmp(method_name->data, 'P', 'O', 'S', 'T')) {
                 *method_name_ptr = &ngx_http_echo_post_method;
                 return NGX_HTTP_POST;
                 break;
             }
-            if (ngx_strncmp("HEAD", method_name->data, method_name->len) == 0) {
+            if (ngx_str4cmp(method_name->data, 'H', 'E', 'A', 'D')) {
                 *method_name_ptr = &ngx_http_echo_head_method;
                 return NGX_HTTP_HEAD;
                 break;
             }
-            if (ngx_strncmp("COPY", method_name->data, method_name->len) == 0) {
+            if (ngx_str4cmp(method_name->data, 'C', 'O', 'P', 'Y')) {
                 *method_name_ptr = &ngx_http_echo_copy_method;
                 return NGX_HTTP_COPY;
                 break;
             }
-            if (ngx_strncmp("MOVE", method_name->data, method_name->len) == 0) {
+            if (ngx_str4cmp(method_name->data, 'M', 'O', 'V', 'E')) {
                 *method_name_ptr = &ngx_http_echo_move_method;
                 return NGX_HTTP_MOVE;
                 break;
             }
-            if (ngx_strncmp("LOCK", method_name->data, method_name->len) == 0) {
+            if (ngx_str4cmp(method_name->data, 'L', 'O', 'C', 'K')) {
                 *method_name_ptr = &ngx_http_echo_lock_method;
                 return NGX_HTTP_LOCK;
                 break;
@@ -376,12 +385,13 @@ ngx_http_echo_parse_method_name(ngx_str_t **method_name_ptr) {
             break;
 
         case 6:
-            if (ngx_strncmp("DELETE", method_name->data, method_name->len) == 0) {
+            if (ngx_str6cmp(method_name->data, 'D', 'E', 'L', 'E', 'T', 'E')) {
                 *method_name_ptr = &ngx_http_echo_delete_method;
                 return NGX_HTTP_DELETE;
                 break;
             }
-            if (ngx_strncmp("UNLOCK", method_name->data, method_name->len) == 0) {
+
+            if (ngx_str6cmp(method_name->data, 'U', 'N', 'L', 'O', 'C', 'K')) {
                 *method_name_ptr = &ngx_http_echo_unlock_method;
                 return NGX_HTTP_UNLOCK;
                 break;
