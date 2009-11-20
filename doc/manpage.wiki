@@ -6,7 +6,7 @@
 
 = Version =
 
-This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/downloads v0.19] released on Nov 19, 2009.
+This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/downloads v0.20] released on Nov 20, 2009.
 
 = Synopsis =
 
@@ -1099,6 +1099,16 @@ Earlier versions of Nginx like 0.6.x and 0.5.x will ''not'' work.
 
 If you find that any particular version of Nginx above 0.7.21 does not work with this module, please consider [[#Report Bugs|reporting a bug]].
 
+= Modules that use this module for testing =
+
+The following modules take advantage of this <code>echo</code> module in their test suite:
+
+* The [[NginxHttpChunkinModule|chunkin]] module that adds HTTP 1.1 chunked input support to Nginx.
+* The [[NginxHttpHeadersMoreModule|headers_more]] module that allows you to add, set, and clear input and output headers under the conditions that you specify.
+* The <code>echo</code> module itself.
+
+Please mail me other modules that use <code>echo</code> in any form and I'll add them to the list above :)
+
 = Report Bugs =
 
 Although a lot of effort has been put into testing and code tuning, there must be some serious bugs lurking somewhere in this module. So whenever you are bitten by any quirks, please don't hesitate to
@@ -1111,6 +1121,9 @@ Although a lot of effort has been put into testing and code tuning, there must b
 Available on github at [http://github.com/agentzh/echo-nginx-module agentzh/echo-nginx-module].
 
 = ChangeLog =
+
+== v0.20 ==
+* Fixed a bug in [[#echo_sleep|echo_sleep]]'s <code>r->main->count</code> handling for nginx 0.8.x. This bug will cause the server to hang when proxing a location with [[#echo_sleep|echo_sleep]].
 
 == v0.19 ==
 * Fixed the CPS-style chained subrequest model for the [[#echo_location|echo_location]] and [[#echo_subrequest|echo_subrequest]] directives. they are now working perfectly and will not hang the server with the recent nginx 0.8.21 ~ 0.8.27 releases. To be specifically, the chained subrequest should call <code>ngx_http_finalize_request</code> on its parent request if the content handler of the parent request does not return <code>NGX_DONE</code>.
@@ -1273,6 +1286,8 @@ Thanks Marcus Clyne for providing this idea.
 = Getting involved =
 
 You'll be very welcomed to submit patches to the [[#Author|author]] or just ask for a commit bit to the [[#Source Repository|source repository]] on GitHub.
+
+
 
 = Author =
 

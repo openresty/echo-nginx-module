@@ -6,9 +6,9 @@ Name
     installation instructions.
 
 Version
-    This document describes echo-nginx-module v0.19
+    This document describes echo-nginx-module v0.20
     (<http://github.com/agentzh/echo-nginx-module/downloads>) released on
-    Nov 19, 2009.
+    Nov 20, 2009.
 
 Synopsis
       location /hello {
@@ -1181,6 +1181,21 @@ Compatibility
     If you find that any particular version of Nginx above 0.7.21 does not
     work with this module, please consider reporting a bug.
 
+Modules that use this module for testing
+    The following modules take advantage of this "echo" module in their test
+    suite:
+
+    *   The chunkin module that adds HTTP 1.1 chunked input support to
+        Nginx.
+
+    *   The headers_more module that allows you to add, set, and clear input
+        and output headers under the conditions that you specify.
+
+    *   The "echo" module itself.
+
+    Please mail me other modules that use "echo" in any form and I'll add
+    them to the list above :)
+
 Report Bugs
     Although a lot of effort has been put into testing and code tuning,
     there must be some serious bugs lurking somewhere in this module. So
@@ -1197,6 +1212,11 @@ Source Repository
     (<http://github.com/agentzh/echo-nginx-module>).
 
 ChangeLog
+  v0.20
+    *   Fixed a bug in echo_sleep's "r->main->count" handling for nginx
+        0.8.x. This bug will cause the server to hang when proxing a
+        location with echo_sleep.
+
   v0.19
     *   Fixed the CPS-style chained subrequest model for the echo_location
         and echo_subrequest directives. they are now working perfectly and
