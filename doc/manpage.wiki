@@ -1123,7 +1123,10 @@ Available on github at [http://github.com/agentzh/echo-nginx-module agentzh/echo
 = ChangeLog =
 
 == v0.20 ==
+
 * Fixed a bug in [[#echo_sleep|echo_sleep]]'s <code>r->main->count</code> handling for nginx 0.8.x. This bug will cause the server to hang when proxing a location with [[#echo_sleep|echo_sleep]].
+* Applied the <code>ngx_str3cmp</code>, <code>ngx_str4cmp</code>, and <code>ngx_str6cmp</code> optimizing macros to the <code>parse_method_name</code> function, as suggested by Marcus Clyne.
+* Added [[#TODO|TODO items]] regarding <code>$echo_random</code> and <code>echo_repeat</code> suggested by Marcus Clyne.
 
 == v0.19 ==
 * Fixed the CPS-style chained subrequest model for the [[#echo_location|echo_location]] and [[#echo_subrequest|echo_subrequest]] directives. they are now working perfectly and will not hang the server with the recent nginx 0.8.21 ~ 0.8.27 releases. To be specifically, the chained subrequest should call <code>ngx_http_finalize_request</code> on its parent request if the content handler of the parent request does not return <code>NGX_DONE</code>.

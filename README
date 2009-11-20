@@ -1217,6 +1217,13 @@ ChangeLog
         0.8.x. This bug will cause the server to hang when proxing a
         location with echo_sleep.
 
+    *   Applied the "ngx_str3cmp", "ngx_str4cmp", and "ngx_str6cmp"
+        optimizing macros to the "parse_method_name" function, as suggested
+        by Marcus Clyne.
+
+    *   Added TODO items regarding $echo_random and "echo_repeat" suggested
+        by Marcus Clyne.
+
   v0.19
     *   Fixed the CPS-style chained subrequest model for the echo_location
         and echo_subrequest directives. they are now working perfectly and
