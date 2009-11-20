@@ -1,4 +1,4 @@
-#define DDEBUG 0
+#define DDEBUG 1
 
 #include "ddebug.h"
 #include "util.h"
@@ -432,5 +432,80 @@ ngx_http_echo_parse_method_name(ngx_str_t **method_name_ptr) {
     }
 
     return NGX_HTTP_UNKNOWN;
+}
+
+/* XXX extermely evil and not working yet */
+ngx_int_t
+ngx_http_echo_exec_abort_parent(ngx_http_request_t *r,
+        ngx_http_echo_ctx_t *ctx)
+{
+    ngx_http_postponed_request_t    *pr, *ppr;
+    ngx_http_request_t              *saved_data = NULL;
+    ngx_chain_t                     *out = NULL;
+    /* ngx_int_t                       rc; */
+
+    DD("aborting parent...");
+
+    if (r == r->main || r->parent == NULL) {
+        return NGX_OK;
+    }
+
+    if (r->parent->postponed) {
+        DD("Found parent->postponed...");
+
+        saved_data = r->connection->data;
+        ppr = NULL;
+        for (pr = r->parent->postponed; pr->next; pr = pr->next) {
+            if (pr->request == NULL) {
+                continue;
+            }
+
+            if (pr->request == r) {
+                /* r->parent->postponed->next = pr; */
+                DD("found the current subrequest");
+                out = pr->out;
+                continue;
+            }
+
+            /* r->connection->data = pr->request; */
+            DD("finalizing the subrequest...");
+            ngx_http_upstream_create(pr->request);
+            pr->request->upstream = NULL;
+
+            if (ppr == NULL) {
+                r->parent->postponed = pr->next;
+                ppr = pr->next;
+            } else {
+                ppr->next = pr->next;
+                ppr = pr->next;
+            }
+        }
+    }
+
+    r->parent->postponed->next = NULL;
+
+    /*
+    r->connection->data = r->parent;
+    r->connection->buffered = 0;
+
+    if (out != NULL) {
+        DD("trying to send more stuffs for the parent");
+        ngx_http_output_filter(r->parent, out);
+    }
+    */
+
+    /* ngx_http_send_special(r->parent, NGX_HTTP_LAST); */
+
+    if (saved_data) {
+        r->connection->data = saved_data;
+    }
+
+    DD("terminating the parent request");
+
+    return ngx_http_echo_send_chain_link(r, ctx, NULL /* indicate LAST */);
+
+    /* ngx_http_upstream_create(r); */
+
+    /* ngx_http_finalize_request(r->parent, NGX_ERROR); */
 }
 

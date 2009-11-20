@@ -74,10 +74,12 @@ ngx_http_echo_post_sleep(ngx_http_request_t *r) {
 
 #if defined(nginx_version) && nginx_version >= 8011
 
+    /*
     if (rc == NGX_OK) {
         r->main->count--;
         DD("<> request main count : %u", r->main->count);
     }
+    */
 
 #endif
 

@@ -139,3 +139,19 @@ trees
 hi
 trees
 
+
+=== TEST 10: sleep through a proxy
+this reveals a bug in v0.19 and the bug is fixed in v0.20.
+--- config
+    location /proxy {
+        proxy_pass $scheme://127.0.0.1:$server_port/entry';
+    }
+    location /entry {
+        echo_sleep 0.001;
+        echo done;
+    }
+--- request
+    GET /proxy
+--- response_body_like
+done
+
