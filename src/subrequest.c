@@ -439,6 +439,7 @@ ngx_int_t
 ngx_http_echo_exec_abort_parent(ngx_http_request_t *r,
         ngx_http_echo_ctx_t *ctx)
 {
+#if 0
     ngx_http_postponed_request_t    *pr, *ppr;
     ngx_http_request_t              *saved_data = NULL;
     ngx_chain_t                     *out = NULL;
@@ -507,5 +508,8 @@ ngx_http_echo_exec_abort_parent(ngx_http_request_t *r,
     /* ngx_http_upstream_create(r); */
 
     /* ngx_http_finalize_request(r->parent, NGX_ERROR); */
+#endif
+
+    return NGX_OK;
 }
 
