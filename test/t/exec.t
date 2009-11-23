@@ -18,11 +18,13 @@ __DATA__
         echo end;
     }
     location = /bar {
+        echo "$echo_request_uri:";
         echo bar;
     }
 --- request
     GET /main
 --- response_body
+/bar:
 bar
 
 
@@ -88,4 +90,19 @@ bar
     GET /main
 --- response_body
 a: []
+
+
+
+=== TEST 6: query string ignored for named locations
+--- config
+  location /foo {
+      echo_exec @bar;
+  }
+  location @bar {
+      echo "uri: [$echo_request_uri]";
+  }
+--- request
+    GET /foo
+--- response_body
+uri: [/foo]
 
