@@ -206,6 +206,10 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
                 return ngx_http_echo_exec_abort_parent(r, ctx);
                 break;
 
+            case echo_opcode_echo_exec:
+                return ngx_http_echo_exec_exec(r, ctx, computed_args);
+                break;
+
             default:
                 ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
                         "Unknown opcode: %d", cmd->opcode);

@@ -27,7 +27,8 @@ typedef enum {
     echo_opcode_echo_read_request_body,
     echo_opcode_echo_foreach_split,
     echo_opcode_echo_end,
-    echo_opcode_echo_abort_parent
+    echo_opcode_echo_abort_parent,
+    echo_opcode_echo_exec
 } ngx_http_echo_opcode_t;
 
 /* all the various config directives (or commands) are

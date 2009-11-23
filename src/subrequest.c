@@ -513,3 +513,59 @@ ngx_http_echo_exec_abort_parent(ngx_http_request_t *r,
     return NGX_OK;
 }
 
+ngx_int_t
+ngx_http_echo_exec_exec(ngx_http_request_t *r,
+        ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args) {
+    /* ngx_int_t                       rc; */
+    ngx_str_t                       *uri;
+    ngx_str_t                       *user_args;
+    ngx_str_t                       args;
+    ngx_uint_t                      flags;
+    ngx_str_t                       *computed_arg;
+
+    computed_arg = computed_args->elts;
+    uri = &computed_arg[0];
+
+    if (uri->len == 0) {
+        return NGX_HTTP_BAD_REQUEST;
+    }
+
+    if (computed_args->nelts > 1) {
+        user_args = &computed_arg[1];
+    } else {
+        user_args = NULL;
+    }
+
+    args.data = NULL;
+    args.len = 0;
+    if (ngx_http_parse_unsafe_uri(r, uri, &args, &flags)
+            != NGX_OK) {
+        ctx->headers_sent = 1;
+        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+    }
+
+    if (args.len > 0 && user_args == NULL) {
+        user_args = &args;
+    }
+
+    /*
+    rc = ngx_http_echo_send_header_if_needed(r, ctx);
+    if (r->header_only || rc >= NGX_HTTP_SPECIAL_RESPONSE) {
+        return rc;
+    }
+    */
+
+    if (uri->data[0] == '@') {
+        if (user_args && user_args->len > 0) {
+            ngx_log_error(NGX_LOG_ALERT, r->connection->log, 0,
+                    "query strings %V ignored when exec'ing named location %V",
+                    user_args, uri);
+
+        }
+
+        return ngx_http_named_location(r, uri);
+    }
+
+    return ngx_http_internal_redirect(r, uri, user_args);
+}
+
