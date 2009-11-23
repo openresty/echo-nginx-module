@@ -6,9 +6,9 @@ Name
     installation instructions.
 
 Version
-    This document describes echo-nginx-module v0.20
+    This document describes echo-nginx-module v0.21
     (<http://github.com/agentzh/echo-nginx-module/downloads>) released on
-    Nov 20, 2009.
+    Nov 23, 2009.
 
 Synopsis
       location /hello {
@@ -924,6 +924,58 @@ Content Handler Directives
 
     See also echo_read_request_body and the chunkin module.
 
+  echo_exec
+    syntax: *echo_exec <location> [<query_string>]*
+
+    syntax: *echo_exec <named_location>*
+
+    default: *no*
+
+    context: *location*
+
+    Does an internal redirect to the location specified. An optional query
+    string can be specified for normal locations, as in
+
+      location /foo {
+          echo_exec /bar weight=5;
+      }
+      location /bar {
+          echo $arg_weight;
+      }
+
+    Or equivalently
+
+      location /foo {
+          echo_exec /bar?weight=5;
+      }
+      location /bar {
+          echo $arg_weight;
+      }
+
+    Named locations are also supported. Here's an example:
+
+      location /foo {
+          echo_exec @bar;
+      }
+      location @bar {
+          # you'll get /foo rather than @bar
+          #  due to a potential bug in nginx.
+          echo $echo_request_uri;
+      }
+
+    But query string (if any) will always be ignored for named location
+    redirects due to a limitation in the "ngx_http_named_location" function.
+
+    Never try to echo things before the "echo_exec" directive or you won't
+    see the proper response of the location you want to redirect to. Because
+    any echoing will cause the original location handler to send HTTP
+    headers before the redirection happens.
+
+    Technically speaking, this directive exposes the Nginx internal API
+    functions "ngx_http_internal_redirect" and "ngx_http_named_location".
+
+    This directive was first introduced in the v0.21 release.
+
 Filter Directives
     Use of the following directives trigger the filter registration of this
     module. By default, no filter will be registered by this module.
@@ -1212,6 +1264,10 @@ Source Repository
     (<http://github.com/agentzh/echo-nginx-module>).
 
 ChangeLog
+  v0.21
+    *   Added a new directive named echo_exec which does internal redirect
+        to other (named) locations.
+
   v0.20
     *   Fixed a bug in echo_sleep's "r->main->count" handling for nginx
         0.8.x. This bug will cause the server to hang when proxing a

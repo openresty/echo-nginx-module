@@ -6,7 +6,7 @@
 
 = Version =
 
-This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/downloads v0.20] released on Nov 20, 2009.
+This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/downloads v0.21] released on Nov 23, 2009.
 
 = Synopsis =
 
@@ -852,6 +852,58 @@ This directive was first introduced in the [[#v0.18|release v0.18]].
 
 See also [[#echo_read_request_body|echo_read_request_body]] and the [[NginxHttpChunkinModule|chunkin module]].
 
+== echo_exec ==
+'''syntax:''' ''echo_exec <location> [<query_string>]''
+
+'''syntax:''' ''echo_exec <named_location>''
+
+'''default:''' ''no''
+
+'''context:''' ''location''
+
+Does an internal redirect to the location specified. An optional query string can be specified for normal locations, as in
+
+<geshi lang="nginx">
+  location /foo {
+      echo_exec /bar weight=5;
+  }
+  location /bar {
+      echo $arg_weight;
+  }
+</geshi>
+
+Or equivalently
+
+<geshi lang="nginx">
+  location /foo {
+      echo_exec /bar?weight=5;
+  }
+  location /bar {
+      echo $arg_weight;
+  }
+</geshi>
+
+Named locations are also supported. Here's an example:
+
+<geshi lang="nginx">
+  location /foo {
+      echo_exec @bar;
+  }
+  location @bar {
+      # you'll get /foo rather than @bar
+      #  due to a potential bug in nginx.
+      echo $echo_request_uri;
+  }
+</geshi>
+
+But query string (if any) will always be ignored for named location redirects due to a limitation in the <code>ngx_http_named_location</code> function.
+
+Never try to echo things before the <code>echo_exec</code> directive or you won't see the proper response of the location you want to redirect to. Because any echoing will cause the original location handler to send HTTP headers before the redirection happens.
+
+Technically speaking, this directive exposes the Nginx internal API functions <code>ngx_http_internal_redirect</code> and <code>ngx_http_named_location</code>.
+
+This directive was first introduced in the [[#v0.21|v0.21 release]].
+
 = Filter Directives =
 
 Use of the following directives trigger the filter registration of this module. By default, no filter will be registered by this module.
@@ -1121,6 +1173,10 @@ Although a lot of effort has been put into testing and code tuning, there must b
 Available on github at [http://github.com/agentzh/echo-nginx-module agentzh/echo-nginx-module].
 
 = ChangeLog =
+
+== v0.21 ==
+
+* Added a new directive named [[#echo_exec|echo_exec]] which does internal redirect to other (named) locations.
 
 == v0.20 ==
 
