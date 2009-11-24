@@ -1,6 +1,6 @@
 ﻿= Name =
 
-'''echo-nginx-module''' - Brings "echo", "sleep", "time", "flush" and more shell-style goodies to Nginx config file.
+'''echo-nginx-module''' - Brings "echo", "sleep", "time", "exec" and more shell-style goodies to Nginx config file.
 
 ''This module is not distributed with the Nginx source.'' See [[#Installation|the installation instructions]].
 
@@ -1121,12 +1121,12 @@ Accessing <code>/main</code> yields
 = Installation =
 
 Grab the nginx source code from [http://nginx.net/ nginx.net], for example,
-the version 0.8.20 (see [[#Compatibility|nginx compatibility]]), and then build the source with this module:
+the version 0.8.28 (see [[#Compatibility|nginx compatibility]]), and then build the source with this module:
 
 <geshi lang="bash">
-    $ wget 'http://sysoev.ru/nginx/nginx-0.8.20.tar.gz'
-    $ tar -xzvf nginx-0.8.20.tar.gz
-    $ cd nginx-0.8.20/
+    $ wget 'http://sysoev.ru/nginx/nginx-0.8.28.tar.gz'
+    $ tar -xzvf nginx-0.8.28.tar.gz
+    $ cd nginx-0.8.28/
     
     # Here we assume you would install you nginx under /opt/nginx/.
     $ ./configure --prefix=/opt/nginx \
@@ -1142,7 +1142,7 @@ Download the latest version of the release tarball of this module from [http://g
 
 The following versions of Nginx should work with this module:
 
-* '''0.8.x'''                       (last tested version is 0.8.27)
+* '''0.8.x'''                       (last tested version is 0.8.28)
 * '''0.7.x >= 0.7.21'''             (last tested version is 0.7.64)
 
 In particular, the directive [[#echo_location_async|echo_location_async]] and its brother [[#echo_subrequest_async|echo_subrequest_async]] do ''not'' work with '''0.7.x < 0.7.46'''.
@@ -1284,18 +1284,6 @@ Some parts of the test suite requires standard modules [[NginxHttpProxyModule|pr
 * Add new variable ''$echo_active_subrequests'' to show <code>r->main->count - 1</code>.
 * Add the ''echo_file'' and ''echo_cached_file'' directives.
 * Add new varaible ''$echo_request_headers'' to accompany the existing [[#$echo_client_request_headers|$echo_client_request_headers]] variable.
-* Add new directive ''echo_exec'' which can do an internal redirect to another normal location or named location. This will implemented as a thin wrapper around the Nginx internal C functions <code>ngx_http_internal_redirect</code> and <code>ngx_http_named_location</code>. For instance:
-
-<geshi lang="nginx">
-  location /main {
-     ...
-     echo_exec /sub;
-  }
-  location /sub {
-     ...
-  }
-</geshi>
-
 * Add new directive ''echo_foreach'', as in
 
 <geshi lang="nginx">
