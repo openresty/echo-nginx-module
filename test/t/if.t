@@ -85,7 +85,7 @@ res = miss
 
 
 
-=== TEST 5: if
+=== TEST 5: if too long url (hit)
 --- config
     location /foo {
         if ($request_uri ~ '.{20,}') {
@@ -97,4 +97,19 @@ res = miss
     GET /foo?a=12345678901234567890
 --- response_body
 too long
+
+
+
+=== TEST 6: if too long url (miss)
+--- config
+    location /foo {
+        if ($request_uri ~ '.{20,}') {
+            echo too long;
+        }
+        echo ok;
+    }
+--- request
+    GET /foo?a=1234567890
+--- response_body
+ok
 
