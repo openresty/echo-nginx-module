@@ -26,3 +26,4 @@ test/t/servroot/
 releng
 reset
 *.t_
+reindex

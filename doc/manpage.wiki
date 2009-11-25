@@ -6,7 +6,7 @@
 
 = Version =
 
-This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/downloads v0.21] released on Nov 23, 2009.
+This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/downloads v0.22] released on Nov 25, 2009.
 
 = Synopsis =
 
@@ -171,6 +171,19 @@ This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-
   }
 </geshi>
 
+<geshi lang="nginx">
+  # accessing /if?val=abc yields the "hit" output
+  # while /if?val=bcd yields "miss":
+  location ^~ /if {
+      set $res miss;
+      if ($arg_val ~* '^a') {
+          set $res hit;
+          echo $res;
+      }
+      echo $res;
+  }
+</geshi>
+
 = Description =
 
 This module wraps lots of Nginx internal APIs for streaming input and output, parallel/sequential subrequests, timers and sleeping, as well as various meta data accessing.
@@ -225,6 +238,19 @@ Then on the client side:
   Date: Sat, 17 Oct 2009 03:40:19 GMT
   Content-Type: text/plain
   Connection: keep-alive
+</geshi>
+
+Since the [[#v0.22|v0.22]] release, all of the directives are allowed in the [[NginxHttpRewriteModule|rewrite module]]'s [[NginxHttpRewriteModule#if|if]] directive block, for instance:
+
+<geshi lang="nginx">
+    location ^~ /if {
+        set $res miss;
+        if ($arg_val ~* '^a') {
+            set $res hit;
+            echo $res;
+        }
+        echo $res;
+    }
 </geshi>
 
 == echo ==
@@ -1173,6 +1199,10 @@ Although a lot of effort has been put into testing and code tuning, there must b
 Available on github at [http://github.com/agentzh/echo-nginx-module agentzh/echo-nginx-module].
 
 = ChangeLog =
+
+== v0.22 ==
+
+* Now we allowed all the directives appear in the [[NginxHttpRewriteModule|rewrite module]]'s [[NginxHttpRewriteModule#if|if]] block. But so far I've only tested the [[#echo|echo]] directive.
 
 == v0.21 ==
 
