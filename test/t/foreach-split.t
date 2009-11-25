@@ -85,6 +85,7 @@ baz
 --- SKIP
 
 
+
 === TEST 4: empty loop
 --- config
     location /main {

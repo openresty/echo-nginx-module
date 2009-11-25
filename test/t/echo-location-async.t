@@ -323,7 +323,7 @@ post main
 
 
 
-=== TEST 17: rewrite is honored.
+=== TEST 18: rewrite is honored.
 --- config
     location /main {
         echo_location_async /rewrite;
