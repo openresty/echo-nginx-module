@@ -83,3 +83,18 @@ res = hit
 --- response_body
 res = miss
 
+
+
+=== TEST 5: if
+--- config
+    location /foo {
+        if ($request_uri ~ '.{20,}') {
+            echo too long;
+        }
+        echo ok;
+    }
+--- request
+    GET /foo?a=1234dfsfsdffsdfsdf
+--- response_body
+too long
+
