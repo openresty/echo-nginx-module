@@ -94,7 +94,7 @@ res = miss
         echo ok;
     }
 --- request
-    GET /foo?a=1234dfsfsdffsdfsdf
+    GET /foo?a=12345678901234567890
 --- response_body
 too long
 
