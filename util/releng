@@ -2,5 +2,6 @@
 
 ./update-readme
 ack '(?<=\#define)\s*DDEBUG\s*1' src
+echo =======================================
 ack '(?<=This document describes echo-nginx-module v)\d+\.\d+' README
 
