@@ -131,6 +131,7 @@ status: 404
 --- error_code: 404
 
 
+
 === TEST 9: $echo_response_status in echo_before_body in subrequests
 --- config
     location /main {

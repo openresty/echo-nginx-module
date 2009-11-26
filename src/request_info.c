@@ -1,4 +1,4 @@
-#define DDEBUG 1
+#define DDEBUG 0
 #include "ddebug.h"
 
 #include "request_info.h"
@@ -231,7 +231,7 @@ ngx_http_echo_response_status_variable(ngx_http_request_t *r,
     u_char                      *p;
 
     if (r->headers_out.status) {
-        DD("headers out status: %ui", r->headers_out.status);
+        DD("headers out status: %u", r->headers_out.status);
 
         p = ngx_palloc(r->pool, NGX_INT_T_LEN);
         if (p == NULL) {
