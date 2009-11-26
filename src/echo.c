@@ -66,7 +66,7 @@ ngx_http_echo_exec_echo(ngx_http_request_t *r,
         if (computed_arg->len == 0) {
             buf = NULL;
         } else {
-            buf = ngx_pcalloc(r->pool, sizeof(ngx_buf_t));
+            buf = ngx_calloc_buf(r->pool);
             if (buf == NULL) {
                 return NGX_HTTP_INTERNAL_SERVER_ERROR;
             }

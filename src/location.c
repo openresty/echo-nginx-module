@@ -4,6 +4,7 @@
 #include "util.h"
 #include "location.h"
 #include "handler.h"
+#include <nginx.h>
 
 static ngx_int_t ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr);
 
