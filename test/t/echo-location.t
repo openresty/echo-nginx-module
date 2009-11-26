@@ -333,3 +333,20 @@ Foo Bar
 --- response_body
   Blah
 
+
+
+=== TEST 17: let subrequest to read the main request's request body
+--- config
+    location /main {
+        echo_location /sub;
+    }
+    location /sub {
+        echo_read_request_body;
+        echo_request_body;
+    }
+--- request
+POST /main
+hello, body!
+--- response_body chomp
+hello, body!
+

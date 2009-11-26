@@ -443,3 +443,20 @@ Foo Bar
 --- response_body
   Blah
 
+
+
+=== TEST 22: let subrequest to read the main request's request body
+--- config
+    location /main {
+        echo_subrequest POST /sub;
+    }
+    location /sub {
+        echo_read_request_body;
+        echo_request_body;
+    }
+--- request
+POST /main
+hello, body!
+--- response_body chomp
+hello, body!
+

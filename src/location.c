@@ -154,6 +154,9 @@ ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr) {
 
     /* we do not inherit the parent request's variables */
     cmcf = ngx_http_get_module_main_conf(sr, ngx_http_core_module);
+
+    sr->header_in = sr->parent->header_in;
+
     sr->variables = ngx_pcalloc(sr->pool, cmcf->variables.nelts
                                         * sizeof(ngx_http_variable_value_t));
 

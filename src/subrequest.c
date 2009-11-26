@@ -268,6 +268,8 @@ ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr, ngx_http_echo_subrequest
     sr->method = parsed_sr->method;
     sr->method_name = *(parsed_sr->method_name);
 
+    sr->header_in = sr->parent->header_in;
+
     /* we do not inherit the parent request's variables */
     cmcf = ngx_http_get_module_main_conf(sr, ngx_http_core_module);
     sr->variables = ngx_pcalloc(sr->pool, cmcf->variables.nelts
@@ -317,6 +319,7 @@ ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr, ngx_http_echo_subrequest
 
         DD("sr content length: %s", sr->headers_in.content_length->value.data);
     }
+
     return NGX_OK;
 }
 
