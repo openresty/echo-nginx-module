@@ -3,7 +3,7 @@
 use lib 'lib';
 use Test::Nginx::Echo;
 
-plan tests => 1 * blocks();
+plan tests => 2 * blocks();
 
 #$Test::Nginx::Echo::LogLevel = 'debug';
 

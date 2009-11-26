@@ -1,4 +1,4 @@
-#define DDEBUG 0
+#define DDEBUG 1
 #include "ddebug.h"
 
 #include "request_info.h"
@@ -218,6 +218,32 @@ ngx_http_echo_request_uri_variable(ngx_http_request_t *r,
         v->no_cacheable = 1;
         v->not_found = 0;
         v->data = r->uri.data;
+    } else {
+        v->not_found = 1;
+    }
+
+    return NGX_OK;
+}
+
+ngx_int_t
+ngx_http_echo_response_status_variable(ngx_http_request_t *r,
+        ngx_http_variable_value_t *v, uintptr_t data) {
+    u_char                      *p;
+
+    if (r->headers_out.status) {
+        DD("headers out status: %ui", r->headers_out.status);
+
+        p = ngx_palloc(r->pool, NGX_INT_T_LEN);
+        if (p == NULL) {
+            return NGX_ERROR;
+        }
+
+        v->len = ngx_sprintf(p, "%ui", r->headers_out.status) - p;
+        v->data = p;
+
+        v->valid = 1;
+        v->no_cacheable = 1;
+        v->not_found = 0;
     } else {
         v->not_found = 1;
     }

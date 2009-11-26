@@ -24,5 +24,8 @@ ngx_int_t ngx_http_echo_cacheable_request_uri_variable(ngx_http_request_t *r,
 ngx_int_t ngx_http_echo_request_uri_variable(ngx_http_request_t *r,
         ngx_http_variable_value_t *v, uintptr_t data);
 
+ngx_int_t ngx_http_echo_response_status_variable(ngx_http_request_t *r,
+        ngx_http_variable_value_t *v, uintptr_t data);
+
 #endif /* ECHO_REQUEST_INFO_H */
 

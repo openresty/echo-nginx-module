@@ -3,7 +3,7 @@
 use lib 'lib';
 use Test::Nginx::Echo;
 
-plan tests => 1 * blocks();
+plan tests => 2 * blocks();
 
 run_tests();
 
@@ -148,4 +148,16 @@ haha
 --- response_body eval
 "[]\n" .
 ('a' x 2048) . "b"
+
+
+
+=== TEST 9: $echo_response_status in content handler
+--- config
+    location /status {
+        echo "status: $echo_response_status";
+    }
+--- request
+    GET /status
+--- response_body
+status: 
 

@@ -1,7 +1,7 @@
 # vi:filetype=perl
 
 use lib 'lib';
-use Test::Nginx::LWP skip_all =>
+use Test::Nginx::Echo skip_all =>
     'not working at all';
 
 plan tests => 2 * blocks();

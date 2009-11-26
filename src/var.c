@@ -46,6 +46,10 @@ static ngx_http_variable_t ngx_http_echo_variables[] = {
       ngx_http_echo_incr_variable, 0,
       NGX_HTTP_VAR_NOCACHEABLE, 0 },
 
+    { ngx_string("echo_response_status"), NULL,
+      ngx_http_echo_response_status_variable, 0,
+      NGX_HTTP_VAR_NOCACHEABLE, 0 },
+
     { ngx_string(""), NULL, NULL, 0, 0, 0 }
 };
 

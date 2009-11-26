@@ -1,8 +1,11 @@
 package Test::Nginx::Echo;
 
+our $NoNginxManager = 0;
+
 use lib 'lib';
 use lib 'inc';
 use Time::HiRes qw(sleep);
+use Test::LongString;
 
 #use Smart::Comments::JSON '##';
 use LWP::UserAgent; # XXX should use a socket level lib here
@@ -13,7 +16,7 @@ use File::Spec ();
 use Cwd qw( cwd );
 
 our $UserAgent = LWP::UserAgent->new;
-$UserAgent->agent("Test::Nginx::Echo");
+$UserAgent->agent(__PACKAGE__);
 #$UserAgent->default_headers(HTTP::Headers->new);
 
 our $Workers                = 1;
@@ -37,6 +40,10 @@ our $PidFile    = File::Spec->catfile($LogDir, 'nginx.pid');
 our @EXPORT = qw( run_tests run_test );
 
 sub trim ($);
+
+sub show_all_chars ($);
+
+sub parse_headers ($);
 
 sub run_tests () {
     for my $block (shuffle blocks()) {
@@ -83,7 +90,7 @@ http {
         server_name     localhost;
 
         client_max_body_size 30M;
-        client_body_buffer_size 4k;
+        #client_body_buffer_size 4k;
 
         # Begin test case config...
 $$rconfig
@@ -140,6 +147,21 @@ sub get_pid_from_pidfile ($) {
     $pid;
 }
 
+sub chunk_it ($$$) {
+    my ($chunks, $start_delay, $middle_delay) = @_;
+    my $i = 0;
+    return sub {
+        if ($i == 0) {
+            if ($start_delay) {
+                sleep($start_delay);
+            }
+        } elsif ($middle_delay) {
+            sleep($middle_delay);
+        }
+        return $chunks->[$i++];
+    }
+}
+
 sub run_test ($) {
     my $block = shift;
     my $name = $block->name;
@@ -158,41 +180,43 @@ sub run_test ($) {
         die;
     }
 
-    my $nginx_is_running = 1;
-    if (-f $PidFile) {
-        my $pid = get_pid_from_pidfile($name);
-        if (system("ps $pid > /dev/null") == 0) {
-            write_config_file(\$config);
-            if (kill(1, $pid) == 0) { # send HUP signal
-                Test::More::BAIL_OUT("$name - Failed to send signal to the nginx process with PID $pid using signal HUP");
+    if (!$NoNginxManager) {
+        my $nginx_is_running = 1;
+        if (-f $PidFile) {
+            my $pid = get_pid_from_pidfile($name);
+            if (system("ps $pid > /dev/null") == 0) {
+                write_config_file(\$config);
+                if (kill(1, $pid) == 0) { # send HUP signal
+                    Test::More::BAIL_OUT("$name - Failed to send signal to the nginx process with PID $pid using signal HUP");
+                }
+                sleep 0.02;
+            } else {
+                unlink $PidFile or
+                    die "Failed to remove pid file $PidFile\n";
+                undef $nginx_is_running;
             }
-            sleep 0.02;
         } else {
-            unlink $PidFile or
-                die "Failed to remove pid file $PidFile\n";
             undef $nginx_is_running;
         }
-    } else {
-        undef $nginx_is_running;
-    }
 
-    unless ($nginx_is_running) {
-        setup_server_root();
-        write_config_file(\$config);
-        if ( ! Module::Install::Can->can_run('nginx') ) {
-            Test::More::BAIL_OUT("$name - Cannot find the nginx executable in the PATH environment");
-            die;
+        unless ($nginx_is_running) {
+            setup_server_root();
+            write_config_file(\$config);
+            if ( ! Module::Install::Can->can_run('nginx') ) {
+                Test::More::BAIL_OUT("$name - Cannot find the nginx executable in the PATH environment");
+                die;
+            }
+        #if (system("nginx -p $ServRoot -c $ConfFile -t") != 0) {
+        #Test::More::BAIL_OUT("$name - Invalid config file");
+        #}
+        #my $cmd = "nginx -p $ServRoot -c $ConfFile > /dev/null";
+            my $cmd = "nginx -c $ConfFile > /dev/null";
+            if (system($cmd) != 0) {
+                Test::More::BAIL_OUT("$name - Cannot start nginx using command \"$cmd\".");
+                die;
+            }
+            sleep 0.1;
         }
-    #if (system("nginx -p $ServRoot -c $ConfFile -t") != 0) {
-    #Test::More::BAIL_OUT("$name - Invalid config file");
-    #}
-    #my $cmd = "nginx -p $ServRoot -c $ConfFile > /dev/null";
-        my $cmd = "nginx -c $ConfFile > /dev/null";
-        if (system($cmd) != 0) {
-            Test::More::BAIL_OUT("$name - Cannot start nginx using command \"$cmd\".");
-            die;
-        }
-        sleep 0.1;
     }
 
     my $req_spec = parse_request($name, \$request);
@@ -200,7 +224,14 @@ sub run_test ($) {
     my $method = $req_spec->{method};
     my $req = HTTP::Request->new($method);
     my $content = $req_spec->{content};
-    #$req->header('Content-Type' => $type);
+
+    if (defined ($block->request_headers)) {
+        my $headers = parse_headers($block->request_headers);
+        while (my ($key, $val) = each %$headers) {
+            $req->header($key => $val);
+        }
+    }
+
     #$req->header('Accept', '*/*');
     $req->url($req_spec->{url});
     if ($content) {
@@ -209,33 +240,92 @@ sub run_test ($) {
         }
         $req->content($content);
     } elsif ($method eq 'POST' or $method eq 'PUT') {
-        $req->header('Content-Length' => 0);
+        my $chunks = $block->chunked_body;
+        if (defined $chunks) {
+            if (!ref $chunks or ref $chunks ne 'ARRAY') {
+
+                Test::More::BAIL_OUT("$name - --- chunked_body should takes a Perl array ref as its value");
+            }
+
+            my $start_delay = $block->start_chunk_delay || 0;
+            my $middle_delay = $block->middle_chunk_delay || 0;
+            $req->content(chunk_it($chunks, $start_delay, $middle_delay));
+            if (!defined $req->header('Content-Type')) {
+                $req->header('Content-Type' => 'text/plain');
+            }
+        } else {
+            if (!defined $req->header('Content-Type')) {
+                $req->header('Content-Type' => 'text/plain');
+            }
+
+            $req->header('Content-Length' => 0);
+        }
     }
+
+    if ($block->more_headers) {
+        my @headers = split /\n+/, $block->more_headers;
+        for my $header (@headers) {
+            next if $header =~ /^\s*\#/;
+            my ($key, $val) = split /:\s*/, $header, 2;
+            warn "[$key, $val]\n";
+            $req->header($key => $val);
+        }
+    }
+    #warn "DONE!!!!!!!!!!!!!!!!!!!!";
+
     my $res = $UserAgent->request($req);
+
+    #warn "res returned!!!";
+
     if (defined $block->error_code) {
         is($res->code, $block->error_code, "$name - status code ok");
+    } else {
+        is($res->code, 200, "$name - status code ok");
     }
+
+    if (defined $block->response_headers) {
+        my $headers = parse_headers($block->response_headers);
+        while (my ($key, $val) = each %$headers) {
+            my $expected_val = $res->header($key);
+            if (!defined $expected_val) {
+                $expected_val = '';
+            }
+            is_string $expected_val, $val,
+                "$name - header $key ok";
+        }
+    } elsif (defined $block->response_headers_like) {
+        my $headers = parse_headers($block->response_headers_like);
+        while (my ($key, $val) = each %$headers) {
+            my $expected_val = $res->header($key);
+            if (!defined $expected_val) {
+                $expected_val = '';
+            }
+            like $expected_val, qr/^$val$/,
+                "$name - header $key like ok";
+        }
+    }
+
     if (defined $block->response_body) {
-        if (!$res->is_success) {
-            fail("$name - response_body - response indicates failure: " . $res->status_line);
-        } else {
-            (my $content = $res->content) =~ s/^TE: deflate,gzip;q=0\.3\r\n//gms;
-            $content =~ s/^Connection: TE, close\r\n//gms;
-            my $expected = $block->response_body;
-            $expected =~ s/\$ServerPort\b/$ServerPort/g;
-            is($content, $expected, "$name - response_body - response is expected");
+        my $content = $res->content;
+        if (defined $content) {
+            $content =~ s/^TE: deflate,gzip;q=0\.3\r\n//gms;
         }
+
+        $content =~ s/^Connection: TE, close\r\n//gms;
+        my $expected = $block->response_body;
+        $expected =~ s/\$ServerPort\b/$ServerPort/g;
+        #warn show_all_chars($content);
+        is($content, $expected, "$name - response_body - response is expected");
     } elsif (defined $block->response_body_like) {
-        if (!$res->is_success) {
-            fail("$name - response_body - response indicates failure: " . $res->status_line);
-        } else {
-            (my $content = $res->content) =~ s/^TE: deflate,gzip;q=0\.3\r\n//gms;
-            $content =~ s/^Connection: TE, close\r\n//gms;
-            my $expected_pat = $block->response_body_like;
-            $expected_pat =~ s/\$ServerPort\b/$ServerPort/g;
-            my $summary = trim($content);
-            like($content, qr/$expected_pat/s, "$name - response_body_like - response is expected ($summary)");
+        my $content = $res->content;
+        if (defined $content) {
+            $content =~ s/^TE: deflate,gzip;q=0\.3\r\n//gms;
         }
+        $content =~ s/^Connection: TE, close\r\n//gms;
+        my $expected_pat = $block->response_body_like;
+        $expected_pat =~ s/\$ServerPort\b/$ServerPort/g;
+        my $summary = trim($content);
+        like($content, qr/$expected_pat/sm, "$name - response_body_like - response is expected ($summary)");
     }
 }
 
@@ -244,6 +334,27 @@ sub trim ($) {
     $s =~ s/\n/ /gs;
     $s =~ s/\s{2,}/ /gs;
     $s;
+}
+
+sub show_all_chars ($) {
+    my $s = shift;
+    $s =~ s/\n/\\n/gs;
+    $s =~ s/\r/\\r/gs;
+    $s =~ s/\t/\\t/gs;
+    $s;
+}
+
+sub parse_headers ($) {
+    my $s = shift;
+    my %headers;
+    open my $in, '<', \$s;
+    while (<$in>) {
+        s/^\s+|\s+$//g;
+        my ($key, $val) = split /\s*:\s*/, $_, 2;
+        $headers{$key} = $val;
+    }
+    close $in;
+    return \%headers;
 }
 
 1;

@@ -1,4 +1,4 @@
-#define DDEBUG 0
+#define DDEBUG 1
 
 #include "ddebug.h"
 #include "filter.h"
@@ -48,12 +48,14 @@ ngx_http_echo_header_filter(ngx_http_request_t *r) {
 
     /* XXX we should add option to insert contents for responses
      * of non-200 status code here... */
+    /*
     if (r->headers_out.status != NGX_HTTP_OK) {
         if (ctx != NULL) {
             ctx->skip_filter = 1;
         }
         return ngx_http_next_header_filter(r);
     }
+    */
 
     conf = ngx_http_get_module_loc_conf(r, ngx_http_echo_module);
     if (conf->before_body_cmds == NULL && conf->after_body_cmds == NULL) {

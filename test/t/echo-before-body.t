@@ -3,7 +3,7 @@
 use lib 'lib';
 use Test::Nginx::Echo;
 
-plan tests => 1 * blocks();
+plan tests => 2 * blocks();
 
 #$Test::Nginx::Echo::LogLevel = 'debug';
 
@@ -114,4 +114,42 @@ hello
 world
 i
 say
+
+
+
+=== TEST 8: with $echo_response_status
+--- config
+    location /status {
+        echo_before_body "status: $echo_response_status";
+        return 404;
+    }
+--- request
+    GET /status
+--- response_body_like
+status: 404
+<html>.*404 Not Found.*$
+--- error_code: 404
+
+
+=== TEST 9: $echo_response_status in echo_before_body in subrequests
+--- config
+    location /main {
+        echo_location '/status?val=403';
+        echo_location '/status?val=500';
+    }
+    location /status {
+        if ($arg_val = 500) {
+            echo_before_body "status: $echo_response_status";
+            return 500;
+        }
+        if ($arg_val = 403) {
+            echo_before_body "status: $echo_response_status";
+            return 403;
+        }
+        return 200;
+    }
+--- request
+    GET /main
+--- response_body_like
+^status: 403.*?status: 500.*$
 
