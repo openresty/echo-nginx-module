@@ -111,9 +111,11 @@ ngx_http_echo_sleep_event_handler(ngx_event_t *ev) {
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, c->log, 0,
             "echo sleep handler: \"%V?%V\"", &r->uri, &r->args);
 
+    /*
     if (r->done) {
         return;
     }
+    */
 
     ngx_http_echo_post_sleep(r);
 

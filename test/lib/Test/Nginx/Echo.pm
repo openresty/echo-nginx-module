@@ -1,11 +1,12 @@
 package Test::Nginx::Echo;
 
 our $NoNginxManager = 0;
+our $RepeatEach = 1;
 
 use lib 'lib';
 use lib 'inc';
 use Time::HiRes qw(sleep);
-use Test::LongString;
+#use Test::LongString;
 
 #use Smart::Comments::JSON '##';
 use LWP::UserAgent; # XXX should use a socket level lib here
@@ -26,6 +27,9 @@ our $LogLevel               = 'debug';
 #our $DaemonEnabled          = 'on';
 our $ServerPort             = 1984;
 
+our $NginxVersion;
+our $NginxRawVersion;
+
 #our ($PrevRequest, $PrevConfig);
 
 our $ServRoot   = File::Spec->catfile(cwd(), 't/servroot');
@@ -37,7 +41,20 @@ our $ConfDir    = File::Spec->catfile($ServRoot, 'conf');
 our $ConfFile   = File::Spec->catfile($ConfDir, 'nginx.conf');
 our $PidFile    = File::Spec->catfile($LogDir, 'nginx.pid');
 
-our @EXPORT = qw( run_tests run_test );
+our @EXPORT = qw( plan run_tests run_test );
+
+=begin cmt
+
+sub plan (@) {
+    if (@_ == 2 && $_[0] eq 'tests' && defined $RepeatEach) {
+        #$_[1] *= $RepeatEach;
+    }
+    super;
+}
+
+=end cmt
+
+=cut
 
 sub trim ($);
 
@@ -45,9 +62,36 @@ sub show_all_chars ($);
 
 sub parse_headers ($);
 
+sub run_test_helper ($$);
+
+sub get_canon_version (@) {
+    sprintf "%d.%03d%03d", $_[0], $_[1], $_[2];
+}
+
+sub get_nginx_version () {
+    my $out = `nginx -V 2>&1`;
+    if (!defined $out || $? != 0) {
+        warn "Failed to get the version of the Nginx in PATH.\n";
+    }
+    if ($out =~ m{nginx/(\d+)\.(\d+)\.(\d+)}s) {
+        $NginxRawVersion = "$1.$2.$3";
+        return get_canon_version($1, $2, $3);
+    }
+    warn "Failed to parse the output of \"nginx -V\": $out\n";
+    return undef;
+}
+
 sub run_tests () {
+    $NginxVersion = get_nginx_version();
+
+    if (defined $NginxVersion) {
+        #warn "[INFO] Using nginx version $NginxVersion ($NginxRawVersion)\n";
+    }
+
     for my $block (shuffle blocks()) {
-        run_test($block);
+        #for (1..3) {
+            run_test($block);
+        #}
     }
 }
 
@@ -219,6 +263,115 @@ sub run_test ($) {
         }
     }
 
+    my $skip_nginx = $block->skip_nginx;
+    my ($tests_to_skip, $should_skip, $skip_reason);
+    if (defined $skip_nginx) {
+        if ($skip_nginx =~ m{
+                ^ \s* (\d+) \s* : \s*
+                    ([<>]=?) \s* (\d+)\.(\d+)\.(\d+)
+                    (?: \s* : \s* (.*) )?
+                \s*$}x) {
+            $tests_to_skip = $1;
+            my ($op, $ver1, $ver2, $ver3) = ($2, $3, $4, $5);
+            $skip_reason = $6;
+            my $ver = get_canon_version($ver1, $ver2, $ver3);
+            if ((!defined $NginxVersion and $op =~ /^</)
+                    or eval "$NginxVersion $op $ver")
+            {
+                $should_skip = 1;
+            }
+        } else {
+            Test::More::BAIL_OUT("$name - Invalid --- skip_nginx spec: " .
+                $skip_nginx);
+            die;
+        }
+    }
+    if (!defined $skip_reason) {
+        $skip_reason = "various reasons";
+    }
+
+    my $todo_nginx = $block->todo_nginx;
+    my ($should_todo, $todo_reason);
+    if (defined $todo_nginx) {
+        if ($todo_nginx =~ m{
+                ^ \s*
+                    ([<>]=?) \s* (\d+)\.(\d+)\.(\d+)
+                    (?: \s* : \s* (.*) )?
+                \s*$}x) {
+            my ($op, $ver1, $ver2, $ver3) = ($1, $2, $3, $4);
+            $todo_reason = $5;
+            my $ver = get_canon_version($ver1, $ver2, $ver3);
+            if ((!defined $NginxVersion and $op =~ /^</)
+                    or eval "$NginxVersion $op $ver")
+            {
+                $should_todo = 1;
+            }
+        } else {
+            Test::More::BAIL_OUT("$name - Invalid --- todo_nginx spec: " .
+                $todo_nginx);
+            die;
+        }
+    }
+    if (!defined $todo_reason) {
+        $todo_reason = "various reasons";
+    }
+
+    my $i = 0;
+    while ($i++ < $RepeatEach) {
+        if ($should_skip) {
+            SKIP: {
+                skip "$name - $skip_reason", $tests_to_skip;
+
+                run_test_helper($block, $request);
+            }
+        } elsif ($should_todo) {
+            TODO: {
+                local $TODO = "$name - $todo_reason";
+
+                run_test_helper($block, $request);
+            }
+        } else {
+            run_test_helper($block, $request);
+        }
+    }
+}
+
+sub trim ($) {
+    (my $s = shift) =~ s/^\s+|\s+$//g;
+    $s =~ s/\n/ /gs;
+    $s =~ s/\s{2,}/ /gs;
+    $s;
+}
+
+sub show_all_chars ($) {
+    my $s = shift;
+    $s =~ s/\n/\\n/gs;
+    $s =~ s/\r/\\r/gs;
+    $s =~ s/\t/\\t/gs;
+    $s;
+}
+
+sub parse_headers ($) {
+    my $s = shift;
+    my %headers;
+    open my $in, '<', \$s;
+    while (<$in>) {
+        s/^\s+|\s+$//g;
+        my ($key, $val) = split /\s*:\s*/, $_, 2;
+        $headers{$key} = $val;
+    }
+    close $in;
+    return \%headers;
+}
+
+sub run_test_helper ($$) {
+    my ($block, $request) = @_;
+
+    my $name = $block->name;
+    #if (defined $TODO) {
+    #$name .= "# $TODO";
+    #}
+
     my $req_spec = parse_request($name, \$request);
     ## $req_spec
     my $method = $req_spec->{method};
@@ -290,7 +443,7 @@ sub run_test ($) {
             if (!defined $expected_val) {
                 $expected_val = '';
             }
-            is_string $expected_val, $val,
+            is $expected_val, $val,
                 "$name - header $key ok";
         }
     } elsif (defined $block->response_headers_like) {
@@ -329,40 +482,12 @@ sub run_test ($) {
     }
 }
 
-sub trim ($) {
-    (my $s = shift) =~ s/^\s+|\s+$//g;
-    $s =~ s/\n/ /gs;
-    $s =~ s/\s{2,}/ /gs;
-    $s;
-}
-
-sub show_all_chars ($) {
-    my $s = shift;
-    $s =~ s/\n/\\n/gs;
-    $s =~ s/\r/\\r/gs;
-    $s =~ s/\t/\\t/gs;
-    $s;
-}
-
-sub parse_headers ($) {
-    my $s = shift;
-    my %headers;
-    open my $in, '<', \$s;
-    while (<$in>) {
-        s/^\s+|\s+$//g;
-        my ($key, $val) = split /\s*:\s*/, $_, 2;
-        $headers{$key} = $val;
-    }
-    close $in;
-    return \%headers;
-}
-
 1;
 __END__
 
 =head1 NAME
 
-Test::Nginx::Echo - Test scaffold for the echo Nginx module
+Test::Nginx::Echo - Test scaffold for the Nginx C modules
 
 =head1 AUTHOR
 

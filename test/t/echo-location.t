@@ -8,6 +8,8 @@ plan tests => 2 * blocks() - 1;
 
 #$Test::Nginx::Echo::LogLevel = 'debug';
 
+#no_diff();
+
 run_tests();
 
 __DATA__
@@ -360,6 +362,7 @@ hello, body!
         echo_location /sub;
     }
     location /sub {
+        echo_sleep 0.001;
         echo sub;
     }
 --- request
@@ -367,6 +370,5 @@ hello, body!
 --- response_body
 sub
 sub
---- TODO
---- SKIP
+--- skip_nginx: 2: < 0.8.11
 
