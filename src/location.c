@@ -1,4 +1,4 @@
-#define DDEBUG 0
+#define DDEBUG 1
 
 #include "ddebug.h"
 #include "util.h"
@@ -144,6 +144,17 @@ ngx_http_echo_post_subrequest(ngx_http_request_t *r,
     if (parent_rc != NGX_DONE) {
         ngx_http_finalize_request(r->parent, parent_rc);
     }
+
+#if defined(nginx_version) && nginx_version < 8011
+
+    else {
+        /* XXX This does not really fix nginx < 0.8.11 :( */
+        DD("return NGX_DONE for the parent request");
+
+        return NGX_DONE;
+    }
+
+#endif
 
     return rc;
 }

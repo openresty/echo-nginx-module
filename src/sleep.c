@@ -1,4 +1,4 @@
-#define DDEBUG 0
+#define DDEBUG 1
 
 #include "ddebug.h"
 #include "sleep.h"
@@ -49,9 +49,14 @@ ngx_http_echo_post_sleep(ngx_http_request_t *r) {
     ngx_http_echo_ctx_t         *ctx;
     ngx_int_t                   rc;
 
-    DD("entered echo post sleep...");
+    DD("entered echo post sleep...(r->done: %d)", r->done);
+
+    DD("sleep: before get module ctx");
 
     ctx = ngx_http_get_module_ctx(r, ngx_http_echo_module);
+
+    DD("sleep: after get module ctx");
+
     if (ctx == NULL) {
         return ngx_http_finalize_request(r, NGX_HTTP_INTERNAL_SERVER_ERROR);
     }
@@ -67,6 +72,9 @@ ngx_http_echo_post_sleep(ngx_http_request_t *r) {
     ctx->next_handler_cmd++;
 
     if (ctx->sleep.timer_set) {
+        DD("deleting timer for echo_sleep");
+        DD("timer for echo_sleep deleted");
+
         ngx_del_timer(&ctx->sleep);
     }
 
@@ -103,11 +111,19 @@ ngx_http_echo_sleep_event_handler(ngx_event_t *ev) {
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, c->log, 0,
             "echo sleep handler: \"%V?%V\"", &r->uri, &r->args);
 
+    if (r->done) {
+        return;
+    }
+
     ngx_http_echo_post_sleep(r);
 
 #if defined(nginx_version)
 
+    DD("before run posted requests");
+
     ngx_http_run_posted_requests(c);
+
+    DD("after run posted requests");
 
 #endif
 

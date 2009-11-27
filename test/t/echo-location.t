@@ -350,3 +350,23 @@ hello, body!
 --- response_body chomp
 hello, body!
 
+
+
+=== TEST 18: sleep after location
+--- config
+    location /main {
+        echo_location /sub;
+        echo_sleep 0.001;
+        echo_location /sub;
+    }
+    location /sub {
+        echo sub;
+    }
+--- request
+    GET /main
+--- response_body
+sub
+sub
+--- TODO
+--- SKIP
+
