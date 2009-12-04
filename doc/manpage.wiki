@@ -6,7 +6,7 @@
 
 = Version =
 
-This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/downloads v0.22] released on Nov 25, 2009.
+This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/downloads v0.23] released on Dec 4, 2009.
 
 = Synopsis =
 
@@ -1031,6 +1031,8 @@ The output on the client side while accessing the <code>/echo</code> location lo
   hello
   world
 
+When this directive is used in a location accessed by a subrequest, it replies on the <code>sync</code> flag set in a chain buffer to indicate the end of the output for nginx >= 0.8.7. This is a hack because Nginx does not provide a reliable way to determine the end of the output chain in a subrequest's output filter. Use it in subrequests with care.
+
 This directive can be mixed with its brother directive [[#echo_before_body|echo_before_body]].
 
 = Variables =
@@ -1144,6 +1146,16 @@ Accessing <code>/main</code> yields
     sub: 4
     main post: 2
 
+This directive was first introduced in the [[#v0.18|v0.18 release]].
+
+== $echo_response_status ==
+
+Evaluates to the status code of the current (sub)request, null if not any.
+
+Behind the scene, it's just the textual representation of <code>r->headers_out->status</code>.
+
+This directive was first introduced in the [[#v0.23|v0.23 release]].
+
 = Installation =
 
 Grab the nginx source code from [http://nginx.net/ nginx.net], for example,
@@ -1168,12 +1180,16 @@ Download the latest version of the release tarball of this module from [http://g
 
 The following versions of Nginx should work with this module:
 
-* '''0.8.x'''                       (last tested version is 0.8.28)
+* '''0.8.x'''                       (last tested version is 0.8.29)
 * '''0.7.x >= 0.7.21'''             (last tested version is 0.7.64)
 
-In particular, the directive [[#echo_location_async|echo_location_async]] and its brother [[#echo_subrequest_async|echo_subrequest_async]] do ''not'' work with '''0.7.x < 0.7.46'''.
+In particular,
 
-Earlier versions of Nginx like 0.6.x and 0.5.x will ''not'' work.
+* the directive [[#echo_location_async|echo_location_async]] and its brother [[#echo_subrequest_async|echo_subrequest_async]] do ''not'' work with '''0.7.x < 0.7.46'''.
+* the [[#echo_after_body|echo_after_body]] directive does ''not'' work at all with nginx '''< 0.8.7'''.
+* the [[#echo_sleep|echo_sleep]] directive cannot be used after [[#echo_location|echo_location]] or [[#echo_subrequest|echo_subrequest]] for nginx '''< 0.8.11'''.
+
+Earlier versions of Nginx like 0.6.x and 0.5.x will ''not'' work at all.
 
 If you find that any particular version of Nginx above 0.7.21 does not work with this module, please consider [[#Report Bugs|reporting a bug]].
 
@@ -1199,6 +1215,13 @@ Although a lot of effort has been put into testing and code tuning, there must b
 Available on github at [http://github.com/agentzh/echo-nginx-module agentzh/echo-nginx-module].
 
 = ChangeLog =
+
+== v0.23 ==
+
+* now the subrequest can read the client request body directly (for the main request) because we made subrequests inherit its parent's <code>r->header_in</code> as well.
+* fixed echo_after_body in subrequests by using a hack (checking <code>cl->buf->sync</code> for the last buf) for nginx 0.8.7+ only.
+* use the <code>ngx_calloc_buf</code> macro to allocate new bufs in the code rather than explicit <code>ngx_pcalloc</code> calls for safety.
+* added new varaible [[#$echo_response_status|$echo_response_status]] to help testing the status code of a subrequest. (The [[NginxHttpMemcModule|memc]] module makes use of it.)
 
 == v0.22 ==
 
@@ -1297,6 +1320,7 @@ Some parts of the test suite requires standard modules [[NginxHttpProxyModule|pr
 
 = TODO =
 
+* Fix the [[#echo_after_body|echo_after_body]] directive in subrequests.
 * Add directives ''echo_read_client_request_body'' and ''echo_request_headers''.
 * Add new directive ''echo_log'' to use Nginx's logging facility directly from the config file and specific loglevel can be specified, as in
 
