@@ -6,8 +6,6 @@ use Test::Nginx::Echo skip_all =>
 
 plan tests => 2 * blocks();
 
-#$Test::Nginx::Echo::LogLevel = 'debug';
-
 run_tests();
 
 __DATA__

@@ -3,7 +3,7 @@
 use lib 'lib';
 use Test::Nginx::Echo;
 
-plan tests => 2 * blocks();
+plan tests => $Test::Nginx::Echo::RepeatEach * 2 * blocks();
 
 #$Test::Nginx::Echo::LogLevel = 'debug';
 
@@ -173,4 +173,22 @@ igor
 .*404 Not Found.*
 status: 404$
 --- error_code: 404
+
+
+
+=== TEST 11: in subrequests
+--- config
+    location /main {
+        echo_location_async /hello;
+    }
+    location /hello {
+        echo_after_body 'world!';
+        echo 'hello';
+    }
+--- request
+    GET /main
+--- response_body
+hello
+world!
+--- skip_nginx: 2: < 0.8.7
 

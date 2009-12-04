@@ -15,6 +15,7 @@ if [[ "$BUILD_CLEAN" -eq 1 || ! -f Makefile \
     ./configure --prefix=/opt/nginx \
           --with-http_addition_module \
           --add-module=$root $opts \
+          --add-module=/home/agentz/work/nginx_eval_module-1.0.1 \
           --with-debug
   #--without-http_ssi_module  # we cannot disable ssi because echo_location_async depends on it (i dunno why?!)
 

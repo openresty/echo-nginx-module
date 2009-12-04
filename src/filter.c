@@ -1,4 +1,4 @@
-#define DDEBUG 0
+#define DDEBUG 1
 
 #include "ddebug.h"
 #include "filter.h"
@@ -124,6 +124,9 @@ ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in) {
         if (cl->buf->last_buf) {
             cl->buf->last_buf = 0;
             cl->buf->sync = 1;
+            last = 1;
+        } else if (r != r->main && cl->buf->sync) {
+            DD("Found sync buf");
             last = 1;
         }
     }
