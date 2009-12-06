@@ -1,16 +1,18 @@
 package Test::Nginx::Echo;
 
+use lib 'lib';
+use lib 'inc';
+use Test::Base -Base;
+
 our $NoNginxManager = 0;
 our $RepeatEach = 1;
 
-use lib 'lib';
-use lib 'inc';
 use Time::HiRes qw(sleep);
-#use Test::LongString;
+use Test::LongString;
 
 #use Smart::Comments::JSON '##';
+use POSIX qw( SIGQUIT SIGKILL SIGTERM );
 use LWP::UserAgent; # XXX should use a socket level lib here
-use Test::Base -Base;
 use Module::Install::Can;
 use List::Util qw( shuffle );
 use File::Spec ();
@@ -26,6 +28,8 @@ our $LogLevel               = 'debug';
 #our $MasterProcessEnabled   = 'on';
 #our $DaemonEnabled          = 'on';
 our $ServerPort             = 1984;
+our $ServerPortForClient    = 1984;
+#our $ServerPortForClient    = 1984;
 
 our $NginxVersion;
 our $NginxRawVersion;
@@ -165,7 +169,7 @@ sub parse_request ($$) {
     }
     $first =~ s/^\s+|\s+$//g;
     my ($meth, $rel_url) = split /\s+/, $first, 2;
-    my $url = "http://localhost:$ServerPort" . $rel_url;
+    my $url = "http://localhost:$ServerPortForClient" . $rel_url;
 
     my $content = do { local $/; <$in> };
     if ($content) {
@@ -224,45 +228,6 @@ sub run_test ($) {
         die;
     }
 
-    if (!$NoNginxManager) {
-        my $nginx_is_running = 1;
-        if (-f $PidFile) {
-            my $pid = get_pid_from_pidfile($name);
-            if (system("ps $pid > /dev/null") == 0) {
-                write_config_file(\$config);
-                if (kill(1, $pid) == 0) { # send HUP signal
-                    Test::More::BAIL_OUT("$name - Failed to send signal to the nginx process with PID $pid using signal HUP");
-                }
-                sleep 0.02;
-            } else {
-                unlink $PidFile or
-                    die "Failed to remove pid file $PidFile\n";
-                undef $nginx_is_running;
-            }
-        } else {
-            undef $nginx_is_running;
-        }
-
-        unless ($nginx_is_running) {
-            setup_server_root();
-            write_config_file(\$config);
-            if ( ! Module::Install::Can->can_run('nginx') ) {
-                Test::More::BAIL_OUT("$name - Cannot find the nginx executable in the PATH environment");
-                die;
-            }
-        #if (system("nginx -p $ServRoot -c $ConfFile -t") != 0) {
-        #Test::More::BAIL_OUT("$name - Invalid config file");
-        #}
-        #my $cmd = "nginx -p $ServRoot -c $ConfFile > /dev/null";
-            my $cmd = "nginx -c $ConfFile > /dev/null";
-            if (system($cmd) != 0) {
-                Test::More::BAIL_OUT("$name - Cannot start nginx using command \"$cmd\".");
-                die;
-            }
-            sleep 0.1;
-        }
-    }
-
     my $skip_nginx = $block->skip_nginx;
     my ($tests_to_skip, $should_skip, $skip_reason);
     if (defined $skip_nginx) {
@@ -274,6 +239,7 @@ sub run_test ($) {
             $tests_to_skip = $1;
             my ($op, $ver1, $ver2, $ver3) = ($2, $3, $4, $5);
             $skip_reason = $6;
+            #warn "$ver1 $ver2 $ver3";
             my $ver = get_canon_version($ver1, $ver2, $ver3);
             if ((!defined $NginxVersion and $op =~ /^</)
                     or eval "$NginxVersion $op $ver")
@@ -312,8 +278,55 @@ sub run_test ($) {
             die;
         }
     }
+
     if (!defined $todo_reason) {
         $todo_reason = "various reasons";
+    }
+
+    if (!$NoNginxManager && !$should_skip) {
+        my $nginx_is_running = 1;
+        if (-f $PidFile) {
+            my $pid = get_pid_from_pidfile($name);
+            if (system("ps $pid > /dev/null") == 0) {
+                write_config_file(\$config);
+                if (kill(SIGQUIT, $pid) == 0) { # send quit signal
+                    #warn("$name - Failed to send quit signal to the nginx process with PID $pid");
+                }
+                sleep 0.02;
+                if (system("ps $pid > /dev/null") == 0) {
+                    #warn "killing with force...\n";
+                    kill(SIGKILL, $pid);
+                    sleep 0.03;
+                }
+                undef $nginx_is_running;
+            } else {
+                unlink $PidFile or
+                    die "Failed to remove pid file $PidFile\n";
+                undef $nginx_is_running;
+            }
+        } else {
+            undef $nginx_is_running;
+        }
+
+        unless ($nginx_is_running) {
+            #warn "*** Restarting the nginx server...\n";
+            setup_server_root();
+            write_config_file(\$config);
+            if ( ! Module::Install::Can->can_run('nginx') ) {
+                Test::More::BAIL_OUT("$name - Cannot find the nginx executable in the PATH environment");
+                die;
+            }
+        #if (system("nginx -p $ServRoot -c $ConfFile -t") != 0) {
+        #Test::More::BAIL_OUT("$name - Invalid config file");
+        #}
+        #my $cmd = "nginx -p $ServRoot -c $ConfFile > /dev/null";
+            my $cmd = "nginx -c $ConfFile > /dev/null";
+            if (system($cmd) != 0) {
+                Test::More::BAIL_OUT("$name - Cannot start nginx using command \"$cmd\".");
+                die;
+            }
+            sleep 0.1;
+        }
     }
 
     my $i = 0;
@@ -420,7 +433,7 @@ sub run_test_helper ($$) {
         for my $header (@headers) {
             next if $header =~ /^\s*\#/;
             my ($key, $val) = split /:\s*/, $header, 2;
-            warn "[$key, $val]\n";
+            #warn "[$key, $val]\n";
             $req->header($key => $val);
         }
     }
@@ -467,8 +480,12 @@ sub run_test_helper ($$) {
         $content =~ s/^Connection: TE, close\r\n//gms;
         my $expected = $block->response_body;
         $expected =~ s/\$ServerPort\b/$ServerPort/g;
+        $expected =~ s/\$ServerPortForClient\b/$ServerPortForClient/g;
         #warn show_all_chars($content);
-        is($content, $expected, "$name - response_body - response is expected");
+
+        is_string($content, $expected, "$name - response_body - response is expected");
+        #is($content, $expected, "$name - response_body - response is expected");
+
     } elsif (defined $block->response_body_like) {
         my $content = $res->content;
         if (defined $content) {
@@ -477,8 +494,9 @@ sub run_test_helper ($$) {
         $content =~ s/^Connection: TE, close\r\n//gms;
         my $expected_pat = $block->response_body_like;
         $expected_pat =~ s/\$ServerPort\b/$ServerPort/g;
+        $expected_pat =~ s/\$ServerPortForClient\b/$ServerPortForClient/g;
         my $summary = trim($content);
-        like($content, qr/$expected_pat/sm, "$name - response_body_like - response is expected ($summary)");
+        like($content, qr/$expected_pat/s, "$name - response_body_like - response is expected ($summary)");
     }
 }
 
@@ -487,7 +505,7 @@ __END__
 
 =head1 NAME
 
-Test::Nginx::Echo - Test scaffold for the Nginx C modules
+Test::Nginx::Echo - Test scaffold for the ngx_echo module
 
 =head1 AUTHOR
 
