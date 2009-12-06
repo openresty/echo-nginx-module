@@ -20,7 +20,7 @@ __DATA__
 --- request
     GET /timer
 --- response_body_like
-^elapsed 0\.0(2[6-9]|3[0-5]) sec\.$
+^elapsed 0\.0(2[6-9]|3[0-6]) sec\.$
 
 
 
@@ -75,8 +75,8 @@ __DATA__
 --- request
     GET /timer
 --- response_body_like
-^elapsed 0\.0(1[6-9]|2[0-5]) sec\.
-elapsed 0\.0(2[6-9]|3[0-5]) sec\.$
+^elapsed 0\.0(1[6-9]|2[0-6]) sec\.
+elapsed 0\.0(2[6-9]|3[0-6]) sec\.$
 
 
 

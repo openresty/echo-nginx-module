@@ -153,7 +153,7 @@ took 0\.0(?:2[5-9]|3[0-5]) sec for total\.$
 --- response_body_like
 ^hello
 world
-took 0\.0(?:2[5-9]|3[0-5]) sec for total\.$
+took 0\.0(?:2[5-9]|3[0-6]) sec for total\.$
 
 
 
