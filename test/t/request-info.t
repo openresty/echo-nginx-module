@@ -1,7 +1,7 @@
 # vi:filetype=perl
 
 use lib 'lib';
-use Test::Nginx::Echo;
+use Test::Nginx::LWP;
 
 plan tests => 2 * blocks();
 
@@ -19,7 +19,7 @@ __DATA__
 --- response_body eval
 "GET /echo HTTP/1.1\r
 Host: localhost:\$ServerPort\r
-User-Agent: Test::Nginx::Echo\r
+User-Agent: Test::Nginx::LWP\r
 
 "
 
@@ -36,11 +36,11 @@ User-Agent: Test::Nginx::Echo\r
 --- response_body eval
 "GET /echo HTTP/1.1\r
 Host: localhost:\$ServerPort\r
-User-Agent: Test::Nginx::Echo\r
+User-Agent: Test::Nginx::LWP\r
 
 GET /echo HTTP/1.1\r
 Host: localhost:\$ServerPort\r
-User-Agent: Test::Nginx::Echo\r
+User-Agent: Test::Nginx::LWP\r
 
 "
 
@@ -125,7 +125,7 @@ haha
 --- response_body eval
 "POST /echoback HTTP/1.1\r
 Host: localhost:\$ServerPort\r
-User-Agent: Test::Nginx::Echo\r
+User-Agent: Test::Nginx::LWP\r
 Content-Length: 14\r
 
 body here

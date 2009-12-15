@@ -1,7 +1,7 @@
 # vi:filetype=perl
 
 use lib 'lib';
-use Test::Nginx::Echo;
+use Test::Nginx::LWP;
 
 plan tests => 2 * blocks();
 
@@ -21,7 +21,7 @@ __DATA__
 "headers:
 GET /echo HTTP/1.1\r
 Host: localhost:\$ServerPort\r
-User-Agent: Test::Nginx::Echo\r
+User-Agent: Test::Nginx::LWP\r
 
 "
 
@@ -38,7 +38,7 @@ User-Agent: Test::Nginx::Echo\r
 --- response_body eval
 "GET /echo HTTP/1.1\r
 Host: localhost:\$ServerPort\r
-User-Agent: Test::Nginx::Echo\r
+User-Agent: Test::Nginx::LWP\r
 
 ...these are the headers
 "
@@ -58,7 +58,7 @@ User-Agent: Test::Nginx::Echo\r
 "headers are
 GET /echo HTTP/1.1\r
 Host: localhost:\$ServerPort\r
-User-Agent: Test::Nginx::Echo\r
+User-Agent: Test::Nginx::LWP\r
 
 ...these are the headers
 "

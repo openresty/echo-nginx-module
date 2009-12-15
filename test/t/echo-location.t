@@ -2,11 +2,11 @@
 
 use lib 'lib';
 
-use Test::Nginx::Echo;
+use Test::Nginx::LWP;
 
 plan tests => 2 * blocks() - 1;
 
-#$Test::Nginx::Echo::LogLevel = 'debug';
+#$Test::Nginx::LWP::LogLevel = 'debug';
 
 #no_diff();
 

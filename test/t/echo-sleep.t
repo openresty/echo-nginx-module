@@ -1,11 +1,9 @@
 # vi:filetype=perl
 
 use lib 'lib';
-use Test::Nginx::Echo;
+use Test::Nginx::LWP;
 
 plan tests => 2 * blocks();
-
-$Test::Nginx::Echo::LogLevel = 'debug';
 
 run_tests();
 
