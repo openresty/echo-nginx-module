@@ -5,8 +5,6 @@ use Test::Nginx::LWP;
 
 plan tests => $Test::Nginx::LWP::RepeatEach * 2 * blocks();
 
-#$Test::Nginx::LWP::LogLevel = 'debug';
-
 run_tests();
 
 __DATA__
