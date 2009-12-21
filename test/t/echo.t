@@ -124,4 +124,18 @@ $
 
 
 
+=== TEST 10: XSS
+--- config
+    location /blah {
+        echo_duplicate 1 "$arg_callback(";
+        echo_location_async "/data?$uri";
+        echo_duplicate 1 ")";
+    }
+    location /data {
+        echo_duplicate 1 '{"dog":"$query_string"}';
+    }
+--- request
+    GET /blah/9999999.json?callback=ding1111111
+--- response_body chomp
+ding1111111({"dog":"/blah/9999999.json"})
 
