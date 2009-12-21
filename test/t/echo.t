@@ -139,3 +139,20 @@ $
 --- response_body chomp
 ding1111111({"dog":"/blah/9999999.json"})
 
+
+
+=== TEST 11: XSS - filter version
+--- config
+    location /blah {
+        echo_before_body "$arg_callback(";
+
+        echo_duplicate 1 '{"dog":"$uri"}';
+
+        echo_after_body ")";
+    }
+--- request
+    GET /blah/9999999.json?callback=ding1111111
+--- response_body
+ding1111111(
+{"dog":"/blah/9999999.json"})
+
