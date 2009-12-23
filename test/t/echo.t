@@ -156,3 +156,24 @@ ding1111111({"dog":"/blah/9999999.json"})
 ding1111111(
 {"dog":"/blah/9999999.json"})
 
+
+=== TEST 10: if
+--- config
+location /first {
+ echo "before";
+ echo_location_async /second $uri;
+ echo "after";
+}
+
+location = /second {
+ set $memcached_key $query_string;  # needing this to be keyed on the request_path, not the entire uri
+ echo $memcached_key;
+}
+--- request
+    GET /first/9999999.json?callback=ding1111111
+--- response_body
+before
+/first/9999999.json?callback=ding1111111
+after
+--- SKIP
+
