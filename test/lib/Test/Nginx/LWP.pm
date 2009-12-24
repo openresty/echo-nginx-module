@@ -4,7 +4,7 @@ use lib 'lib';
 use lib 'inc';
 use Test::Base -Base;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 use LWP::UserAgent;
 use Time::HiRes qw(sleep);
@@ -359,6 +359,8 @@ The following sections are supported:
 =over
 
 =item config
+
+=item http_config
 
 =item request
 

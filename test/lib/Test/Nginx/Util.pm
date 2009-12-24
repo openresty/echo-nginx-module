@@ -3,7 +3,7 @@ package Test::Nginx::Util;
 use strict;
 use warnings;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 use base 'Exporter';
 
@@ -129,6 +129,16 @@ sub setup_server_root () {
         die "Failed to do mkdir $LogDir\n";
     mkdir $HtmlDir or
         die "Failed to do mkdir $HtmlDir\n";
+
+    my $index_file = "$HtmlDir/index.html";
+
+    open my $out, ">$index_file" or
+        die "Can't open $index_file for writing: $!\n";
+
+    print $out '<html><head><title>It works!</title></head><body>It works!</body></html>';
+
+    close $out;
+
     mkdir $ConfDir or
         die "Failed to do mkdir $ConfDir\n";
 }
