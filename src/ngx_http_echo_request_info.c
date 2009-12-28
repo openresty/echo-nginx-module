@@ -1,9 +1,9 @@
 #define DDEBUG 0
 #include "ddebug.h"
 
-#include "request_info.h"
-#include "util.h"
-#include "handler.h"
+#include "ngx_http_echo_request_info.h"
+#include "ngx_http_echo_util.h"
+#include "ngx_http_echo_handler.h"
 
 #include <nginx.h>
 
@@ -86,12 +86,12 @@ ngx_http_echo_request_body_variable(ngx_http_request_t *r,
 
 #if 0
 
-    DD("rrr request_body null ? %d", r->request_body == NULL);
+    dd("rrr request_body null ? %d", r->request_body == NULL);
     if (r->request_body) {
-        DD("rrr request_body bufs null ? %d", r->request_body->bufs == NULL);
-        DD("rrr request_body temp file ? %d", r->request_body->temp_file != NULL);
+        dd("rrr request_body bufs null ? %d", r->request_body->bufs == NULL);
+        dd("rrr request_body temp file ? %d", r->request_body->temp_file != NULL);
     }
-    DD("rrr request_body content length ? %ld", (long) r->headers_in.content_length_n);
+    dd("rrr request_body content length ? %ld", (long) r->headers_in.content_length_n);
 
 #endif
 
@@ -231,7 +231,7 @@ ngx_http_echo_response_status_variable(ngx_http_request_t *r,
     u_char                      *p;
 
     if (r->headers_out.status) {
-        DD("headers out status: %u", r->headers_out.status);
+        dd("headers out status: %u", r->headers_out.status);
 
         p = ngx_palloc(r->pool, NGX_INT_T_LEN);
         if (p == NULL) {

@@ -1,9 +1,9 @@
 #define DDEBUG 0
 
 #include "ddebug.h"
-#include "filter.h"
-#include "util.h"
-#include "echo.h"
+#include "ngx_http_echo_filter.h"
+#include "ngx_http_echo_util.h"
+#include "ngx_http_echo_echo.h"
 
 #include <ngx_log.h>
 
@@ -21,14 +21,15 @@ static ngx_int_t ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *i
 static ngx_int_t ngx_http_echo_exec_filter_cmds(ngx_http_request_t *r,
         ngx_http_echo_ctx_t *ctx, ngx_array_t *cmds, ngx_uint_t *iterator);
 
+
 ngx_int_t
 ngx_http_echo_filter_init (ngx_conf_t *cf) {
     if (ngx_http_echo_filter_used) {
-        DD("top header filter: %ld", (unsigned long) ngx_http_top_header_filter);
+        dd("top header filter: %ld", (unsigned long) ngx_http_top_header_filter);
         ngx_http_next_header_filter = ngx_http_top_header_filter;
         ngx_http_top_header_filter  = ngx_http_echo_header_filter;
 
-        DD("top body filter: %ld", (unsigned long) ngx_http_top_body_filter);
+        dd("top body filter: %ld", (unsigned long) ngx_http_top_body_filter);
         ngx_http_next_body_filter = ngx_http_top_body_filter;
         ngx_http_top_body_filter  = ngx_http_echo_body_filter;
     }
@@ -36,13 +37,14 @@ ngx_http_echo_filter_init (ngx_conf_t *cf) {
     return NGX_OK;
 }
 
+ 
 static ngx_int_t
 ngx_http_echo_header_filter(ngx_http_request_t *r) {
     ngx_http_echo_loc_conf_t    *conf;
     ngx_http_echo_ctx_t         *ctx;
     ngx_int_t                   rc;
 
-    DD("We're in the header filter...");
+    dd("We're in the header filter...");
 
     ctx = ngx_http_get_module_ctx(r, ngx_http_echo_module);
 
@@ -80,6 +82,7 @@ ngx_http_echo_header_filter(ngx_http_request_t *r) {
 
     return ngx_http_next_header_filter(r);
 }
+
 
 static ngx_int_t
 ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in) {
@@ -126,7 +129,7 @@ ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in) {
             cl->buf->sync = 1;
             last = 1;
         } else if (r != r->main && cl->buf->sync) {
-            DD("Found sync buf");
+            dd("Found sync buf");
             last = 1;
         }
     }
@@ -137,19 +140,20 @@ ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in) {
         return rc;
     }
 
-    DD("exec filter cmds for after body cmds");
+    dd("exec filter cmds for after body cmds");
     rc = ngx_http_echo_exec_filter_cmds(r, ctx, conf->after_body_cmds, &ctx->next_after_body_cmd);
     if (rc != NGX_OK) {
-        DD("FAILED: exec filter cmds for after body cmds");
+        dd("FAILED: exec filter cmds for after body cmds");
         return NGX_ERROR;
     }
 
     ctx->skip_filter = 1;
 
-    DD("after body cmds executed...terminating...");
+    dd("after body cmds executed...terminating...");
 
     return ngx_http_send_special(r, NGX_HTTP_LAST);
 }
+
 
 static ngx_int_t
 ngx_http_echo_exec_filter_cmds(ngx_http_request_t *r,
@@ -184,7 +188,7 @@ ngx_http_echo_exec_filter_cmds(ngx_http_request_t *r,
         switch (cmd->opcode) {
             case echo_opcode_echo_before_body:
             case echo_opcode_echo_after_body:
-                DD("exec echo_before_body or echo_after_body...");
+                dd("exec echo_before_body or echo_after_body...");
                 rc = ngx_http_echo_exec_echo(r, ctx, computed_args);
                 if (rc != NGX_OK) {
                     return rc;

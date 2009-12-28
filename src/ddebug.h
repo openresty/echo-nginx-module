@@ -3,11 +3,11 @@
 
 #include <ngx_core.h>
 
-#if (DDEBUG)
+#if defined(DDEBUG) && (DDEBUG)
 
 #   if (NGX_HAVE_VARIADIC_MACROS)
 
-#       define DD(...) fprintf(stderr, "*** "); \
+#       define dd(...) fprintf(stderr, "echo *** "); \
             fprintf(stderr, __VA_ARGS__); \
             fprintf(stderr, " at %s line %d.\n", __FILE__, __LINE__)
 
@@ -18,7 +18,7 @@
 
 #include <stdarg.h>
 
-static void DD(const char* fmt, ...) {
+static void dd(const char * fmt, ...) {
 }
 
 #    endif
@@ -27,16 +27,43 @@ static void DD(const char* fmt, ...) {
 
 #   if (NGX_HAVE_VARIADIC_MACROS)
 
-#       define DD(...)
+#       define dd(...)
 
 #   else
 
 #include <stdarg.h>
 
-static void DD(const char* fmt, ...) {
+static void dd(const char * fmt, ...) {
 }
 
 #   endif
+
+#endif
+
+#if defined(DDEBUG) && (DDEBUG)
+
+#define dd_check_read_event_handler(r)   \
+    dd("r->read_event_handler = %s", \
+        r->read_event_handler == ngx_http_block_reading ? \
+            "ngx_http_block_reading" : \
+        r->read_event_handler == ngx_http_test_reading ? \
+            "ngx_http_test_reading" : \
+        r->read_event_handler == ngx_http_request_empty_handler ? \
+            "ngx_http_request_empty_handler" : "UNKNOWN")
+
+#define dd_check_write_event_handler(r)   \
+    dd("r->write_event_handler = %s", \
+        r->write_event_handler == ngx_http_handler ? \
+            "ngx_http_handler" : \
+        r->write_event_handler == ngx_http_core_run_phases ? \
+            "ngx_http_core_run_phases" : \
+        r->write_event_handler == ngx_http_request_empty_handler ? \
+            "ngx_http_request_empty_handler" : "UNKNOWN")
+
+#else
+
+#define dd_check_read_event_handler(r)
+#define dd_check_write_event_handler(r)
 
 #endif
 

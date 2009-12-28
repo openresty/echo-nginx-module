@@ -1,8 +1,8 @@
 #define DDEBUG 0
 #include "ddebug.h"
 
-#include "echo.h"
-#include "util.h"
+#include "ngx_http_echo_echo.h"
+#include "ngx_http_echo_util.h"
 
 #include <nginx.h>
 
@@ -11,11 +11,12 @@ static ngx_buf_t ngx_http_echo_space_buf;
 static ngx_buf_t ngx_http_echo_newline_buf;
 
 ngx_int_t
-ngx_http_echo_echo_init(ngx_conf_t *cf) {
+ngx_http_echo_echo_init(ngx_conf_t *cf)
+{
     static u_char space_str[]   = " ";
     static u_char newline_str[] = "\n";
 
-    DD("global init...");
+    dd("global init...");
 
     ngx_memzero(&ngx_http_echo_space_buf, sizeof(ngx_buf_t));
     ngx_http_echo_space_buf.memory = 1;
@@ -38,9 +39,11 @@ ngx_http_echo_echo_init(ngx_conf_t *cf) {
     return NGX_OK;
 }
 
+
 ngx_int_t
 ngx_http_echo_exec_echo(ngx_http_request_t *r,
-        ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args) {
+        ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args)
+{
     ngx_uint_t                  i;
 
     ngx_buf_t                   *space_buf;
@@ -53,7 +56,7 @@ ngx_http_echo_exec_echo(ngx_http_request_t *r,
     ngx_chain_t *cl  = NULL; /* the head of the chain link */
     ngx_chain_t **ll = &cl;  /* always point to the address of the last link */
 
-    DD("now exec echo...");
+    dd("now exec echo...");
 
     if (computed_args == NULL) {
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
@@ -152,13 +155,17 @@ ngx_http_echo_exec_echo(ngx_http_request_t *r,
     return ngx_http_echo_send_chain_link(r, ctx, cl);
 }
 
+
 ngx_int_t
-ngx_http_echo_exec_echo_flush(ngx_http_request_t *r, ngx_http_echo_ctx_t *ctx) {
+ngx_http_echo_exec_echo_flush(ngx_http_request_t *r, ngx_http_echo_ctx_t *ctx)
+{
     return ngx_http_send_special(r, NGX_HTTP_FLUSH);
 }
 
+
 ngx_int_t
-ngx_http_echo_exec_echo_request_body(ngx_http_request_t *r, ngx_http_echo_ctx_t *ctx) {
+ngx_http_echo_exec_echo_request_body(ngx_http_request_t *r, ngx_http_echo_ctx_t *ctx)
+{
     if (r->request_body && r->request_body->bufs) {
         return ngx_http_echo_send_chain_link(r, ctx, r->request_body->bufs);
     }
@@ -168,7 +175,8 @@ ngx_http_echo_exec_echo_request_body(ngx_http_request_t *r, ngx_http_echo_ctx_t 
 
 ngx_int_t
 ngx_http_echo_exec_echo_duplicate(ngx_http_request_t *r,
-        ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args) {
+        ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args)
+{
     ngx_str_t                   *computed_arg;
     ngx_str_t                   *computed_arg_elts;
     ssize_t                     i, count;

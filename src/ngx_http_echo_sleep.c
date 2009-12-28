@@ -1,8 +1,8 @@
 #define DDEBUG 0
-
 #include "ddebug.h"
-#include "sleep.h"
-#include "handler.h"
+
+#include "ngx_http_echo_sleep.h"
+#include "ngx_http_echo_handler.h"
 
 #include <nginx.h>
 #include <ngx_log.h>
@@ -30,12 +30,12 @@ ngx_http_echo_exec_echo_sleep(
         return NGX_HTTP_BAD_REQUEST;
     }
 
-    DD("DELAY = %.02lf sec", delay);
+    dd("DELAY = %.02lf sec", delay);
 
 #if defined(nginx_version) && nginx_version >= 8011
 
     r->main->count++;
-    DD("<> request main count : %u", r->main->count);
+    dd("<> request main count : %u", r->main->count);
 
 #endif
 
@@ -49,22 +49,22 @@ ngx_http_echo_post_sleep(ngx_http_request_t *r) {
     ngx_http_echo_ctx_t         *ctx;
     ngx_int_t                   rc;
 
-    DD("entered echo post sleep...(r->done: %d)", r->done);
+    dd("entered echo post sleep...(r->done: %d)", r->done);
 
-    DD("sleep: before get module ctx");
+    dd("sleep: before get module ctx");
 
     ctx = ngx_http_get_module_ctx(r, ngx_http_echo_module);
 
-    DD("sleep: after get module ctx");
+    dd("sleep: after get module ctx");
 
     if (ctx == NULL) {
         return ngx_http_finalize_request(r, NGX_HTTP_INTERNAL_SERVER_ERROR);
     }
 
-    DD("timed out? %d", ctx->sleep.timedout);
-    DD("timer set? %d", ctx->sleep.timer_set);
+    dd("timed out? %d", ctx->sleep.timedout);
+    dd("timer set? %d", ctx->sleep.timer_set);
     if ( ! ctx->sleep.timedout ) {
-        DD("HERE reached!");
+        dd("HERE reached!");
         return;
     }
     ctx->sleep.timedout = 0;
@@ -72,8 +72,8 @@ ngx_http_echo_post_sleep(ngx_http_request_t *r) {
     ctx->next_handler_cmd++;
 
     if (ctx->sleep.timer_set) {
-        DD("deleting timer for echo_sleep");
-        DD("timer for echo_sleep deleted");
+        dd("deleting timer for echo_sleep");
+        dd("timer for echo_sleep deleted");
 
         ngx_del_timer(&ctx->sleep);
     }
@@ -85,7 +85,7 @@ ngx_http_echo_post_sleep(ngx_http_request_t *r) {
     /*
     if (rc == NGX_OK) {
         r->main->count--;
-        DD("<> request main count : %u", r->main->count);
+        dd("<> request main count : %u", r->main->count);
     }
     */
 
@@ -121,11 +121,11 @@ ngx_http_echo_sleep_event_handler(ngx_event_t *ev) {
 
 #if defined(nginx_version)
 
-    DD("before run posted requests");
+    dd("before run posted requests");
 
     ngx_http_run_posted_requests(c);
 
-    DD("after run posted requests");
+    dd("after run posted requests");
 
 #endif
 
@@ -147,7 +147,7 @@ ngx_http_echo_exec_echo_blocking_sleep(ngx_http_request_t *r,
         return NGX_HTTP_BAD_REQUEST;
     }
 
-    DD("blocking DELAY = %.02lf sec", delay);
+    dd("blocking DELAY = %.02lf sec", delay);
 
     ngx_msleep((ngx_msec_t) (1000 * delay));
 

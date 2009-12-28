@@ -1,73 +1,74 @@
 #define DDEBUG 0
-
 #include "ddebug.h"
-#include "handler.h"
-#include "filter.h"
-#include "request_info.h"
+
+#include "ngx_http_echo_handler.h"
+#include "ngx_http_echo_filter.h"
+#include "ngx_http_echo_request_info.h"
 
 #include <nginx.h>
 #include <ngx_config.h>
 #include <ngx_log.h>
 
 /* config init handler */
-static void* ngx_http_echo_create_conf(ngx_conf_t *cf);
+static void * ngx_http_echo_create_conf(ngx_conf_t *cf);
 
 /* config directive handlers */
-static char* ngx_http_echo_echo(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
+static char * ngx_http_echo_echo(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
 
-static char* ngx_http_echo_echo_request_body(ngx_conf_t *cf,
+static char * ngx_http_echo_echo_request_body(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
 
-static char* ngx_http_echo_echo_sleep(ngx_conf_t *cf, ngx_command_t *cmd,
+static char * ngx_http_echo_echo_sleep(ngx_conf_t *cf, ngx_command_t *cmd,
         void *conf);
 
-static char* ngx_http_echo_echo_flush(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
+static char * ngx_http_echo_echo_flush(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
 
-static char* ngx_http_echo_echo_blocking_sleep(ngx_conf_t *cf,
+static char * ngx_http_echo_echo_blocking_sleep(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
 
-static char* ngx_http_echo_echo_reset_timer(ngx_conf_t *cf,
+static char * ngx_http_echo_echo_reset_timer(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
 
-static char* ngx_http_echo_echo_before_body(ngx_conf_t *cf,
+static char * ngx_http_echo_echo_before_body(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
 
-static char* ngx_http_echo_echo_after_body(ngx_conf_t *cf,
+static char * ngx_http_echo_echo_after_body(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
 
-static char* ngx_http_echo_echo_location_async(ngx_conf_t *cf,
+static char * ngx_http_echo_echo_location_async(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
 
-static char* ngx_http_echo_echo_location(ngx_conf_t *cf,
+static char * ngx_http_echo_echo_location(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
 
-static char* ngx_http_echo_echo_subrequest_async(ngx_conf_t *cf,
+static char * ngx_http_echo_echo_subrequest_async(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
 
-static char* ngx_http_echo_echo_subrequest(ngx_conf_t *cf,
+static char * ngx_http_echo_echo_subrequest(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
 
-static char* ngx_http_echo_echo_duplicate(ngx_conf_t *cf,
+static char * ngx_http_echo_echo_duplicate(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
 
-static char* ngx_http_echo_echo_read_request_body(ngx_conf_t *cf,
+static char * ngx_http_echo_echo_read_request_body(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
 
-static char* ngx_http_echo_echo_foreach_split(ngx_conf_t *cf,
+static char * ngx_http_echo_echo_foreach_split(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
 
-static char* ngx_http_echo_echo_end(ngx_conf_t *cf,
+static char * ngx_http_echo_echo_end(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
 
-static char* ngx_http_echo_echo_abort_parent(ngx_conf_t *cf, ngx_command_t *cmd,
+static char * ngx_http_echo_echo_abort_parent(ngx_conf_t *cf, ngx_command_t *cmd,
         void *conf);
 
-static char* ngx_http_echo_echo_exec(ngx_conf_t *cf,
+static char * ngx_http_echo_echo_exec(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
 
-static char* ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
+static char * ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
         ngx_http_echo_cmd_category_t cat,
         ngx_conf_t *cf, ngx_command_t *cmd, void* conf);
+
 
 static ngx_http_module_t ngx_http_echo_module_ctx = {
     /* TODO we could add our own variables here... */
@@ -83,6 +84,7 @@ static ngx_http_module_t ngx_http_echo_module_ctx = {
     ngx_http_echo_create_conf, /* create location configuration */
     NULL                           /* merge location configuration */
 };
+
 
 static ngx_command_t  ngx_http_echo_commands[] = {
 
@@ -215,6 +217,7 @@ static ngx_command_t  ngx_http_echo_commands[] = {
       ngx_null_command
 };
 
+
 ngx_module_t ngx_http_echo_module = {
     NGX_MODULE_V1,
     &ngx_http_echo_module_ctx, /* module context */
@@ -230,20 +233,25 @@ ngx_module_t ngx_http_echo_module = {
     NGX_MODULE_V1_PADDING
 };
 
-static void*
-ngx_http_echo_create_conf(ngx_conf_t *cf) {
+
+static void *
+ngx_http_echo_create_conf(ngx_conf_t *cf)
+{
     ngx_http_echo_loc_conf_t *conf;
     conf = ngx_pcalloc(cf->pool, sizeof(ngx_http_echo_loc_conf_t));
     if (conf == NULL) {
         return NGX_CONF_ERROR;
     }
+
     return conf;
 }
 
-static char*
+
+static char *
 ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
         ngx_http_echo_cmd_category_t cat,
-        ngx_conf_t *cf, ngx_command_t *cmd, void* conf) {
+        ngx_conf_t *cf, ngx_command_t *cmd, void* conf)
+{
     ngx_http_core_loc_conf_t        *clcf;
     /* ngx_http_echo_loc_conf_t        *ulcf = conf; */
     ngx_array_t                     **args_ptr;
@@ -265,17 +273,17 @@ ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
             return NGX_CONF_ERROR;
         }
         if (cat == echo_handler_cmd) {
-            DD("registering the content handler");
+            dd("registering the content handler");
             /* register the content handler */
             clcf = ngx_http_conf_get_module_loc_conf(cf,
                     ngx_http_core_module);
             if (clcf == NULL) {
                 return NGX_CONF_ERROR;
             }
-            DD("registering the content handler (2)");
+            dd("registering the content handler (2)");
             clcf->handler = ngx_http_echo_handler;
         } else {
-            DD("filter used = 1");
+            dd("filter used = 1");
             ngx_http_echo_filter_used = 1;
         }
     }
@@ -298,7 +306,7 @@ ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
             return NGX_CONF_ERROR;
         }
         arg->raw_value = raw_args[i];
-        DD("found raw arg %s", raw_args[i].data);
+        dd("found raw arg %s", raw_args[i].data);
         arg->lengths = NULL;
         arg->values  = NULL;
         n = ngx_http_script_variables_count(&arg->raw_value);
@@ -319,75 +327,93 @@ ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
     return NGX_CONF_OK;
 }
 
-static char*
-ngx_http_echo_echo(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
-    DD("in echo_echo...");
+
+static char *
+ngx_http_echo_echo(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
+{
+    dd("in echo_echo...");
     return ngx_http_echo_helper(echo_opcode_echo,
             echo_handler_cmd,
             cf, cmd, conf);
 }
 
-static char*
+
+static char *
 ngx_http_echo_echo_request_body(ngx_conf_t *cf,
-        ngx_command_t *cmd, void *conf) {
-    DD("in echo_echo_request_body...");
+        ngx_command_t *cmd, void *conf)
+{
+    dd("in echo_echo_request_body...");
     return ngx_http_echo_helper(echo_opcode_echo_request_body,
             echo_handler_cmd,
             cf, cmd, conf);
 }
 
-static char*
-ngx_http_echo_echo_sleep(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
-    DD("in echo_sleep...");
+
+static char *
+ngx_http_echo_echo_sleep(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
+{
+    dd("in echo_sleep...");
     return ngx_http_echo_helper(echo_opcode_echo_sleep,
             echo_handler_cmd,
             cf, cmd, conf);
 }
 
-static char*
-ngx_http_echo_echo_flush(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
-    DD("in echo_flush...");
+
+static char *
+ngx_http_echo_echo_flush(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
+{
+    dd("in echo_flush...");
     return ngx_http_echo_helper(echo_opcode_echo_flush,
             echo_handler_cmd,
             cf, cmd, conf);
 }
 
-static char*
-ngx_http_echo_echo_blocking_sleep(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
-    DD("in echo_blocking_sleep...");
+
+static char *
+ngx_http_echo_echo_blocking_sleep(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
+{
+    dd("in echo_blocking_sleep...");
     return ngx_http_echo_helper(echo_opcode_echo_blocking_sleep,
             echo_handler_cmd,
             cf, cmd, conf);
 }
 
-static char*
+
+static char *
 ngx_http_echo_echo_reset_timer(ngx_conf_t *cf,
-        ngx_command_t *cmd, void *conf) {
+        ngx_command_t *cmd, void *conf)
+{
     return ngx_http_echo_helper(echo_opcode_echo_reset_timer,
             echo_handler_cmd,
             cf, cmd, conf);
 }
 
-static char*
+
+static char *
 ngx_http_echo_echo_before_body(ngx_conf_t *cf,
-        ngx_command_t *cmd, void *conf) {
-    DD("processing echo_before_body directive...");
+        ngx_command_t *cmd, void *conf)
+{
+    dd("processing echo_before_body directive...");
     return ngx_http_echo_helper(echo_opcode_echo_before_body,
             echo_filter_cmd,
             cf, cmd, conf);
 }
 
-static char*
+
+static char *
 ngx_http_echo_echo_after_body(ngx_conf_t *cf,
-        ngx_command_t *cmd, void *conf) {
+        ngx_command_t *cmd, void *conf)
+{
     return ngx_http_echo_helper(echo_opcode_echo_after_body,
             echo_filter_cmd,
             cf, cmd, conf);
 }
 
-static char*
+
+static char *
  ngx_http_echo_echo_location_async(ngx_conf_t *cf, ngx_command_t *cmd,
-         void *conf) {
+         void *conf)
+{
 
 #if ! defined(nginx_version)
 
@@ -407,9 +433,11 @@ static char*
 
 }
 
-static char*
+
+static char *
  ngx_http_echo_echo_location(ngx_conf_t *cf, ngx_command_t *cmd,
-         void *conf) {
+         void *conf)
+{
 
 #if ! defined(nginx_version)
 
@@ -429,9 +457,11 @@ static char*
 
 }
 
-static char*
+
+static char *
  ngx_http_echo_echo_subrequest_async(ngx_conf_t *cf, ngx_command_t *cmd,
-         void *conf) {
+         void *conf)
+{
 
 #if ! defined(nginx_version)
 
@@ -451,9 +481,11 @@ static char*
 
 }
 
-static char*
+
+static char *
  ngx_http_echo_echo_subrequest(ngx_conf_t *cf, ngx_command_t *cmd,
-         void *conf) {
+         void *conf)
+{
 
 #if ! defined(nginx_version)
 
@@ -473,40 +505,49 @@ static char*
 
 }
 
-static char*
+
+static char *
 ngx_http_echo_echo_duplicate(ngx_conf_t *cf,
-        ngx_command_t *cmd, void *conf) {
+        ngx_command_t *cmd, void *conf)
+{
     return ngx_http_echo_helper(echo_opcode_echo_duplicate,
             echo_handler_cmd,
             cf, cmd, conf);
 }
 
-static char*
+
+static char *
 ngx_http_echo_echo_read_request_body(ngx_conf_t *cf,
-        ngx_command_t *cmd, void *conf) {
+        ngx_command_t *cmd, void *conf)
+{
     return ngx_http_echo_helper(
             echo_opcode_echo_read_request_body,
             echo_handler_cmd,
             cf, cmd, conf);
 }
 
-static char*
-ngx_http_echo_echo_foreach_split(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+
+static char *
+ngx_http_echo_echo_foreach_split(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
+{
     return ngx_http_echo_helper(
             echo_opcode_echo_foreach_split,
             echo_handler_cmd,
             cf, cmd, conf);
 }
 
-static char*
-ngx_http_echo_echo_end(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+
+static char *
+ngx_http_echo_echo_end(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
+{
     return ngx_http_echo_helper(
             echo_opcode_echo_end,
             echo_handler_cmd,
             cf, cmd, conf);
 }
 
-static char*
+
+static char *
 ngx_http_echo_echo_abort_parent(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 {
     return ngx_http_echo_helper(
@@ -515,7 +556,8 @@ ngx_http_echo_echo_abort_parent(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
             cf, cmd, conf);
 }
 
-static char*
+
+static char *
 ngx_http_echo_echo_exec(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 {
     return ngx_http_echo_helper(

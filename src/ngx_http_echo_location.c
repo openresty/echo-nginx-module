@@ -1,15 +1,17 @@
 #define DDEBUG 0
-
 #include "ddebug.h"
-#include "util.h"
-#include "location.h"
-#include "handler.h"
+
+#include "ngx_http_echo_util.h"
+#include "ngx_http_echo_location.h"
+#include "ngx_http_echo_handler.h"
+
 #include <nginx.h>
 
 static ngx_int_t ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr);
 
 static ngx_int_t ngx_http_echo_post_subrequest(ngx_http_request_t *r,
         void *data, ngx_int_t rc);
+
 
 ngx_int_t
 ngx_http_echo_exec_echo_location_async(ngx_http_request_t *r,
@@ -36,8 +38,8 @@ ngx_http_echo_exec_echo_location_async(ngx_http_request_t *r,
         url_args = NULL;
     }
 
-    DD("location: %s", location.data);
-    DD("location args: %s", (char*) (url_args ? url_args->data : (u_char*)"NULL"));
+    dd("location: %s", location.data);
+    dd("location args: %s", (char*) (url_args ? url_args->data : (u_char*)"NULL"));
 
     args.data = NULL;
     args.len = 0;
@@ -67,6 +69,7 @@ ngx_http_echo_exec_echo_location_async(ngx_http_request_t *r,
 
     return NGX_OK;
 }
+
 
 ngx_int_t
 ngx_http_echo_exec_echo_location(ngx_http_request_t *r,
@@ -131,6 +134,7 @@ ngx_http_echo_exec_echo_location(ngx_http_request_t *r,
     return NGX_OK;
 }
 
+
 static ngx_int_t
 ngx_http_echo_post_subrequest(ngx_http_request_t *r,
         void *data, ngx_int_t rc) {
@@ -147,6 +151,7 @@ ngx_http_echo_post_subrequest(ngx_http_request_t *r,
 
     return rc;
 }
+
 
 static ngx_int_t
 ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr) {

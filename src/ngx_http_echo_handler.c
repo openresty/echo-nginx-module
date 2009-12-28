@@ -2,16 +2,16 @@
 
 #include "ddebug.h"
 
-#include "handler.h"
-#include "echo.h"
-#include "util.h"
-#include "sleep.h"
-#include "var.h"
-#include "timer.h"
-#include "location.h"
-#include "subrequest.h"
-#include "request_info.h"
-#include "foreach.h"
+#include "ngx_http_echo_handler.h"
+#include "ngx_http_echo_echo.h"
+#include "ngx_http_echo_util.h"
+#include "ngx_http_echo_sleep.h"
+#include "ngx_http_echo_var.h"
+#include "ngx_http_echo_timer.h"
+#include "ngx_http_echo_location.h"
+#include "ngx_http_echo_subrequest.h"
+#include "ngx_http_echo_request_info.h"
+#include "ngx_http_echo_foreach.h"
 
 #include <nginx.h>
 #include <ngx_log.h>
@@ -27,6 +27,7 @@ ngx_http_echo_handler_init(ngx_conf_t *cf) {
 
     return ngx_http_echo_add_variables(cf);
 }
+
 
 ngx_int_t
 ngx_http_echo_handler(ngx_http_request_t *r) {
@@ -54,7 +55,7 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
         ngx_http_set_ctx(r, ctx, ngx_http_echo_module);
     }
 
-    DD("exec handler: %s: %u", r->uri.data, ctx->next_handler_cmd);
+    dd("exec handler: %s: %u", r->uri.data, ctx->next_handler_cmd);
 
     cmd_elts = cmds->elts;
     for (; ctx->next_handler_cmd < cmds->nelts; ctx->next_handler_cmd++) {
@@ -81,7 +82,7 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
             case echo_opcode_echo:
                 /* XXX moved the following code to a separate
                  * function */
-                DD("found echo opcode");
+                dd("found echo opcode");
                 rc = ngx_http_echo_exec_echo(r, ctx, computed_args);
                 if (rc != NGX_OK) {
                     return rc;
@@ -96,7 +97,7 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
                 break;
 
             case echo_opcode_echo_location_async:
-                DD("found opcode echo location async...");
+                dd("found opcode echo location async...");
                 rc = ngx_http_echo_exec_echo_location_async(r, ctx,
                         computed_args);
                 if (rc != NGX_OK) {
@@ -117,7 +118,7 @@ ngx_http_echo_handler(ngx_http_request_t *r) {
                 break;
 
             case echo_opcode_echo_subrequest_async:
-                DD("found opcode echo subrequest async...");
+                dd("found opcode echo subrequest async...");
                 rc = ngx_http_echo_exec_echo_subrequest_async(r, ctx,
                         computed_args);
                 if (rc != NGX_OK) {

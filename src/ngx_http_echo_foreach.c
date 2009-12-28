@@ -1,8 +1,8 @@
 #define DDEBUG 0
 #include "ddebug.h"
 
-#include "foreach.h"
-#include "util.h"
+#include "ngx_http_echo_foreach.h"
+#include "ngx_http_echo_util.h"
 
 #include <nginx.h>
 
@@ -38,6 +38,7 @@ ngx_http_echo_it_variable(ngx_http_request_t *r,
     return NGX_OK;
 }
 
+
 ngx_int_t
 ngx_http_echo_exec_echo_foreach_split(ngx_http_request_t *r,
         ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args) {
@@ -60,7 +61,7 @@ ngx_http_echo_exec_echo_foreach_split(ngx_http_request_t *r,
 
     compound  = &computed_arg_elts[1];
 
-    DD("HEY coumpound len: %u", compound->len);
+    dd("HEY coumpound len: %u", compound->len);
 
     ctx->foreach = ngx_palloc(r->pool, sizeof(ngx_http_echo_foreach_ctx_t));
     if (ctx->foreach == NULL) {
@@ -82,10 +83,10 @@ ngx_http_echo_exec_echo_foreach_split(ngx_http_request_t *r,
     end = compound->data + compound->len;
     while ((last = ngx_http_echo_strlstrn(pos, end, delimiter->data, delimiter->len - 1))
                 != NULL) {
-        DD("entered the loop");
+        dd("entered the loop");
 
         if (last == pos) {
-            DD("!!! len == 0");
+            dd("!!! len == 0");
             pos = last + delimiter->len;
             continue;
         }
@@ -128,6 +129,7 @@ ngx_http_echo_exec_echo_foreach_split(ngx_http_request_t *r,
     return NGX_OK;
 }
 
+
 ngx_int_t
 ngx_http_echo_exec_echo_end(ngx_http_request_t *r,
         ngx_http_echo_ctx_t *ctx) {
@@ -148,7 +150,7 @@ ngx_http_echo_exec_echo_end(ngx_http_request_t *r,
         return NGX_OK;
     }
 
-    DD("echo_end: ++ next_choice (total: %u): %u", ctx->foreach->choices->nelts, ctx->foreach->next_choice);
+    dd("echo_end: ++ next_choice (total: %u): %u", ctx->foreach->choices->nelts, ctx->foreach->next_choice);
 
     /* the main handler dispatcher loop will increment
      *   ctx->next_handler_cmd for us anyway. */

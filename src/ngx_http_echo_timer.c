@@ -2,7 +2,7 @@
 
 #include "ddebug.h"
 
-#include "timer.h"
+#include "ngx_http_echo_timer.h"
 
 #include <stdlib.h>
 #include <ngx_log.h>
@@ -25,8 +25,8 @@ ngx_http_echo_timer_elapsed_variable(ngx_http_request_t *r,
     ngx_time_update(0, 0); /* force the ngx timer to update */
     tp = ngx_timeofday();
 
-    DD("old sec msec: %ld %d\n", ctx->timer_begin.sec, ctx->timer_begin.msec);
-    DD("new sec msec: %ld %d\n", tp->sec, tp->msec);
+    dd("old sec msec: %ld %d\n", ctx->timer_begin.sec, ctx->timer_begin.msec);
+    dd("new sec msec: %ld %d\n", tp->sec, tp->msec);
 
     ms = (ngx_msec_int_t)
              ((tp->sec - ctx->timer_begin.sec) * 1000 +
@@ -48,7 +48,7 @@ ngx_http_echo_timer_elapsed_variable(ngx_http_request_t *r,
 ngx_int_t
 ngx_http_echo_exec_echo_reset_timer(ngx_http_request_t *r,
         ngx_http_echo_ctx_t *ctx) {
-    DD("Exec timer...");
+    dd("Exec timer...");
     ngx_time_update(0, 0); /* force the ngx timer to update */
 
     ctx->timer_begin = *ngx_timeofday();

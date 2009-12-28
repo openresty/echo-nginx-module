@@ -1,9 +1,9 @@
 #define DDEBUG 0
-
 #include "ddebug.h"
-#include "util.h"
-#include "subrequest.h"
-#include "handler.h"
+
+#include "ngx_http_echo_util.h"
+#include "ngx_http_echo_subrequest.h"
+#include "ngx_http_echo_handler.h"
 
 #define ngx_http_echo_method_name(m) { sizeof(m) - 1, (u_char *) m " " }
 
@@ -58,8 +58,8 @@ ngx_http_echo_exec_echo_subrequest_async(ngx_http_request_t *r,
         return rc;
     }
 
-    DD("location: %s", parsed_sr->location->data);
-    DD("location args: %s", (char*) (parsed_sr->query_string ?
+    dd("location: %s", parsed_sr->location->data);
+    dd("location args: %s", (char*) (parsed_sr->query_string ?
                 parsed_sr->query_string->data : (u_char*)"NULL"));
 
     args.data = NULL;
@@ -317,7 +317,7 @@ ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr, ngx_http_echo_subrequest
 
         ngx_strlow(h->lowcase_key, h->key.data, h->key.len);
 
-        DD("sr content length: %s", sr->headers_in.content_length->value.data);
+        dd("sr content length: %s", sr->headers_in.content_length->value.data);
     }
 
     return NGX_OK;
@@ -448,14 +448,14 @@ ngx_http_echo_exec_abort_parent(ngx_http_request_t *r,
     ngx_chain_t                     *out = NULL;
     /* ngx_int_t                       rc; */
 
-    DD("aborting parent...");
+    dd("aborting parent...");
 
     if (r == r->main || r->parent == NULL) {
         return NGX_OK;
     }
 
     if (r->parent->postponed) {
-        DD("Found parent->postponed...");
+        dd("Found parent->postponed...");
 
         saved_data = r->connection->data;
         ppr = NULL;
@@ -466,13 +466,13 @@ ngx_http_echo_exec_abort_parent(ngx_http_request_t *r,
 
             if (pr->request == r) {
                 /* r->parent->postponed->next = pr; */
-                DD("found the current subrequest");
+                dd("found the current subrequest");
                 out = pr->out;
                 continue;
             }
 
             /* r->connection->data = pr->request; */
-            DD("finalizing the subrequest...");
+            dd("finalizing the subrequest...");
             ngx_http_upstream_create(pr->request);
             pr->request->upstream = NULL;
 
@@ -493,7 +493,7 @@ ngx_http_echo_exec_abort_parent(ngx_http_request_t *r,
     r->connection->buffered = 0;
 
     if (out != NULL) {
-        DD("trying to send more stuffs for the parent");
+        dd("trying to send more stuffs for the parent");
         ngx_http_output_filter(r->parent, out);
     }
     */
@@ -504,7 +504,7 @@ ngx_http_echo_exec_abort_parent(ngx_http_request_t *r,
         r->connection->data = saved_data;
     }
 
-    DD("terminating the parent request");
+    dd("terminating the parent request");
 
     return ngx_http_echo_send_chain_link(r, ctx, NULL /* indicate LAST */);
 

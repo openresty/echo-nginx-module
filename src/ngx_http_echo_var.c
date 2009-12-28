@@ -1,10 +1,10 @@
 #define DDEBUG 0
-
 #include "ddebug.h"
-#include "var.h"
-#include "timer.h"
-#include "request_info.h"
-#include "foreach.h"
+
+#include "ngx_http_echo_var.h"
+#include "ngx_http_echo_timer.h"
+#include "ngx_http_echo_request_info.h"
+#include "ngx_http_echo_foreach.h"
 
 static ngx_int_t ngx_http_echo_incr_variable(ngx_http_request_t *r,
         ngx_http_variable_value_t *v, uintptr_t data);

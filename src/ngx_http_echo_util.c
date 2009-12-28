@@ -1,8 +1,8 @@
 #define DDEBUG 0
-
 #include "ddebug.h"
-#include "util.h"
-#include "sleep.h"
+
+#include "ngx_http_echo_util.h"
+#include "ngx_http_echo_sleep.h"
 
 ngx_int_t
 ngx_http_echo_init_ctx(ngx_http_request_t *r, ngx_http_echo_ctx_t **ctx_ptr) {
@@ -38,7 +38,7 @@ ngx_http_echo_eval_cmd_args(ngx_http_request_t *r,
         }
         arg = &arg_elts[i];
         if (arg->lengths == NULL) { /* does not contain vars */
-            DD("Using raw value \"%s\"", arg->raw_value.data);
+            dd("Using raw value \"%s\"", arg->raw_value.data);
             *computed_arg = arg->raw_value;
         } else {
             if (ngx_http_script_run(r, computed_arg, arg->lengths->elts,
@@ -71,7 +71,7 @@ ngx_http_echo_send_chain_link(ngx_http_request_t* r,
                 size += p->buf->last - p->buf->pos;
             }
         }
-        DD("content length for HTTP 1.0: %d", size);
+        dd("content length for HTTP 1.0: %d", size);
         r->headers_out.content_length_n = (off_t) size;
 
         if (r->headers_out.content_length) {
