@@ -6,9 +6,9 @@ Name
     installation instructions.
 
 Version
-    This document describes echo-nginx-module v0.23
+    This document describes echo-nginx-module v0.24
     (<http://github.com/agentzh/echo-nginx-module/downloads>) released on
-    Dec 4, 2009.
+    Dec 28, 2009.
 
 Synopsis
       location /hello {
@@ -1261,7 +1261,7 @@ Installation
 Compatibility
     The following versions of Nginx should work with this module:
 
-    *   0.8.x (last tested version is 0.8.29)
+    *   0.8.x (last tested version is 0.8.31)
 
     *   0.7.x >= 0.7.21 (last tested version is 0.7.64)
 
@@ -1284,6 +1284,9 @@ Compatibility
 Modules that use this module for testing
     The following modules take advantage of this "echo" module in their test
     suite:
+
+    *   The memc module that supports almost the whole memcached TCP
+        protocol.
 
     *   The chunkin module that adds HTTP 1.1 chunked input support to
         Nginx.
@@ -1312,19 +1315,24 @@ Source Repository
     (<http://github.com/agentzh/echo-nginx-module>).
 
 ChangeLog
+  v0.24
+    *   various source file name and coding style fixes. (the code now looks
+        more like Igor Sysoev's.)
+
   v0.23
     *   now the subrequest can read the client request body directly (for
         the main request) because we made subrequests inherit its parent's
-        "r->header_in" as well.
+        "r->header_in" as well. This affects the echo_read_request_body
+        directive.
 
     *   fixed echo_after_body in subrequests by using a hack (checking
         "cl->buf->sync" for the last buf) for nginx 0.8.7+ only.
 
-    *   use the "ngx_calloc_buf" macro to allocate new bufs in the code
-        rather than explicit "ngx_pcalloc" calls for safety.
-
     *   added new varaible $echo_response_status to help testing the status
         code of a subrequest. (The memc module makes use of it.)
+
+    *   use the "ngx_calloc_buf" macro to allocate new bufs in the code
+        rather than explicit "ngx_pcalloc" calls for safety.
 
   v0.22
     *   Now we allowed all the directives appear in the rewrite module's if

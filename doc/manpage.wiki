@@ -6,7 +6,7 @@
 
 = Version =
 
-This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/downloads v0.23] released on Dec 4, 2009.
+This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/downloads v0.24] released on Dec 28, 2009.
 
 = Synopsis =
 
@@ -1180,7 +1180,7 @@ Download the latest version of the release tarball of this module from [http://g
 
 The following versions of Nginx should work with this module:
 
-* '''0.8.x'''                       (last tested version is 0.8.29)
+* '''0.8.x'''                       (last tested version is 0.8.31)
 * '''0.7.x >= 0.7.21'''             (last tested version is 0.7.64)
 
 In particular,
@@ -1197,6 +1197,7 @@ If you find that any particular version of Nginx above 0.7.21 does not work with
 
 The following modules take advantage of this <code>echo</code> module in their test suite:
 
+* The [[NginxHttpMemcModule|memc]] module that supports almost the whole memcached TCP protocol.
 * The [[NginxHttpChunkinModule|chunkin]] module that adds HTTP 1.1 chunked input support to Nginx.
 * The [[NginxHttpHeadersMoreModule|headers_more]] module that allows you to add, set, and clear input and output headers under the conditions that you specify.
 * The <code>echo</code> module itself.
@@ -1216,12 +1217,16 @@ Available on github at [http://github.com/agentzh/echo-nginx-module agentzh/echo
 
 = ChangeLog =
 
+== v0.24 ==
+
+* various source file name and coding style fixes. (the code now looks more like Igor Sysoev's.)
+
 == v0.23 ==
 
-* now the subrequest can read the client request body directly (for the main request) because we made subrequests inherit its parent's <code>r->header_in</code> as well.
-* fixed echo_after_body in subrequests by using a hack (checking <code>cl->buf->sync</code> for the last buf) for nginx 0.8.7+ only.
-* use the <code>ngx_calloc_buf</code> macro to allocate new bufs in the code rather than explicit <code>ngx_pcalloc</code> calls for safety.
+* now the subrequest can read the client request body directly (for the main request) because we made subrequests inherit its parent's <code>r->header_in</code> as well. This affects the [[#echo_read_request_body|echo_read_request_body]] directive.
+* fixed [[#echo_after_body|echo_after_body]] in subrequests by using a hack (checking <code>cl->buf->sync</code> for the last buf) for nginx 0.8.7+ only.
 * added new varaible [[#$echo_response_status|$echo_response_status]] to help testing the status code of a subrequest. (The [[NginxHttpMemcModule|memc]] module makes use of it.)
+* use the <code>ngx_calloc_buf</code> macro to allocate new bufs in the code rather than explicit <code>ngx_pcalloc</code> calls for safety.
 
 == v0.22 ==
 
