@@ -21,8 +21,10 @@ ngx_http_echo_exec_echo_read_request_body(
     return NGX_DONE;
 }
 
+
 static void
-ngx_http_echo_post_read_request_body(ngx_http_request_t *r) {
+ngx_http_echo_post_read_request_body(ngx_http_request_t *r)
+{
     ngx_http_echo_ctx_t         *ctx;
 
     ctx = ngx_http_get_module_ctx(r, ngx_http_echo_module);
@@ -35,12 +37,14 @@ ngx_http_echo_post_read_request_body(ngx_http_request_t *r) {
     ngx_http_finalize_request(r, ngx_http_echo_handler(r));
 }
 
+
 /* this function's implementation is borrowed from nginx 0.8.20
  * and modified a bit to work with subrequests.
  * Copyrighted (C) by Igor Sysoev */
 ngx_int_t
 ngx_http_echo_request_method_variable(ngx_http_request_t *r,
-        ngx_http_variable_value_t *v, uintptr_t data) {
+        ngx_http_variable_value_t *v, uintptr_t data)
+{
     if (r->method_name.data) {
         v->len = r->method_name.len;
         v->valid = 1;
@@ -54,12 +58,14 @@ ngx_http_echo_request_method_variable(ngx_http_request_t *r,
     return NGX_OK;
 }
 
+
 /* this function's implementation is borrowed from nginx 0.8.20
  * and modified a bit to work with subrequests.
  * Copyrighted (C) by Igor Sysoev */
 ngx_int_t
 ngx_http_echo_client_request_method_variable(ngx_http_request_t *r,
-        ngx_http_variable_value_t *v, uintptr_t data) {
+        ngx_http_variable_value_t *v, uintptr_t data)
+{
     if (r->main->method_name.data) {
         v->len = r->main->method_name.len;
         v->valid = 1;
@@ -73,12 +79,14 @@ ngx_http_echo_client_request_method_variable(ngx_http_request_t *r,
     return NGX_OK;
 }
 
+
 /* this function's implementation is borrowed from nginx 0.8.20
  * and modified a bit to work with subrequests.
  * Copyrighted (C) by Igor Sysoev */
 ngx_int_t
 ngx_http_echo_request_body_variable(ngx_http_request_t *r,
-        ngx_http_variable_value_t *v, uintptr_t data) {
+        ngx_http_variable_value_t *v, uintptr_t data)
+{
     u_char       *p;
     size_t        len;
     ngx_buf_t    *buf, *next;
@@ -138,9 +146,11 @@ ngx_http_echo_request_body_variable(ngx_http_request_t *r,
     return NGX_OK;
 }
 
+
 ngx_int_t
 ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
-        ngx_http_variable_value_t *v, uintptr_t data) {
+        ngx_http_variable_value_t *v, uintptr_t data)
+{
     size_t                      size;
     u_char                      *p, *last;
     ngx_buf_t                   *header_in;
@@ -193,9 +203,11 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
     return NGX_OK;
 }
 
+
 ngx_int_t
 ngx_http_echo_cacheable_request_uri_variable(ngx_http_request_t *r,
-        ngx_http_variable_value_t *v, uintptr_t data) {
+        ngx_http_variable_value_t *v, uintptr_t data)
+{
     if (r->uri.len) {
         v->len = r->uri.len;
         v->valid = 1;
@@ -209,9 +221,11 @@ ngx_http_echo_cacheable_request_uri_variable(ngx_http_request_t *r,
     return NGX_OK;
 }
 
+
 ngx_int_t
 ngx_http_echo_request_uri_variable(ngx_http_request_t *r,
-        ngx_http_variable_value_t *v, uintptr_t data) {
+        ngx_http_variable_value_t *v, uintptr_t data)
+{
     if (r->uri.len) {
         v->len = r->uri.len;
         v->valid = 1;
@@ -225,9 +239,11 @@ ngx_http_echo_request_uri_variable(ngx_http_request_t *r,
     return NGX_OK;
 }
 
+
 ngx_int_t
 ngx_http_echo_response_status_variable(ngx_http_request_t *r,
-        ngx_http_variable_value_t *v, uintptr_t data) {
+        ngx_http_variable_value_t *v, uintptr_t data)
+{
     u_char                      *p;
 
     if (r->headers_out.status) {

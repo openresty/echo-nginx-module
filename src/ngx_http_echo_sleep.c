@@ -11,10 +11,12 @@
 
 static void ngx_http_echo_post_sleep(ngx_http_request_t *r);
 
+
 ngx_int_t
 ngx_http_echo_exec_echo_sleep(
         ngx_http_request_t *r, ngx_http_echo_ctx_t *ctx,
-        ngx_array_t *computed_args) {
+        ngx_array_t *computed_args)
+{
     ngx_str_t                   *computed_arg;
     ngx_str_t                   *computed_arg_elts;
     float                       delay; /* in sec */
@@ -44,8 +46,10 @@ ngx_http_echo_exec_echo_sleep(
     return NGX_DONE;
 }
 
+
 static void
-ngx_http_echo_post_sleep(ngx_http_request_t *r) {
+ngx_http_echo_post_sleep(ngx_http_request_t *r)
+{
     ngx_http_echo_ctx_t         *ctx;
     ngx_int_t                   rc;
 
@@ -94,8 +98,10 @@ ngx_http_echo_post_sleep(ngx_http_request_t *r) {
     ngx_http_finalize_request(r, rc);
 }
 
+
 void
-ngx_http_echo_sleep_event_handler(ngx_event_t *ev) {
+ngx_http_echo_sleep_event_handler(ngx_event_t *ev)
+{
     ngx_connection_t        *c;
     ngx_http_request_t      *r;
     ngx_http_log_ctx_t      *ctx;
@@ -131,9 +137,11 @@ ngx_http_echo_sleep_event_handler(ngx_event_t *ev) {
 
 }
 
+
 ngx_int_t
 ngx_http_echo_exec_echo_blocking_sleep(ngx_http_request_t *r,
-        ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args) {
+        ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args)
+{
     ngx_str_t                   *computed_arg;
     ngx_str_t                   *computed_arg_elts;
     float                       delay; /* in sec */

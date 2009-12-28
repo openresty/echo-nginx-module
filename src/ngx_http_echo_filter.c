@@ -23,7 +23,8 @@ static ngx_int_t ngx_http_echo_exec_filter_cmds(ngx_http_request_t *r,
 
 
 ngx_int_t
-ngx_http_echo_filter_init (ngx_conf_t *cf) {
+ngx_http_echo_filter_init (ngx_conf_t *cf)
+{
     if (ngx_http_echo_filter_used) {
         dd("top header filter: %ld", (unsigned long) ngx_http_top_header_filter);
         ngx_http_next_header_filter = ngx_http_top_header_filter;
@@ -37,9 +38,10 @@ ngx_http_echo_filter_init (ngx_conf_t *cf) {
     return NGX_OK;
 }
 
- 
+
 static ngx_int_t
-ngx_http_echo_header_filter(ngx_http_request_t *r) {
+ngx_http_echo_header_filter(ngx_http_request_t *r)
+{
     ngx_http_echo_loc_conf_t    *conf;
     ngx_http_echo_ctx_t         *ctx;
     ngx_int_t                   rc;
@@ -85,7 +87,8 @@ ngx_http_echo_header_filter(ngx_http_request_t *r) {
 
 
 static ngx_int_t
-ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in) {
+ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
+{
     ngx_http_echo_ctx_t         *ctx;
     ngx_int_t                   rc;
     ngx_http_echo_loc_conf_t    *conf;
@@ -158,7 +161,8 @@ ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in) {
 static ngx_int_t
 ngx_http_echo_exec_filter_cmds(ngx_http_request_t *r,
         ngx_http_echo_ctx_t *ctx, ngx_array_t *cmds,
-        ngx_uint_t *iterator) {
+        ngx_uint_t *iterator)
+{
     ngx_int_t                   rc;
     ngx_array_t                 *computed_args = NULL;
     ngx_http_echo_cmd_t         *cmd;

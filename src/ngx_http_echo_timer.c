@@ -9,7 +9,8 @@
 
 ngx_int_t
 ngx_http_echo_timer_elapsed_variable(ngx_http_request_t *r,
-        ngx_http_variable_value_t *v, uintptr_t data) {
+        ngx_http_variable_value_t *v, uintptr_t data)
+{
     ngx_http_echo_ctx_t     *ctx;
     ngx_msec_int_t          ms;
     u_char                  *p;
@@ -45,9 +46,11 @@ ngx_http_echo_timer_elapsed_variable(ngx_http_request_t *r,
     return NGX_OK;
 }
 
+
 ngx_int_t
 ngx_http_echo_exec_echo_reset_timer(ngx_http_request_t *r,
-        ngx_http_echo_ctx_t *ctx) {
+        ngx_http_echo_ctx_t *ctx)
+{
     dd("Exec timer...");
     ngx_time_update(0, 0); /* force the ngx timer to update */
 

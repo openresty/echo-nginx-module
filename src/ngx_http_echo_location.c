@@ -15,7 +15,8 @@ static ngx_int_t ngx_http_echo_post_subrequest(ngx_http_request_t *r,
 
 ngx_int_t
 ngx_http_echo_exec_echo_location_async(ngx_http_request_t *r,
-        ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args) {
+        ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args)
+{
     ngx_int_t                   rc;
     ngx_http_request_t          *sr; /* subrequest object */
     ngx_str_t                   *computed_arg_elts;
@@ -73,7 +74,8 @@ ngx_http_echo_exec_echo_location_async(ngx_http_request_t *r,
 
 ngx_int_t
 ngx_http_echo_exec_echo_location(ngx_http_request_t *r,
-        ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args) {
+        ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args)
+{
     ngx_int_t                           rc;
     ngx_http_request_t                  *sr; /* subrequest object */
     ngx_str_t                           *computed_arg_elts;
@@ -137,7 +139,8 @@ ngx_http_echo_exec_echo_location(ngx_http_request_t *r,
 
 static ngx_int_t
 ngx_http_echo_post_subrequest(ngx_http_request_t *r,
-        void *data, ngx_int_t rc) {
+        void *data, ngx_int_t rc)
+{
     ngx_http_echo_ctx_t         *ctx;
     ngx_int_t                   parent_rc;
 
@@ -154,7 +157,8 @@ ngx_http_echo_post_subrequest(ngx_http_request_t *r,
 
 
 static ngx_int_t
-ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr) {
+ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr)
+{
     ngx_http_core_main_conf_t  *cmcf;
 
     /* we do not inherit the parent request's variables */
