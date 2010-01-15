@@ -154,3 +154,20 @@ this reveals a bug in v0.19 and the bug is fixed in v0.20.
 --- response_body_like
 done
 
+
+
+=== TEST 11: abnormally quit
+--- config
+    location /quit {
+        echo before;
+        echo_flush;
+        echo_sleep 5;
+        echo after;
+    }
+--- request
+    GET /quit
+--- response_body
+before
+--- timeout: 1
+--- SKIP
+

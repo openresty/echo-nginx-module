@@ -1,3 +1,5 @@
+/* Copyright (C) agentzh */
+
 #define DDEBUG 0
 #include "ddebug.h"
 
@@ -11,6 +13,8 @@
 
 static void ngx_http_echo_post_sleep(ngx_http_request_t *r);
 
+static void ngx_http_echo_sleep_cleanup(void *data);
+
 
 ngx_int_t
 ngx_http_echo_exec_echo_sleep(
@@ -19,7 +23,8 @@ ngx_http_echo_exec_echo_sleep(
 {
     ngx_str_t                   *computed_arg;
     ngx_str_t                   *computed_arg_elts;
-    float                       delay; /* in sec */
+    float                        delay; /* in sec */
+    ngx_http_cleanup_t          *cln;
 
     computed_arg_elts = computed_args->elts;
     computed_arg = &computed_arg_elts[0];
@@ -42,6 +47,21 @@ ngx_http_echo_exec_echo_sleep(
 #endif
 
     ngx_add_timer(&ctx->sleep, (ngx_msec_t) (1000 * delay));
+
+    /* we don't check broken downstream connections
+     * ourselves so even if the client shuts down
+     * the connection prematurely, nginx will still
+     * go on waiting for our timers to get properly
+     * expired. However, we'd still register a
+     * cleanup handler for completeness. */
+
+    cln = ngx_http_cleanup_add(r, 0);
+    if (cln == NULL) {
+        return NGX_ERROR;
+    }
+
+    cln->handler = ngx_http_echo_sleep_cleanup;
+    cln->data = r;
 
     return NGX_DONE;
 }
@@ -77,7 +97,6 @@ ngx_http_echo_post_sleep(ngx_http_request_t *r)
 
     if (ctx->sleep.timer_set) {
         dd("deleting timer for echo_sleep");
-        dd("timer for echo_sleep deleted");
 
         ngx_del_timer(&ctx->sleep);
     }
@@ -160,5 +179,29 @@ ngx_http_echo_exec_echo_blocking_sleep(ngx_http_request_t *r,
     ngx_msleep((ngx_msec_t) (1000 * delay));
 
     return NGX_OK;
+}
+
+
+static void
+ngx_http_echo_sleep_cleanup(void *data)
+{
+    ngx_http_request_t      *r = data;
+    ngx_http_echo_ctx_t         *ctx;
+
+    dd("echo sleep cleanup");
+
+    ctx = ngx_http_get_module_ctx(r, ngx_http_echo_module);
+    if (ctx == NULL) {
+        return;
+    }
+
+    if (ctx->sleep.timer_set) {
+        dd("cleanup: deleting timer for echo_sleep");
+
+        ngx_del_timer(&ctx->sleep);
+        return;
+    }
+
+    dd("cleanup: timer not set");
 }
 

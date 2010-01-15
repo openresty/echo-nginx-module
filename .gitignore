@@ -51,3 +51,4 @@ src/subrequest.c
 src/handler.h
 src/foreach.h
 src/handler.c
+nginx
