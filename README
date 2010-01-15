@@ -6,9 +6,9 @@ Name
     installation instructions.
 
 Version
-    This document describes echo-nginx-module v0.24
+    This document describes echo-nginx-module v0.25
     (<http://github.com/agentzh/echo-nginx-module/downloads>) released on
-    Dec 28, 2009.
+    Jan 15, 2010.
 
 Synopsis
       location /hello {
@@ -1261,7 +1261,7 @@ Installation
 Compatibility
     The following versions of Nginx should work with this module:
 
-    *   0.8.x (last tested version is 0.8.31)
+    *   0.8.x (last tested version is 0.8.32)
 
     *   0.7.x >= 0.7.21 (last tested version is 0.7.64)
 
@@ -1315,6 +1315,15 @@ Source Repository
     (<http://github.com/agentzh/echo-nginx-module>).
 
 ChangeLog
+  v0.25
+    *   now we register a request cleanup handler to ensure our sleep
+        event's timer will always get properly deleted even if the request
+        is quit prematurely. this affects the echo_sleep directive.
+
+    *   use ngx_null_string whenever possible in the source.
+
+    *   sync'd the bundled test scaffold to Test::Nginx 0.07.
+
   v0.24
     *   various source file name and coding style fixes. (the code now looks
         more like Igor Sysoev's.)

@@ -6,7 +6,7 @@
 
 = Version =
 
-This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/downloads v0.24] released on Dec 28, 2009.
+This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/downloads v0.25] released on Jan 15, 2010.
 
 = Synopsis =
 
@@ -572,9 +572,9 @@ Accessing <code>/main</code> yields
   world
   took 0.000 sec for total.
   
-  real	0m2.006s
-  user	0m0.000s
-  sys	0m0.004s
+  real  0m2.006s
+  user  0m0.000s
+  sys   0m0.004s
 </geshi>
 
 You can see that the main handler <code>/main</code> does ''not'' wait the subrequests <code>/sub1</code> and <code>/sub2</code> to complete and quickly goes on, hence the "0.000 sec" timing result. The whole request, however takes approximately 2 sec in total to complete because <code>/sub1</code> and <code>/sub2</code> run in parallel (or "concurrently" to be more accurate).
@@ -658,9 +658,9 @@ The location <code>/main</code> above will take for total 3 sec to complete (com
   world
   took 3.003 sec for total.
   
-  real	0m3.027s
-  user	0m0.020s
-  sys	0m0.004s
+  real  0m3.027s
+  user  0m0.020s
+  sys   0m0.004s
 
 This directive is logically equivalent to the GET version of [[#echo_subrequest|echo_subrequest]]. For example,
 
@@ -1180,7 +1180,7 @@ Download the latest version of the release tarball of this module from [http://g
 
 The following versions of Nginx should work with this module:
 
-* '''0.8.x'''                       (last tested version is 0.8.31)
+* '''0.8.x'''                       (last tested version is 0.8.32)
 * '''0.7.x >= 0.7.21'''             (last tested version is 0.7.64)
 
 In particular,
@@ -1216,6 +1216,12 @@ Although a lot of effort has been put into testing and code tuning, there must b
 Available on github at [http://github.com/agentzh/echo-nginx-module agentzh/echo-nginx-module].
 
 = ChangeLog =
+
+== v0.25 ==
+
+* now we register a request cleanup handler to ensure our sleep event's timer will always get properly deleted even if the request is quit prematurely. this affects the echo_sleep directive.
+* use ngx_null_string whenever possible in the source.
+* sync'd the bundled test scaffold to Test::Nginx 0.07.
 
 == v0.24 ==
 
