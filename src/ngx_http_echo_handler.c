@@ -85,7 +85,8 @@ ngx_http_echo_handler(ngx_http_request_t *r)
             /* XXX moved the following code to a separate
              * function */
             dd("found echo opcode");
-            rc = ngx_http_echo_exec_echo(r, ctx, computed_args);
+            rc = ngx_http_echo_exec_echo(r, ctx, computed_args,
+                    0 /* in filter */);
             if (rc != NGX_OK) {
                 return rc;
             }

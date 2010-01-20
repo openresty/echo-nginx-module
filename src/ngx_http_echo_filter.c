@@ -9,9 +9,9 @@
 
 ngx_flag_t ngx_http_echo_filter_used = 0;
 
-static ngx_http_output_header_filter_pt ngx_http_next_header_filter;
+ngx_http_output_header_filter_pt ngx_http_echo_next_header_filter;
 
-static ngx_http_output_body_filter_pt ngx_http_next_body_filter;
+ngx_http_output_body_filter_pt ngx_http_echo_next_body_filter;
 
 static ngx_int_t ngx_http_echo_header_filter(ngx_http_request_t *r);
 
@@ -27,11 +27,11 @@ ngx_http_echo_filter_init (ngx_conf_t *cf)
 {
     if (ngx_http_echo_filter_used) {
         dd("top header filter: %ld", (unsigned long) ngx_http_top_header_filter);
-        ngx_http_next_header_filter = ngx_http_top_header_filter;
+        ngx_http_echo_next_header_filter = ngx_http_top_header_filter;
         ngx_http_top_header_filter  = ngx_http_echo_header_filter;
 
         dd("top body filter: %ld", (unsigned long) ngx_http_top_body_filter);
-        ngx_http_next_body_filter = ngx_http_top_body_filter;
+        ngx_http_echo_next_body_filter = ngx_http_top_body_filter;
         ngx_http_top_body_filter  = ngx_http_echo_body_filter;
     }
 
@@ -57,7 +57,7 @@ ngx_http_echo_header_filter(ngx_http_request_t *r)
         if (ctx != NULL) {
             ctx->skip_filter = 1;
         }
-        return ngx_http_next_header_filter(r);
+        return ngx_http_echo_next_header_filter(r);
     }
     */
 
@@ -66,7 +66,7 @@ ngx_http_echo_header_filter(ngx_http_request_t *r)
         if (ctx != NULL) {
             ctx->skip_filter = 1;
         }
-        return ngx_http_next_header_filter(r);
+        return ngx_http_echo_next_header_filter(r);
     }
 
     if (ctx == NULL) {
@@ -82,7 +82,7 @@ ngx_http_echo_header_filter(ngx_http_request_t *r)
     ngx_http_clear_content_length(r);
     ngx_http_clear_accept_ranges(r);
 
-    return ngx_http_next_header_filter(r);
+    return ngx_http_echo_next_header_filter(r);
 }
 
 
@@ -90,19 +90,20 @@ static ngx_int_t
 ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
 {
     ngx_http_echo_ctx_t         *ctx;
-    ngx_int_t                   rc;
+    ngx_int_t                    rc;
     ngx_http_echo_loc_conf_t    *conf;
-    ngx_flag_t                  last;
+    ngx_flag_t                   last;
     ngx_chain_t                 *cl;
+    ngx_buf_t                   *buf;
 
     if (in == NULL || r->header_only) {
-        return ngx_http_next_body_filter(r, in);
+        return ngx_http_echo_next_body_filter(r, in);
     }
 
     ctx = ngx_http_get_module_ctx(r, ngx_http_echo_module);
 
     if (ctx == NULL || ctx->skip_filter) {
-        return ngx_http_next_body_filter(r, in);
+        return ngx_http_echo_next_body_filter(r, in);
     }
 
     conf = ngx_http_get_module_loc_conf(r, ngx_http_echo_module);
@@ -121,7 +122,7 @@ ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
 
     if (conf->after_body_cmds == NULL) {
         ctx->skip_filter = 1;
-        return ngx_http_next_body_filter(r, in);
+        return ngx_http_echo_next_body_filter(r, in);
     }
 
     last = 0;
@@ -137,7 +138,7 @@ ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
         }
     }
 
-    rc = ngx_http_next_body_filter(r, in);
+    rc = ngx_http_echo_next_body_filter(r, in);
 
     if (rc == NGX_ERROR || !last) {
         return rc;
@@ -154,7 +155,24 @@ ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
 
     dd("after body cmds executed...terminating...");
 
-    return ngx_http_send_special(r, NGX_HTTP_LAST);
+    /* XXX we can NOT use
+     * ngx_http_send_special(r, NGX_HTTP_LAST) here
+     * because we should bypass the upstream filters. */
+    if (r != r->main) {
+        return NGX_OK;
+    }
+
+    buf = ngx_alloc_buf(r->pool);
+    buf->last_buf = 1;
+
+    cl = ngx_alloc_chain_link(r->pool);
+    if (cl == NULL) {
+        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+    }
+    cl->next = NULL;
+    cl->buf = buf;
+
+    return ngx_http_echo_next_body_filter(r, cl);
 }
 
 
@@ -193,7 +211,8 @@ ngx_http_echo_exec_filter_cmds(ngx_http_request_t *r,
             case echo_opcode_echo_before_body:
             case echo_opcode_echo_after_body:
                 dd("exec echo_before_body or echo_after_body...");
-                rc = ngx_http_echo_exec_echo(r, ctx, computed_args);
+                rc = ngx_http_echo_exec_echo(r, ctx, computed_args,
+                        1 /* in filter */);
                 if (rc != NGX_OK) {
                     return rc;
                 }

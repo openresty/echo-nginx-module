@@ -3,7 +3,7 @@
 use lib 'lib';
 use Test::Nginx::LWP;
 
-plan tests => $Test::Nginx::LWP::RepeatEach * 2 * blocks();
+plan tests => repeat_each() * 2 * blocks();
 
 run_tests();
 
