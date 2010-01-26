@@ -6,9 +6,9 @@ Name
     installation instructions.
 
 Version
-    This document describes echo-nginx-module v0.25
+    This document describes echo-nginx-module v0.26
     (<http://github.com/agentzh/echo-nginx-module/downloads>) released on
-    Jan 15, 2010.
+    Jan 26, 2010.
 
 Synopsis
       location /hello {
@@ -1315,6 +1315,11 @@ Source Repository
     (<http://github.com/agentzh/echo-nginx-module>).
 
 ChangeLog
+  v0.26
+    *   bug fix: we should bypass upstream filters in our echo filters. an
+        output filter should ever call ngx_http_output_filter nor
+        ngx_http_send_special.
+
   v0.25
     *   now we register a request cleanup handler to ensure our sleep
         event's timer will always get properly deleted even if the request
