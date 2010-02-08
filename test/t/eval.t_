@@ -1,0 +1,108 @@
+# vi:filetype=perl
+
+use lib 'lib';
+use Test::Nginx::Socket;
+
+plan tests => repeat_each() * 2 * blocks();
+
+run_tests();
+
+__DATA__
+
+=== TEST 1: eval
+--- config
+    location /echo {
+        eval_subrequest_in_memory off;
+        eval $a {
+            echo_before_body BEFORE;
+            proxy_pass $scheme://127.0.0.1:$server_port/hi;
+        }
+        echo '!!! [$a]';
+    }
+    location /hi {
+        echo hi;
+    }
+--- request
+GET /echo
+--- response_body
+!!! [BEFORE
+hi]
+
+
+
+=== TEST 2: eval
+--- config
+    location /echo {
+        eval_subrequest_in_memory off;
+        eval $a {
+            default_type 'application/x-www-form-urlencoded';
+            echo_before_body a=32;
+            echo howdy;
+        }
+        echo '!!! [$a]';
+    }
+--- request
+GET /echo
+--- response_body
+!!! [32]
+
+
+
+=== TEST 3: eval with subrequest in memory
+--- config
+    location /echo {
+        eval_subrequest_in_memory on;
+        eval $a {
+            echo_before_body BEFORE;
+            proxy_pass $scheme://127.0.0.1:$server_port/hi;
+        }
+        echo '!!! [$a]';
+    }
+    location /hi {
+        echo hi;
+    }
+--- request
+GET /echo
+--- response_body
+!!! [hi]
+
+
+
+=== TEST 4: eval with subrequest in memory
+--- config
+    location /echo {
+        eval $a {
+            echo_before_body BEFORE;
+            proxy_pass $scheme://127.0.0.1:$server_port/hi;
+        }
+        echo '!!! [$a]';
+    }
+    location /hi {
+        echo hi;
+    }
+--- request
+GET /echo
+--- response_body
+!!! [hi]
+
+
+
+=== TEST 5: eval with explicit buffer size
+--- config
+    location /echo {
+        eval_subrequest_in_memory off;
+        eval_buffer_size 3;
+        eval $a {
+            echo_before_body BEFORE;
+            proxy_pass $scheme://127.0.0.1:$server_port/hi;
+        }
+        echo '!!! [$a]';
+    }
+    location /hi {
+        echo hi;
+    }
+--- request
+GET /echo
+--- response_body
+!!! [BEF]
+
