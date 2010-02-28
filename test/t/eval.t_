@@ -5,6 +5,8 @@ use Test::Nginx::Socket;
 
 plan tests => repeat_each() * 2 * blocks();
 
+no_long_string();
+
 run_tests();
 
 __DATA__
@@ -105,4 +107,32 @@ GET /echo
 GET /echo
 --- response_body
 !!! [BEF]
+
+
+=== TEST 6: eval + exec bug
+--- config
+   location /test
+   {
+     echo_exec /initialize;
+   }
+
+   location /initialize
+   {
+     internal;
+     eval_override_content_type 'text/plain';
+
+     eval $id
+     {
+       #rewrite ^(.*)$ /id;
+       proxy_pass http://127.0.0.1:$server_port/id;
+     }
+     echo $id;
+   }
+   location /id {
+        echo hi;
+   }
+--- request
+GET /test
+--- response_body
+--- SKIP
 
