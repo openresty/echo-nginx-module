@@ -109,6 +109,7 @@ GET /echo
 !!! [BEF]
 
 
+
 === TEST 6: eval + exec bug
 --- config
    location /test
@@ -135,4 +136,20 @@ GET /echo
 GET /test
 --- response_body
 --- SKIP
+
+
+
+=== TEST 7: inherit parent request's query_string
+--- config
+    location /eval {
+        eval_subrequest_in_memory off;
+        eval $a {
+            echo $arg_user;
+        }
+        echo '[$a]';
+    }
+--- request
+GET /eval?user=howdy
+--- response_body
+[howdy]
 
