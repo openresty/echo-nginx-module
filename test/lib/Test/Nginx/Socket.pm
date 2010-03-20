@@ -38,6 +38,7 @@ use Test::Nginx::Util qw(
     workers
     master_on
     log_level
+    no_shuffle
 );
 
 #use Smart::Comments::JSON '###';
@@ -53,7 +54,7 @@ our @EXPORT = qw( plan run_tests run_test
     repeat_each config_preamble worker_connections
     master_process_enabled
     no_long_string workers master_on
-    log_level);
+    log_level no_shuffle);
 
 sub send_request ($$$);
 

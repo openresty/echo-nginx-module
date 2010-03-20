@@ -153,3 +153,25 @@ GET /eval?user=howdy
 --- response_body
 [howdy]
 
+
+=== TEST 8: eval in subrequests
+--- config
+    location /foo {
+        add_before_body /bah;
+        #echo_location_async /bah;
+        echo done;
+    }
+    location /bah {
+        eval $foo {
+            proxy_pass $scheme://127.0.0.1:$server_port/baz;
+        }
+        echo [$foo];
+    }
+    location /baz {
+        echo baz;
+    }
+--- request
+    GET /foo
+--- response_body
+--- ONLY
+

@@ -20,6 +20,12 @@ our $Profiling = 0;
 our $RepeatEach = 1;
 our $MAX_PROCESSES = 10;
 
+our $NoShuffle = 0;
+
+sub no_shuffle () {
+    $NoShuffle = 1;
+}
+
 our $ForkManager;
 
 if ($Profiling) {
@@ -110,6 +116,7 @@ our @EXPORT_OK = qw(
     repeat_each
     master_process_enabled
     log_level
+    no_shuffle
 );
 
 
@@ -148,7 +155,7 @@ sub run_tests () {
         #warn "[INFO] Using nginx version $NginxVersion ($NginxRawVersion)\n";
     }
 
-    for my $block (shuffle Test::Base::blocks()) {
+    for my $block ($NoShuffle ? Test::Base::blocks() : shuffle Test::Base::blocks()) {
         #for (1..3) {
             run_test($block);
         #}
@@ -213,7 +220,7 @@ http {
     default_type text/plain;
     keepalive_timeout  68;
 
-    $http_config
+$http_config
 
     server {
         listen          $ServerPort;
