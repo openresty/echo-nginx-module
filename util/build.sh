@@ -15,11 +15,17 @@ if [[ "$BUILD_CLEAN" -eq 1 || ! -f Makefile \
         || "$root/util/build.sh" -nt Makefile ]]; then
     ./configure --prefix=/opt/nginx \
           --with-http_addition_module \
-          --add-module=$root $opts #\
+          --add-module=$root/../ndk-nginx-module \
+          --add-module=$root/../set-misc-nginx-module \
+          --add-module=$root/../lz-session-nginx-module \
+          --add-module=$root/../eval-nginx-module \
+          --add-module=$root/../xss-nginx-module \
+          --add-module=$root/../rds-json-nginx-module \
+          --add-module=$root/../headers-more-nginx-module \
+          --add-module=$root $opts \
+          --with-debug
           #--add-module=$home/work/ndk \
           #--add-module=$home/work/ndk/examples/http/set_var \
-          #--add-module=$root/../valery/eval-nginx-module #\
-          #--with-debug \
           #--add-module=$root/../eval-nginx-module \
           #--add-module=/home/agentz/work/nginx_eval_module-1.0.1 \
   #--without-http_ssi_module  # we cannot disable ssi because echo_location_async depends on it (i dunno why?!)
