@@ -6,7 +6,7 @@
 
 = Version =
 
-This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/downloads v0.26] released on Jan 26, 2010.
+This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/downloads v0.27] released on April 2, 2010.
 
 = Synopsis =
 
@@ -1180,8 +1180,8 @@ Download the latest version of the release tarball of this module from [http://g
 
 The following versions of Nginx should work with this module:
 
-* '''0.8.x'''                       (last tested version is 0.8.32)
-* '''0.7.x >= 0.7.21'''             (last tested version is 0.7.64)
+* '''0.8.x'''                       (last tested version is 0.8.35)
+* '''0.7.x >= 0.7.21'''             (last tested version is 0.7.65)
 
 In particular,
 
@@ -1217,9 +1217,13 @@ Available on github at [http://github.com/agentzh/echo-nginx-module agentzh/echo
 
 = ChangeLog =
 
+== v0.27 ==
+
+* applied the patch from Sergey A. Osokin to work with nginx 0.8.35.
+
 == v0.26 ==
 
-* bug fix: we should bypass upstream filters in our echo filters. an output filter should ever call ngx_http_output_filter nor ngx_http_send_special.
+* bug fix: we should bypass upstream filters in our echo filters. an output filter should ever call <code>ngx_http_output_filter</code> nor <code>ngx_http_send_special</code>.
 
 == v0.25 ==
 

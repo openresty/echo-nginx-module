@@ -6,9 +6,9 @@ Name
     installation instructions.
 
 Version
-    This document describes echo-nginx-module v0.26
+    This document describes echo-nginx-module v0.27
     (<http://github.com/agentzh/echo-nginx-module/downloads>) released on
-    Jan 26, 2010.
+    April 2, 2010.
 
 Synopsis
       location /hello {
@@ -1261,9 +1261,9 @@ Installation
 Compatibility
     The following versions of Nginx should work with this module:
 
-    *   0.8.x (last tested version is 0.8.32)
+    *   0.8.x (last tested version is 0.8.35)
 
-    *   0.7.x >= 0.7.21 (last tested version is 0.7.64)
+    *   0.7.x >= 0.7.21 (last tested version is 0.7.65)
 
     In particular,
 
@@ -1315,10 +1315,13 @@ Source Repository
     (<http://github.com/agentzh/echo-nginx-module>).
 
 ChangeLog
+  v0.27
+    *   applied the patch from Sergey A. Osokin to work with nginx 0.8.35.
+
   v0.26
     *   bug fix: we should bypass upstream filters in our echo filters. an
-        output filter should ever call ngx_http_output_filter nor
-        ngx_http_send_special.
+        output filter should ever call "ngx_http_output_filter" nor
+        "ngx_http_send_special".
 
   v0.25
     *   now we register a request cleanup handler to ensure our sleep
