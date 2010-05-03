@@ -154,3 +154,123 @@ status: 404
 --- response_body_like
 ^status: 403.*?status: 500.*$
 
+
+
+=== TEST 10: echo -n
+--- config
+    location /echo {
+        echo_before_body -n hello;
+        echo_before_body -n world;
+        echo ==;
+    }
+--- request
+    GET /echo
+--- response_body
+helloworld==
+
+
+
+=== TEST 11: echo a -n
+--- config
+    location /echo {
+        echo_before_body a -n hello;
+        echo_before_body b -n world;
+        echo ==;
+    }
+--- request
+    GET /echo
+--- response_body
+a -n hello
+b -n world
+==
+
+
+
+=== TEST 12: -n in a var
+--- config
+    location /echo {
+        set $opt -n;
+        echo_before_body $opt hello;
+        echo_before_body $opt world;
+        echo ==;
+    }
+--- request
+    GET /echo
+--- response_body
+-n hello
+-n world
+==
+
+
+
+=== TEST 13: -n only
+--- config
+    location /echo {
+        echo_before_body -n;
+        echo_before_body -n;
+        echo ==;
+    }
+--- request
+    GET /echo
+--- response_body
+==
+
+
+
+=== TEST 14: -n with an empty string
+--- config
+    location /echo {
+        echo_before_body -n "";
+        set $empty "";
+        echo_before_body -n $empty;
+        echo ==;
+    }
+--- request
+    GET /echo
+--- response_body
+==
+
+
+
+=== TEST 15: -- -n
+--- config
+    location /echo {
+        echo_before_body -- -n hello;
+        echo_before_body -- -n world;
+        echo ==;
+    }
+--- request
+    GET /echo
+--- response_body
+-n hello
+-n world
+==
+
+
+
+=== TEST 16: -n -n
+--- config
+    location /echo {
+        echo_before_body -n -n hello;
+        echo_before_body -n -n world;
+        echo ==;
+    }
+--- request
+    GET /echo
+--- response_body
+helloworld==
+
+
+
+=== TEST 17: -n -- -n
+--- config
+    location /echo {
+        echo_before_body -n -- -n hello;
+        echo_before_body -n -- -n world;
+        echo ==;
+    }
+--- request
+    GET /echo
+--- response_body
+-n hello-n world==
+
