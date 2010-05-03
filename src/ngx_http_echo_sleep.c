@@ -39,13 +39,6 @@ ngx_http_echo_exec_echo_sleep(
 
     dd("DELAY = %.02lf sec", delay);
 
-#if defined(nginx_version) && nginx_version >= 8011
-
-    r->main->count++;
-    dd("<> request main count : %u", r->main->count);
-
-#endif
-
     ngx_add_timer(&ctx->sleep, (ngx_msec_t) (1000 * delay));
 
     /* we don't check broken downstream connections
@@ -63,7 +56,7 @@ ngx_http_echo_exec_echo_sleep(
     cln->handler = ngx_http_echo_sleep_cleanup;
     cln->data = r;
 
-    return NGX_DONE;
+    return NGX_AGAIN;
 }
 
 
@@ -71,7 +64,7 @@ static void
 ngx_http_echo_post_sleep(ngx_http_request_t *r)
 {
     ngx_http_echo_ctx_t         *ctx;
-    ngx_int_t                   rc;
+    ngx_int_t                    rc;
 
     dd("entered echo post sleep...(r->done: %d)", r->done);
 
@@ -87,10 +80,12 @@ ngx_http_echo_post_sleep(ngx_http_request_t *r)
 
     dd("timed out? %d", ctx->sleep.timedout);
     dd("timer set? %d", ctx->sleep.timer_set);
+
     if ( ! ctx->sleep.timedout ) {
         dd("HERE reached!");
         return;
     }
+
     ctx->sleep.timedout = 0;
 
     ctx->next_handler_cmd++;
@@ -101,20 +96,11 @@ ngx_http_echo_post_sleep(ngx_http_request_t *r)
         ngx_del_timer(&ctx->sleep);
     }
 
-    rc = ngx_http_echo_handler(r);
+    rc = ngx_http_echo_run_cmds(r);
 
-#if defined(nginx_version) && nginx_version >= 8011
-
-    /*
-    if (rc == NGX_OK) {
-        r->main->count--;
-        dd("<> request main count : %u", r->main->count);
+    if (rc != NGX_AGAIN && rc != NGX_DONE) {
+        ngx_http_finalize_request(r, rc);
     }
-    */
-
-#endif
-
-    ngx_http_finalize_request(r, rc);
 }
 
 
@@ -127,6 +113,11 @@ ngx_http_echo_sleep_event_handler(ngx_event_t *ev)
 
     r = ev->data;
     c = r->connection;
+
+    if (c->destroyed) {
+        return;
+    }
+
     ctx = c->log->data;
     ctx->current_request = r;
 

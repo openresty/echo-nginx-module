@@ -195,6 +195,7 @@ ngx_http_echo_exec_echo_request_body(ngx_http_request_t *r, ngx_http_echo_ctx_t 
     if (r->request_body && r->request_body->bufs) {
         return ngx_http_echo_send_chain_link(r, ctx, r->request_body->bufs);
     }
+
     return NGX_OK;
 }
 

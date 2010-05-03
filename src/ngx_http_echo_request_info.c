@@ -1,4 +1,4 @@
-#define DDEBUG 0
+#define DDEBUG 1
 #include "ddebug.h"
 
 #include "ngx_http_echo_request_info.h"
@@ -11,14 +11,9 @@ static void ngx_http_echo_post_read_request_body(ngx_http_request_t *r);
 
 ngx_int_t
 ngx_http_echo_exec_echo_read_request_body(
-        ngx_http_request_t* r, ngx_http_echo_ctx_t *ctx) {
-    ngx_int_t           rc;
-
-    rc = ngx_http_read_client_request_body(r, ngx_http_echo_post_read_request_body);
-    if (rc >= NGX_HTTP_SPECIAL_RESPONSE) {
-        return rc;
-    }
-    return NGX_DONE;
+        ngx_http_request_t* r, ngx_http_echo_ctx_t *ctx)
+{
+    return ngx_http_read_client_request_body(r, ngx_http_echo_post_read_request_body);
 }
 
 
@@ -26,15 +21,26 @@ static void
 ngx_http_echo_post_read_request_body(ngx_http_request_t *r)
 {
     ngx_http_echo_ctx_t         *ctx;
+    ngx_int_t                    rc;
 
     ctx = ngx_http_get_module_ctx(r, ngx_http_echo_module);
+
     if (ctx == NULL) {
         return ngx_http_finalize_request(r, NGX_HTTP_INTERNAL_SERVER_ERROR);
     }
 
-    ctx->next_handler_cmd++;
+    dd("wait read request body %d", (int) ctx->wait_read_request_body);
 
-    ngx_http_finalize_request(r, ngx_http_echo_handler(r));
+    if (ctx->wait_read_request_body) {
+
+        ctx->next_handler_cmd++;
+
+        rc = ngx_http_echo_run_cmds(r);
+
+        if (rc != NGX_AGAIN && rc != NGX_DONE) {
+            ngx_http_finalize_request(r, rc);
+        }
+    }
 }
 
 
@@ -247,7 +253,7 @@ ngx_http_echo_response_status_variable(ngx_http_request_t *r,
     u_char                      *p;
 
     if (r->headers_out.status) {
-        dd("headers out status: %u", r->headers_out.status);
+        dd("headers out status: %d", (int) r->headers_out.status);
 
         p = ngx_palloc(r->pool, NGX_INT_T_LEN);
         if (p == NULL) {

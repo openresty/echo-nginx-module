@@ -1,4 +1,4 @@
-#define DDEBUG 0
+#define DDEBUG 1
 
 #include "ddebug.h"
 
@@ -33,6 +33,33 @@ ngx_http_echo_handler_init(ngx_conf_t *cf)
 ngx_int_t
 ngx_http_echo_handler(ngx_http_request_t *r)
 {
+    ngx_int_t           rc;
+
+    rc = ngx_http_echo_run_cmds(r);
+
+    if (rc == NGX_ERROR) {
+        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+    }
+
+    if (rc >= NGX_HTTP_SPECIAL_RESPONSE) {
+        return rc;
+    }
+
+    if (rc == NGX_AGAIN || rc == NGX_DONE) {
+#if defined(nginx_version) && nginx_version >= 8011
+        r->main->count++;
+#endif
+
+        return NGX_DONE;
+    }
+
+    return NGX_OK;
+}
+
+
+ngx_int_t
+ngx_http_echo_run_cmds(ngx_http_request_t *r)
+{
     ngx_http_echo_loc_conf_t    *elcf;
     ngx_http_echo_ctx_t         *ctx;
     ngx_int_t                    rc;
@@ -58,9 +85,11 @@ ngx_http_echo_handler(ngx_http_request_t *r)
         ngx_http_set_ctx(r, ctx, ngx_http_echo_module);
     }
 
-    dd("exec handler: %s: %u", r->uri.data, ctx->next_handler_cmd);
+    dd("exec handler: %.*s: %i", (int) r->uri.len, r->uri.data,
+            (int) ctx->next_handler_cmd);
 
     cmd_elts = cmds->elts;
+
     for (; ctx->next_handler_cmd < cmds->nelts; ctx->next_handler_cmd++) {
 
         cmd = &cmd_elts[ctx->next_handler_cmd];
@@ -75,6 +104,7 @@ ngx_http_echo_handler(ngx_http_request_t *r)
             }
 
             opts = ngx_array_create(r->pool, 1, sizeof(ngx_str_t));
+
             if (opts == NULL) {
                 return NGX_HTTP_INTERNAL_SERVER_ERROR;
             }
@@ -96,131 +126,88 @@ ngx_http_echo_handler(ngx_http_request_t *r)
             dd("found echo opcode");
             rc = ngx_http_echo_exec_echo(r, ctx, computed_args,
                     0 /* in filter */, opts);
-            if (rc != NGX_OK) {
-                return rc;
-            }
             break;
 
         case echo_opcode_echo_request_body:
             rc = ngx_http_echo_exec_echo_request_body(r, ctx);
-            if (rc != NGX_OK) {
-                return rc;
-            }
             break;
 
         case echo_opcode_echo_location_async:
             dd("found opcode echo location async...");
             rc = ngx_http_echo_exec_echo_location_async(r, ctx,
                     computed_args);
-            if (rc != NGX_OK) {
-                ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
-                        "Failed to issue subrequest for "
-                        "echo_location_async");
-                return NGX_HTTP_INTERNAL_SERVER_ERROR;
-            }
             break;
 
         case echo_opcode_echo_location:
             rc = ngx_http_echo_exec_echo_location(r, ctx, computed_args);
-            if (rc != NGX_OK) {
-                return NGX_HTTP_INTERNAL_SERVER_ERROR;
-            }
-
-            return NGX_OK;
+            goto done;
             break;
 
         case echo_opcode_echo_subrequest_async:
             dd("found opcode echo subrequest async...");
             rc = ngx_http_echo_exec_echo_subrequest_async(r, ctx,
                     computed_args);
-            if (rc != NGX_OK) {
-                ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
-                        "Failed to issue subrequest for "
-                        "echo_subrequest_async");
-                return NGX_HTTP_INTERNAL_SERVER_ERROR;
-            }
             break;
 
         case echo_opcode_echo_subrequest:
             rc = ngx_http_echo_exec_echo_subrequest(r, ctx, computed_args);
-            if (rc != NGX_OK) {
-                return NGX_HTTP_INTERNAL_SERVER_ERROR;
-            }
-
-            return NGX_OK;
+            goto done;
             break;
 
         case echo_opcode_echo_sleep:
-            return ngx_http_echo_exec_echo_sleep(r, ctx, computed_args);
+            rc = ngx_http_echo_exec_echo_sleep(r, ctx, computed_args);
+            goto done;
             break;
 
         case echo_opcode_echo_flush:
             rc = ngx_http_echo_exec_echo_flush(r, ctx);
-
-            if (rc >= NGX_HTTP_SPECIAL_RESPONSE) {
-                return rc;
-            }
-
-            if (rc == NGX_ERROR) {
-                ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
-                        "Failed to flush the output", cmd->opcode);
-                return NGX_HTTP_INTERNAL_SERVER_ERROR;
-            }
-
             break;
 
         case echo_opcode_echo_blocking_sleep:
             rc = ngx_http_echo_exec_echo_blocking_sleep(r, ctx,
                     computed_args);
-            if (rc == NGX_ERROR) {
-                ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
-                        "Failed to run blocking sleep", cmd->opcode);
-                return NGX_HTTP_INTERNAL_SERVER_ERROR;
-            }
-
             break;
 
         case echo_opcode_echo_reset_timer:
             rc = ngx_http_echo_exec_echo_reset_timer(r, ctx);
-            if (rc != NGX_OK) {
-                return NGX_HTTP_INTERNAL_SERVER_ERROR;
-            }
             break;
 
         case echo_opcode_echo_duplicate:
             rc = ngx_http_echo_exec_echo_duplicate(r, ctx, computed_args);
-            if (rc != NGX_OK) {
-                return NGX_HTTP_INTERNAL_SERVER_ERROR;
-            }
-
             break;
 
         case echo_opcode_echo_read_request_body:
-            return ngx_http_echo_exec_echo_read_request_body(r, ctx);
+            ctx->wait_read_request_body = 0;
+
+            rc = ngx_http_echo_exec_echo_read_request_body(r, ctx);
+
+#if defined(nginx_version) && nginx_version >= 8011
+            /* XXX read_client_request_body always increments the counter */
+            r->main->count--;
+#endif
+
+            dd("read request body: %d", (int) rc);
+
+            if (rc == NGX_OK) {
+                continue;
+            }
+
+            ctx->wait_read_request_body = 1;
+
+            goto done;
             break;
 
         case echo_opcode_echo_foreach_split:
             rc = ngx_http_echo_exec_echo_foreach_split(r, ctx, computed_args);
-            if (rc != NGX_OK) {
-                return NGX_HTTP_INTERNAL_SERVER_ERROR;
-            }
-
             break;
 
         case echo_opcode_echo_end:
             rc = ngx_http_echo_exec_echo_end(r, ctx);
-            if (rc != NGX_OK) {
-                return NGX_HTTP_INTERNAL_SERVER_ERROR;
-            }
-
-            break;
-
-        case echo_opcode_echo_abort_parent:
-            return ngx_http_echo_exec_abort_parent(r, ctx);
             break;
 
         case echo_opcode_echo_exec:
-            return ngx_http_echo_exec_exec(r, ctx, computed_args);
+            rc = ngx_http_echo_exec_exec(r, ctx, computed_args);
+            goto done;
             break;
 
         default:
@@ -229,8 +216,21 @@ ngx_http_echo_handler(ngx_http_request_t *r)
             return NGX_HTTP_INTERNAL_SERVER_ERROR;
             break;
         }
+
+        if (rc == NGX_ERROR || rc >= NGX_HTTP_SPECIAL_RESPONSE) {
+            return rc;
+        }
     }
 
-    return ngx_http_echo_send_chain_link(r, ctx, NULL /* indicate LAST */);
+    rc = ngx_http_echo_send_chain_link(r, ctx, NULL /* indicate LAST */);
+
+    if (rc == NGX_ERROR || rc >= NGX_HTTP_SPECIAL_RESPONSE) {
+        return rc;
+    }
+
+    return NGX_OK;
+
+done:
+    return rc;
 }
 

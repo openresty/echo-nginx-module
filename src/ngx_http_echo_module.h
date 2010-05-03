@@ -107,6 +107,9 @@ typedef struct {
     ngx_event_t      sleep;
 
     ngx_uint_t       counter;
+
+    ngx_flag_t       wait_read_request_body;
+
 } ngx_http_echo_ctx_t;
 
 #endif /* NGX_HTTP_ECHO_MODULE_H */

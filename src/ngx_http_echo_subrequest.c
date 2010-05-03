@@ -68,8 +68,10 @@ ngx_http_echo_exec_echo_subrequest_async(ngx_http_request_t *r,
 
     args.data = NULL;
     args.len = 0;
+
     if (ngx_http_parse_unsafe_uri(r, parsed_sr->location, &args, &flags)
-            != NGX_OK) {
+            != NGX_OK)
+    {
         ctx->headers_sent = 1;
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
@@ -85,11 +87,13 @@ ngx_http_echo_exec_echo_subrequest_async(ngx_http_request_t *r,
 
     rc = ngx_http_subrequest(r, parsed_sr->location, parsed_sr->query_string,
             &sr, NULL, 0);
+
     if (rc != NGX_OK) {
         return NGX_ERROR;
     }
 
     rc = ngx_http_echo_adjust_subrequest(sr, parsed_sr);
+
     if (rc != NGX_OK) {
         return rc;
     }
@@ -147,10 +151,10 @@ ngx_http_echo_exec_echo_subrequest(ngx_http_request_t *r,
 
     rc = ngx_http_echo_adjust_subrequest(sr, parsed_sr);
     if (rc != NGX_OK) {
-        return rc;
+        return NGX_ERROR;
     }
 
-    return NGX_OK;
+    return NGX_AGAIN;
 }
 
 
@@ -166,7 +170,15 @@ ngx_http_echo_post_subrequest(ngx_http_request_t *r,
 
     parent_rc = ngx_http_echo_handler(r->parent);
     if (parent_rc != NGX_DONE) {
+        if (r->connection->data != r->parent) {
+            r->connection->data = r->parent;
+        }
+
         ngx_http_finalize_request(r->parent, parent_rc);
+    }
+
+    if (r->connection->data != r) {
+        r->connection->data = r;
     }
 
     return rc;
