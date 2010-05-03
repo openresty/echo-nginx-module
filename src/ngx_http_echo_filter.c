@@ -181,23 +181,32 @@ ngx_http_echo_exec_filter_cmds(ngx_http_request_t *r,
         ngx_http_echo_ctx_t *ctx, ngx_array_t *cmds,
         ngx_uint_t *iterator)
 {
-    ngx_int_t                   rc;
+    ngx_int_t                    rc;
     ngx_array_t                 *computed_args = NULL;
     ngx_http_echo_cmd_t         *cmd;
     ngx_http_echo_cmd_t         *cmd_elts;
+    ngx_array_t                 *opts = NULL;
 
-    cmd_elts = cmds->elts;
-    for (; *iterator < cmds->nelts; (*iterator)++) {
+    for (cmd_elts = cmds->elts; *iterator < cmds->nelts; (*iterator)++) {
         cmd = &cmd_elts[*iterator];
 
         /* evaluate arguments for the current cmd (if any) */
         if (cmd->args) {
             computed_args = ngx_array_create(r->pool, cmd->args->nelts,
                     sizeof(ngx_str_t));
+
             if (computed_args == NULL) {
                 return NGX_HTTP_INTERNAL_SERVER_ERROR;
             }
-            rc = ngx_http_echo_eval_cmd_args(r, cmd, computed_args);
+
+            opts = ngx_array_create(r->pool, 1, sizeof(ngx_str_t));
+
+            if (opts == NULL) {
+                return NGX_HTTP_INTERNAL_SERVER_ERROR;
+            }
+
+            rc = ngx_http_echo_eval_cmd_args(r, cmd, computed_args, opts);
+
             if (rc != NGX_OK) {
                 ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
                         "Failed to evaluate arguments for "
@@ -208,17 +217,20 @@ ngx_http_echo_exec_filter_cmds(ngx_http_request_t *r,
 
         /* do command dispatch based on the opcode */
         switch (cmd->opcode) {
-            case echo_opcode_echo_before_body:
-            case echo_opcode_echo_after_body:
-                dd("exec echo_before_body or echo_after_body...");
-                rc = ngx_http_echo_exec_echo(r, ctx, computed_args,
-                        1 /* in filter */);
-                if (rc != NGX_OK) {
-                    return rc;
-                }
-                break;
-            default:
-                break;
+        case echo_opcode_echo_before_body:
+        case echo_opcode_echo_after_body:
+            dd("exec echo_before_body or echo_after_body...");
+
+            rc = ngx_http_echo_exec_echo(r, ctx, computed_args,
+                    1 /* in filter */, opts);
+
+            if (rc != NGX_OK) {
+                return rc;
+            }
+
+            break;
+        default:
+            break;
         }
     }
 

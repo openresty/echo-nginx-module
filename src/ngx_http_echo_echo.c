@@ -43,7 +43,8 @@ ngx_http_echo_echo_init(ngx_conf_t *cf)
 
 ngx_int_t
 ngx_http_echo_exec_echo(ngx_http_request_t *r,
-        ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args, ngx_flag_t in_filter)
+        ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args,
+        ngx_flag_t in_filter, ngx_array_t *opts)
 {
     ngx_uint_t                  i;
 
@@ -53,6 +54,7 @@ ngx_http_echo_exec_echo(ngx_http_request_t *r,
 
     ngx_str_t                   *computed_arg;
     ngx_str_t                   *computed_arg_elts;
+    ngx_str_t                   *opt;
 
     ngx_chain_t *cl  = NULL; /* the head of the chain link */
     ngx_chain_t **ll = &cl;  /* always point to the address of the last link */
@@ -122,40 +124,60 @@ ngx_http_echo_exec_echo(ngx_http_request_t *r,
         }
     } /* end for */
 
-    if (cl && !cl->buf) {
-        cl = cl->next;
+    if (opts && opts->nelts > 0) {
+        opt = opts->elts;
+        if (opt[0].len == 1 && opt[0].data[0] == 'n') {
+            goto done;
+        }
     }
 
     /* append the newline character */
-    /* TODO add support for -n option to suppress
-     * the trailing newline */
+
+    if (cl && cl->buf == NULL) {
+        cl = cl->next;
+    }
+
     newline_buf = ngx_calloc_buf(r->pool);
+
     if (newline_buf == NULL) {
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
+
     *newline_buf = ngx_http_echo_newline_buf;
 
     if (cl == NULL) {
         cl = ngx_alloc_chain_link(r->pool);
+
         if (cl == NULL) {
             return NGX_HTTP_INTERNAL_SERVER_ERROR;
         }
+
         cl->buf = newline_buf;
         cl->next = NULL;
         /* ll = &cl->next; */
+
     } else {
         *ll = ngx_alloc_chain_link(r->pool);
+
         if (*ll == NULL) {
             return NGX_HTTP_INTERNAL_SERVER_ERROR;
         }
+
         (*ll)->buf  = newline_buf;
         (*ll)->next = NULL;
         /* ll = &(*ll)->next; */
     }
 
+done:
+
+    if (cl == NULL || cl->buf == NULL) {
+        return NGX_OK;
+    }
+
     if (in_filter) {
         return ngx_http_echo_next_body_filter(r, cl);
     }
+
     return ngx_http_echo_send_chain_link(r, ctx, cl);
 }
 

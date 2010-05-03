@@ -56,7 +56,16 @@ ngx_http_echo_exec_echo_foreach_split(ngx_http_request_t *r,
     if (ctx->foreach != NULL) {
         ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
                 "Nested echo_foreach not supported yet.");
-        return NGX_ERROR;
+        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+    }
+
+    if (computed_args->nelts < 2) {
+        ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
+                "echo_foreach should take at least two arguments. "
+                "(if your delimiter starts with \"-\", preceding it with a "
+                "\"--\".)");
+
+        return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
 
     computed_arg_elts = computed_args->elts;
@@ -66,6 +75,7 @@ ngx_http_echo_exec_echo_foreach_split(ngx_http_request_t *r,
     dd("HEY coumpound len: %u", compound->len);
 
     ctx->foreach = ngx_palloc(r->pool, sizeof(ngx_http_echo_foreach_ctx_t));
+
     if (ctx->foreach == NULL) {
         return NGX_ERROR;
     }

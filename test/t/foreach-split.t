@@ -1,9 +1,11 @@
 # vi:filetype=perl
 
 use lib 'lib';
-use Test::Nginx::LWP;
+use Test::Nginx::Socket;
 
-plan tests => 2 * blocks();
+repeat_each(2);
+
+plan tests => repeat_each() * 2 * blocks();
 
 #$Test::Nginx::LWP::LogLevel = 'debug';
 
@@ -128,6 +130,20 @@ foo
     }
 --- request
     GET /main_sleep?list=foo-a-bar-a-baz
+--- error_code: 500
+--- response_body_like: 500 Internal Server Error
+
+
+
+=== TEST 7: multi-char delimiter (the right way)
+--- config
+    location /main_sleep {
+        echo_foreach_split -- '-a-' $arg_list;
+            echo $echo_it;
+        echo_end;
+    }
+--- request
+    GET /main_sleep?list=foo-a-bar-a-baz
 --- response_body
 foo
 bar
@@ -135,7 +151,7 @@ baz
 
 
 
-=== TEST 7: loop with sleep
+=== TEST 8: loop with sleep
 --- config
     location /main_sleep {
         echo_foreach_split '-' $arg_list;
@@ -154,7 +170,7 @@ baz
 
 
 
-=== TEST 8: empty
+=== TEST 9: empty
 --- config
   location /merge {
       default_type 'text/javascript';
@@ -170,7 +186,7 @@ baz
 
 
 
-=== TEST 9: single &
+=== TEST 10: single &
 --- config
   location /merge {
       default_type 'text/javascript';
@@ -186,7 +202,7 @@ baz
 
 
 
-=== TEST 10: pure &'s
+=== TEST 11: pure &'s
 --- config
   location /merge {
       default_type 'text/javascript';
@@ -202,7 +218,7 @@ baz
 
 
 
-=== TEST 11: pure & and spaces
+=== TEST 12: pure & and spaces
 TODO: needs to uri_decode $echo_it...
 --- config
   location /merge {
@@ -220,7 +236,7 @@ TODO: needs to uri_decode $echo_it...
 
 
 
-=== TEST 12: multiple foreach_split
+=== TEST 13: multiple foreach_split
 --- config
     location /multi {
         echo_foreach_split '&' $query_string;

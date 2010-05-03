@@ -5,7 +5,8 @@
 #include "ngx_http_echo_sleep.h"
 
 ngx_int_t
-ngx_http_echo_init_ctx(ngx_http_request_t *r, ngx_http_echo_ctx_t **ctx_ptr) {
+ngx_http_echo_init_ctx(ngx_http_request_t *r, ngx_http_echo_ctx_t **ctx_ptr)
+{
     ngx_http_echo_ctx_t         *ctx;
 
     *ctx_ptr = ngx_pcalloc(r->pool, sizeof(ngx_http_echo_ctx_t));
@@ -24,40 +25,75 @@ ngx_http_echo_init_ctx(ngx_http_request_t *r, ngx_http_echo_ctx_t **ctx_ptr) {
 
 ngx_int_t
 ngx_http_echo_eval_cmd_args(ngx_http_request_t *r,
-        ngx_http_echo_cmd_t *cmd, ngx_array_t *computed_args) {
-    ngx_uint_t                      i;
+        ngx_http_echo_cmd_t *cmd, ngx_array_t *computed_args,
+        ngx_array_t *opts)
+{
+    ngx_uint_t                       i;
     ngx_array_t                     *args = cmd->args;
-    ngx_str_t                       *computed_arg;
-    ngx_http_echo_arg_template_t    *arg, *arg_elts;
+    ngx_str_t                       *arg, *raw, *opt;
+    ngx_http_echo_arg_template_t    *value;
+    ngx_flag_t                       expecting_opts = 1;
 
-    arg_elts = args->elts;
+    value = args->elts;
+
     for (i = 0; i < args->nelts; i++) {
-        computed_arg = ngx_array_push(computed_args);
-        if (computed_arg == NULL) {
+        raw = &value[i].raw_value;
+
+        if (value[i].lengths == NULL && raw->len > 0) {
+            if (expecting_opts) {
+                if (raw->len == 1 || raw->data[0] != '-') {
+                    expecting_opts = 0;
+
+                } else if (raw->data[1] == '-') {
+                    expecting_opts = 0;
+                    continue;
+
+                } else {
+                    opt = ngx_array_push(opts);
+                    if (opt == NULL) {
+                        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+                    }
+
+                    opt->len = raw->len - 1;
+                    opt->data = raw->data + 1;
+
+                    continue;
+                }
+            }
+        }
+
+        arg = ngx_array_push(computed_args);
+        if (arg == NULL) {
             return NGX_HTTP_INTERNAL_SERVER_ERROR;
         }
-        arg = &arg_elts[i];
-        if (arg->lengths == NULL) { /* does not contain vars */
-            dd("Using raw value \"%s\"", arg->raw_value.data);
-            *computed_arg = arg->raw_value;
+
+        if (value[i].lengths == NULL) { /* does not contain vars */
+            dd("Using raw value \"%.*s\"", (int) raw->len, raw->data);
+            *arg = *raw;
+
         } else {
-            if (ngx_http_script_run(r, computed_arg, arg->lengths->elts,
-                        0, arg->values->elts) == NULL) {
+            if (ngx_http_script_run(r, arg, value[i].lengths->elts,
+                        0, value[i].values->elts) == NULL)
+            {
                 return NGX_HTTP_INTERNAL_SERVER_ERROR;
             }
         }
     }
+
     return NGX_OK;
 }
 
+
 ngx_int_t
 ngx_http_echo_send_chain_link(ngx_http_request_t* r,
-        ngx_http_echo_ctx_t *ctx, ngx_chain_t *cl) {
+        ngx_http_echo_ctx_t *ctx, ngx_chain_t *cl)
+{
     ngx_int_t       rc;
     size_t          size;
     ngx_chain_t     *p;
 
     rc = ngx_http_echo_send_header_if_needed(r, ctx);
+
     if (r->header_only || rc >= NGX_HTTP_SPECIAL_RESPONSE) {
         return rc;
     }
@@ -66,12 +102,13 @@ ngx_http_echo_send_chain_link(ngx_http_request_t* r,
         ctx->headers_sent = 1;
 
         size = 0;
+
         for (p = cl; p; p = p->next) {
             if (p->buf->memory) {
                 size += p->buf->last - p->buf->pos;
             }
         }
-        dd("content length for HTTP 1.0: %d", size);
+
         r->headers_out.content_length_n = (off_t) size;
 
         if (r->headers_out.content_length) {

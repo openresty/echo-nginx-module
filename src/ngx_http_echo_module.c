@@ -173,7 +173,7 @@ static ngx_command_t  ngx_http_echo_commands[] = {
       NULL },
 
     { ngx_string("echo_duplicate"),
-      NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE2,
+      NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_2MORE,
       ngx_http_echo_echo_duplicate,
       NGX_HTTP_LOC_CONF_OFFSET,
       0,
@@ -187,7 +187,7 @@ static ngx_command_t  ngx_http_echo_commands[] = {
       NULL },
 
     { ngx_string("echo_foreach_split"),
-      NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE2,
+      NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_2MORE,
       ngx_http_echo_echo_foreach_split,
       NGX_HTTP_LOC_CONF_OFFSET,
       offsetof(ngx_http_echo_loc_conf_t, handler_cmds),

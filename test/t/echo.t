@@ -1,9 +1,11 @@
 # vi:filetype=perl
 
 use lib 'lib';
-use Test::Nginx::LWP;
+use Test::Nginx::Socket;
 
-plan tests => 2 * blocks();
+repeat_each(2);
+
+plan tests => repeat_each() * 2 * blocks();
 
 #$Test::Nginx::LWP::LogLevel = 'debug';
 
@@ -178,4 +180,111 @@ location = /second {
 before
 /first/9999999.json
 after
+
+
+
+=== TEST 13: echo -n
+--- config
+    location /echo {
+        echo -n hello;
+        echo -n world;
+    }
+--- request
+    GET /echo
+--- response_body chop
+helloworld
+
+
+
+=== TEST 14: echo a -n
+--- config
+    location /echo {
+        echo a -n hello;
+        echo b -n world;
+    }
+--- request
+    GET /echo
+--- response_body
+a -n hello
+b -n world
+
+
+
+=== TEST 15: -n in a var
+--- config
+    location /echo {
+        set $opt -n;
+        echo $opt hello;
+        echo $opt world;
+    }
+--- request
+    GET /echo
+--- response_body
+-n hello
+-n world
+
+
+
+=== TEST 16: -n only
+--- config
+    location /echo {
+        echo -n;
+        echo -n;
+    }
+--- request
+    GET /echo
+--- response_body chop
+
+
+
+=== TEST 17: -n with an empty string
+--- config
+    location /echo {
+        echo -n "";
+        set $empty "";
+        echo -n $empty;
+    }
+--- request
+    GET /echo
+--- response_body chop
+
+
+
+=== TEST 18: -- -n
+--- config
+    location /echo {
+        echo -- -n hello;
+        echo -- -n world;
+    }
+--- request
+    GET /echo
+--- response_body
+-n hello
+-n world
+
+
+
+=== TEST 19: -n -n
+--- config
+    location /echo {
+        echo -n -n hello;
+        echo -n -n world;
+    }
+--- request
+    GET /echo
+--- response_body chop
+helloworld
+
+
+
+=== TEST 20: -n -- -n
+--- config
+    location /echo {
+        echo -n -- -n hello;
+        echo -n -- -n world;
+    }
+--- request
+    GET /echo
+--- response_body chop
+-n hello-n world
 

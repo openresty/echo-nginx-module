@@ -35,11 +35,12 @@ ngx_http_echo_handler(ngx_http_request_t *r)
 {
     ngx_http_echo_loc_conf_t    *elcf;
     ngx_http_echo_ctx_t         *ctx;
-    ngx_int_t                   rc;
+    ngx_int_t                    rc;
     ngx_array_t                 *cmds;
     ngx_array_t                 *computed_args = NULL;
     ngx_http_echo_cmd_t         *cmd;
     ngx_http_echo_cmd_t         *cmd_elts;
+    ngx_array_t                 *opts = NULL;
 
     elcf = ngx_http_get_module_loc_conf(r, ngx_http_echo_module);
     cmds = elcf->handler_cmds;
@@ -61,16 +62,24 @@ ngx_http_echo_handler(ngx_http_request_t *r)
 
     cmd_elts = cmds->elts;
     for (; ctx->next_handler_cmd < cmds->nelts; ctx->next_handler_cmd++) {
+
         cmd = &cmd_elts[ctx->next_handler_cmd];
 
         /* evaluate arguments for the current cmd (if any) */
         if (cmd->args) {
             computed_args = ngx_array_create(r->pool, cmd->args->nelts,
                     sizeof(ngx_str_t));
+
             if (computed_args == NULL) {
                 return NGX_HTTP_INTERNAL_SERVER_ERROR;
             }
-            rc = ngx_http_echo_eval_cmd_args(r, cmd, computed_args);
+
+            opts = ngx_array_create(r->pool, 1, sizeof(ngx_str_t));
+            if (opts == NULL) {
+                return NGX_HTTP_INTERNAL_SERVER_ERROR;
+            }
+
+            rc = ngx_http_echo_eval_cmd_args(r, cmd, computed_args, opts);
             if (rc != NGX_OK) {
                 ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
                         "Failed to evaluate arguments for "
@@ -86,7 +95,7 @@ ngx_http_echo_handler(ngx_http_request_t *r)
              * function */
             dd("found echo opcode");
             rc = ngx_http_echo_exec_echo(r, ctx, computed_args,
-                    0 /* in filter */);
+                    0 /* in filter */, opts);
             if (rc != NGX_OK) {
                 return rc;
             }
