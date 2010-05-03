@@ -14,6 +14,18 @@ if [[ "$BUILD_CLEAN" -eq 1 || ! -f Makefile \
         || "$root/config" -nt Makefile
         || "$root/util/build.sh" -nt Makefile ]]; then
     ./configure --prefix=/opt/nginx \
+            --with-http_stub_status_module \
+            --without-mail_pop3_module \
+            --without-mail_imap_module \
+            --without-mail_smtp_module \
+            --without-http-cache \
+            --without-http_upstream_ip_hash_module \
+            --without-http_empty_gif_module \
+            --without-http_memcached_module \
+            --without-http_referer_module \
+            --without-http_autoindex_module \
+            --without-http_auth_basic_module \
+            --without-http_userid_module \
           --with-http_addition_module \
           --add-module=$root/../ndk-nginx-module \
           --add-module=$root/../set-misc-nginx-module \

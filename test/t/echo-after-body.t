@@ -5,6 +5,8 @@ use Test::Nginx::LWP;
 
 plan tests => repeat_each() * 2 * blocks();
 
+no_long_string();
+
 run_tests();
 
 __DATA__
