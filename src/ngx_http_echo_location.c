@@ -144,6 +144,8 @@ ngx_http_echo_exec_echo_location(ngx_http_request_t *r,
         return NGX_ERROR;
     }
 
+    r->write_event_handler = ngx_http_request_empty_handler;
+
     return NGX_AGAIN;
 }
 
@@ -152,27 +154,9 @@ static ngx_int_t
 ngx_http_echo_post_subrequest(ngx_http_request_t *r,
         void *data, ngx_int_t rc)
 {
-    ngx_http_echo_ctx_t         *ctx;
-    ngx_int_t                   parent_rc;
+    dd("rc: %d", (int) rc);
 
-    ctx = data;
-    ctx->next_handler_cmd++;
-
-    parent_rc = ngx_http_echo_run_cmds(r->parent);
-
-    dd("parent_rc: %d", (int) parent_rc);
-
-    if (parent_rc != NGX_AGAIN && parent_rc != NGX_DONE) {
-        if (r->connection->data != r->parent) {
-            r->connection->data = r->parent;
-        }
-
-        ngx_http_finalize_request(r->parent, parent_rc);
-    }
-
-    if (r->connection->data != r) {
-        r->connection->data = r;
-    }
+    r->parent->write_event_handler = ngx_http_echo_wev_handler;
 
     return rc;
 }

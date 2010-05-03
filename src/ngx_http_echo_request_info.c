@@ -21,25 +21,16 @@ static void
 ngx_http_echo_post_read_request_body(ngx_http_request_t *r)
 {
     ngx_http_echo_ctx_t         *ctx;
-    ngx_int_t                    rc;
 
     ctx = ngx_http_get_module_ctx(r, ngx_http_echo_module);
-
-    if (ctx == NULL) {
-        return ngx_http_finalize_request(r, NGX_HTTP_INTERNAL_SERVER_ERROR);
-    }
 
     dd("wait read request body %d", (int) ctx->wait_read_request_body);
 
     if (ctx->wait_read_request_body) {
 
-        ctx->next_handler_cmd++;
+        r->write_event_handler = ngx_http_echo_wev_handler;
 
-        rc = ngx_http_echo_run_cmds(r);
-
-        if (rc != NGX_AGAIN && rc != NGX_DONE) {
-            ngx_http_finalize_request(r, rc);
-        }
+        ngx_http_echo_wev_handler(r);
     }
 }
 

@@ -142,10 +142,12 @@ status: 404
         if ($arg_val = 500) {
             echo_before_body "status: $echo_response_status";
             return 500;
+            break;
         }
         if ($arg_val = 403) {
             echo_before_body "status: $echo_response_status";
             return 403;
+            break;
         }
         return 200;
     }
@@ -153,7 +155,6 @@ status: 404
     GET /main
 --- response_body_like
 ^status: 403.*?status: 500.*$
-
 
 
 === TEST 10: echo -n

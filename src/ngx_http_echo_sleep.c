@@ -34,6 +34,7 @@ ngx_http_echo_exec_echo_sleep(
     if (delay < 0.001) { /* should be bigger than 1 msec */
         ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
                    "invalid sleep duration \"%V\"", &computed_arg_elts[0]);
+
         return NGX_HTTP_BAD_REQUEST;
     }
 
@@ -64,7 +65,7 @@ static void
 ngx_http_echo_post_sleep(ngx_http_request_t *r)
 {
     ngx_http_echo_ctx_t         *ctx;
-    ngx_int_t                    rc;
+    /* ngx_int_t                    rc; */
 
     dd("entered echo post sleep...(r->done: %d)", r->done);
 
@@ -73,10 +74,6 @@ ngx_http_echo_post_sleep(ngx_http_request_t *r)
     ctx = ngx_http_get_module_ctx(r, ngx_http_echo_module);
 
     dd("sleep: after get module ctx");
-
-    if (ctx == NULL) {
-        return ngx_http_finalize_request(r, NGX_HTTP_INTERNAL_SERVER_ERROR);
-    }
 
     dd("timed out? %d", ctx->sleep.timedout);
     dd("timer set? %d", ctx->sleep.timer_set);
@@ -88,19 +85,15 @@ ngx_http_echo_post_sleep(ngx_http_request_t *r)
 
     ctx->sleep.timedout = 0;
 
-    ctx->next_handler_cmd++;
-
     if (ctx->sleep.timer_set) {
         dd("deleting timer for echo_sleep");
 
         ngx_del_timer(&ctx->sleep);
     }
 
-    rc = ngx_http_echo_run_cmds(r);
+    r->write_event_handler = ngx_http_request_empty_handler;
 
-    if (rc != NGX_AGAIN && rc != NGX_DONE) {
-        ngx_http_finalize_request(r, rc);
-    }
+    ngx_http_echo_wev_handler(r);
 }
 
 
@@ -158,7 +151,9 @@ ngx_http_echo_exec_echo_blocking_sleep(ngx_http_request_t *r,
 
     computed_arg_elts = computed_args->elts;
     computed_arg = &computed_arg_elts[0];
+
     delay = atof( (char*) computed_arg->data );
+
     if (delay < 0.001) { /* should be bigger than 1 msec */
         ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
                    "invalid sleep duration \"%V\"", &computed_arg_elts[0]);

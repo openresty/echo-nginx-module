@@ -30,6 +30,26 @@ ngx_http_echo_handler_init(ngx_conf_t *cf)
 }
 
 
+void
+ngx_http_echo_wev_handler(ngx_http_request_t *r)
+{
+    ngx_int_t                    rc;
+    ngx_http_echo_ctx_t         *ctx;
+
+    ctx = ngx_http_get_module_ctx(r, ngx_http_echo_module);
+
+    ctx->next_handler_cmd++;
+
+    rc = ngx_http_echo_run_cmds(r);
+
+    dd("rc: %d", (int) rc);
+
+    if (rc != NGX_AGAIN && rc != NGX_DONE) {
+        ngx_http_finalize_request(r, rc);
+    }
+}
+
+
 ngx_int_t
 ngx_http_echo_handler(ngx_http_request_t *r)
 {
@@ -193,6 +213,8 @@ ngx_http_echo_run_cmds(ngx_http_request_t *r)
             }
 
             ctx->wait_read_request_body = 1;
+
+            r->write_event_handler = ngx_http_request_empty_handler;
 
             goto done;
             break;
