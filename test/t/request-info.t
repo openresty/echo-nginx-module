@@ -18,7 +18,7 @@ __DATA__
     GET /echo
 --- response_body eval
 "GET /echo HTTP/1.1\r
-Host: localhost:\$ServerPort\r
+Host: localhost:\$ServerPortForClient\r
 User-Agent: Test::Nginx::LWP\r
 
 "
@@ -35,11 +35,11 @@ User-Agent: Test::Nginx::LWP\r
     GET /echo
 --- response_body eval
 "GET /echo HTTP/1.1\r
-Host: localhost:\$ServerPort\r
+Host: localhost:\$ServerPortForClient\r
 User-Agent: Test::Nginx::LWP\r
 
 GET /echo HTTP/1.1\r
-Host: localhost:\$ServerPort\r
+Host: localhost:\$ServerPortForClient\r
 User-Agent: Test::Nginx::LWP\r
 
 "
@@ -124,7 +124,7 @@ body here
 haha
 --- response_body eval
 "POST /echoback HTTP/1.1\r
-Host: localhost:\$ServerPort\r
+Host: localhost:\$ServerPortForClient\r
 User-Agent: Test::Nginx::LWP\r
 Content-Length: 14\r
 

@@ -20,7 +20,7 @@ __DATA__
 --- response_body eval
 "headers:
 GET /echo HTTP/1.1\r
-Host: localhost:\$ServerPort\r
+Host: localhost:\$ServerPortForClient\r
 User-Agent: Test::Nginx::LWP\r
 
 "
@@ -37,7 +37,7 @@ User-Agent: Test::Nginx::LWP\r
     GET /echo
 --- response_body eval
 "GET /echo HTTP/1.1\r
-Host: localhost:\$ServerPort\r
+Host: localhost:\$ServerPortForClient\r
 User-Agent: Test::Nginx::LWP\r
 
 ...these are the headers
@@ -57,7 +57,7 @@ User-Agent: Test::Nginx::LWP\r
 --- response_body eval
 "headers are
 GET /echo HTTP/1.1\r
-Host: localhost:\$ServerPort\r
+Host: localhost:\$ServerPortForClient\r
 User-Agent: Test::Nginx::LWP\r
 
 ...these are the headers

@@ -13,6 +13,7 @@ use HTTP::Response;
 use Module::Install::Can;
 use Cwd qw( cwd );
 use List::Util qw( shuffle );
+use Time::HiRes qw( sleep );
 
 our $NoNginxManager = 0;
 our $Profiling = 0;
@@ -42,7 +43,7 @@ our $LogLevel               = 'debug';
 our $MasterProcessEnabled   = 'off';
 our $DaemonEnabled          = 'on';
 our $ServerPort             = 1984;
-our $ServerPortForClient    = 1984;
+our $ServerPortForClient    = $ENV{TEST_NGINX_CLIENT_PORT} || 1984;
 our $NoRootLocation = 0;
 #our $ServerPortForClient    = 1984;
 
