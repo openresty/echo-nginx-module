@@ -231,7 +231,7 @@ $http_config
 
     server {
         listen          $ServerPort;
-        #server_name     "_";
+        server_name     'localhost';
 
         client_max_body_size 30M;
         #client_body_buffer_size 4k;

@@ -13,7 +13,7 @@ use Test::LongString;
 use List::MoreUtils qw( any );
 use IO::Select ();
 
-our $ServerAddr = '127.0.0.1';
+our $ServerAddr = 'localhost';
 our $Timeout = 2;
 
 use Test::Nginx::Util qw(
