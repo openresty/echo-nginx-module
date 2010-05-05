@@ -6,13 +6,20 @@
 
 = Version =
 
-This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/tarball/v0.28 v0.28] released on May 3, 2010.
+This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/tarball/v0.29 v0.29] released on May 5, 2010.
 
 = Synopsis =
 
 <geshi lang="nginx">
   location /hello {
     echo "hello, world!";
+  }
+</geshi>
+
+<geshi lang="nginx">
+  location /hello {
+    echo -n "hello, "
+    echo "world!";
   }
 </geshi>
 
@@ -1272,6 +1279,10 @@ Although a lot of effort has been put into testing and code tuning, there must b
 Available on github at [http://github.com/agentzh/echo-nginx-module agentzh/echo-nginx-module].
 
 = ChangeLog =
+
+== v0.29 ==
+
+* refactored the core of this module. now the implementation of [[#echo_location|echo_location]], [[#echo_subrequest|echo_subrequest]], [[#echo_sleep|echo_sleep]], and [[#echo_read_request_body|echo_read_request_body]] finally fit well with the nginx event model and Igor Sysoev's way of thinking.
 
 == v0.28 ==
 

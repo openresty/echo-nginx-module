@@ -6,13 +6,18 @@ Name
     installation instructions.
 
 Version
-    This document describes echo-nginx-module v0.28
-    (<http://github.com/agentzh/echo-nginx-module/tarball/v0.28>) released
-    on May 3, 2010.
+    This document describes echo-nginx-module v0.29
+    (<http://github.com/agentzh/echo-nginx-module/tarball/v0.29>) released
+    on May 5, 2010.
 
 Synopsis
       location /hello {
         echo "hello, world!";
+      }
+
+      location /hello {
+        echo -n "hello, "
+        echo "world!";
       }
 
       location /timed_hello {
@@ -1362,6 +1367,12 @@ Source Repository
     (<http://github.com/agentzh/echo-nginx-module>).
 
 ChangeLog
+  v0.29
+    *   refactored the core of this module. now the implementation of
+        echo_location, echo_subrequest, echo_sleep, and
+        echo_read_request_body finally fit well with the nginx event model
+        and Igor Sysoev's way of thinking.
+
   v0.28
     *   added support for the "-n" and "--" options to the echo,
         echo_before_body, and echo_after_body directives.
