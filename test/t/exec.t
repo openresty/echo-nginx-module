@@ -106,3 +106,28 @@ a: []
 --- response_body
 uri: [/foo]
 
+
+
+=== TEST 7: query string ignored for named locations
+--- config
+    location /entry {
+        echo_location /foo;
+        echo_sleep 0.001;
+        echo_location /foo;
+    }
+  location /foo {
+      echo_exec @bar;
+  }
+  location @bar {
+    proxy_pass http://127.0.0.1:$server_port/bar;
+  }
+  location /bar {
+    echo_sleep 0.01;
+    echo hello;
+  }
+--- request
+    GET /entry
+--- response_body
+hello
+hello
+

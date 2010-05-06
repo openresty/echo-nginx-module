@@ -229,7 +229,14 @@ ngx_http_echo_run_cmds(ngx_http_request_t *r)
 
         case echo_opcode_echo_exec:
             rc = ngx_http_echo_exec_exec(r, ctx, computed_args);
-            goto done;
+
+#if defined(nginx_version) && nginx_version >= 8011
+            if (rc == NGX_DONE) {
+                r->main->count--;
+            }
+#endif
+
+            return rc;
             break;
 
         default:
