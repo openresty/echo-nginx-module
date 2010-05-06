@@ -6,7 +6,7 @@
 
 = Version =
 
-This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/tarball/v0.29 v0.29] released on May 5, 2010.
+This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/tarball/v0.30 v0.30] released on May 6, 2010.
 
 = Synopsis =
 
@@ -1279,6 +1279,10 @@ Although a lot of effort has been put into testing and code tuning, there must b
 Available on github at [http://github.com/agentzh/echo-nginx-module agentzh/echo-nginx-module].
 
 = ChangeLog =
+
+== v0.30 ==
+
+* fixed the [[#echo_exec|echo_exec]] directive for nginx >= 0.8.11. we didn't get the <code>r->main->count</code> right in the previous version.
 
 == v0.29 ==
 

@@ -6,9 +6,9 @@ Name
     installation instructions.
 
 Version
-    This document describes echo-nginx-module v0.29
-    (<http://github.com/agentzh/echo-nginx-module/tarball/v0.29>) released
-    on May 5, 2010.
+    This document describes echo-nginx-module v0.30
+    (<http://github.com/agentzh/echo-nginx-module/tarball/v0.30>) released
+    on May 6, 2010.
 
 Synopsis
       location /hello {
@@ -1367,6 +1367,10 @@ Source Repository
     (<http://github.com/agentzh/echo-nginx-module>).
 
 ChangeLog
+  v0.30
+    *   fixed the echo_exec directive for nginx >= 0.8.11. we didn't get the
+        "r->main->count" right in the previous version.
+
   v0.29
     *   refactored the core of this module. now the implementation of
         echo_location, echo_subrequest, echo_sleep, and
