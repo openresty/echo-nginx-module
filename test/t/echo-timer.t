@@ -1,11 +1,9 @@
 # vi:filetype=perl
 
 use lib 'lib';
-use Test::Nginx::LWP;
+use Test::Nginx::Socket;
 
 plan tests => 2 * blocks();
-
-#$Test::Nginx::LWP::LogLevel = 'debug';
 
 run_tests();
 
