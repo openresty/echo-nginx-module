@@ -180,16 +180,20 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
         ngx_array_t *computed_args, ngx_http_echo_subrequest_t **parsed_sr_ptr)
 {
     ngx_str_t                   *computed_arg_elts, *arg;
-    ngx_str_t                   **to_write = NULL;
+    ngx_str_t                  **to_write = NULL;
     ngx_str_t                   *method_name;
     ngx_str_t                   *body_str = NULL;
-    ngx_uint_t                  i;
-    ngx_flag_t                  expecting_opt;
+    ngx_uint_t                   i;
+    ngx_flag_t                   expecting_opt;
     ngx_http_request_body_t     *rb = NULL;
     ngx_buf_t                   *b;
     ngx_http_echo_subrequest_t  *parsed_sr;
 
     *parsed_sr_ptr = ngx_pcalloc(r->pool, sizeof(ngx_http_echo_subrequest_t));
+    if (*parsed_sr_ptr == NULL) {
+        return NGX_ERROR;
+    }
+
     parsed_sr = *parsed_sr_ptr;
 
     computed_arg_elts = computed_args->elts;
@@ -211,9 +215,12 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
                         "echo_subrequest_async: to_write should NOT be NULL");
                 return NGX_HTTP_INTERNAL_SERVER_ERROR;
             }
+
             *to_write = arg;
             to_write = NULL;
+
             expecting_opt = 1;
+
             continue;
         }
 
@@ -233,11 +240,13 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
 
         ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
                 "Unknown option for echo_subrequest_async: %V", arg);
+
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
 
     if (body_str != NULL && body_str->len != 0) {
         rb = ngx_pcalloc(r->pool, sizeof(ngx_http_request_body_t));
+
         if (rb == NULL) {
             return NGX_HTTP_INTERNAL_SERVER_ERROR;
         }
@@ -264,6 +273,7 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
 
         rb->buf = b;
     }
+
     parsed_sr->request_body = rb;
 
     parsed_sr->method = ngx_http_echo_parse_method_name(&method_name);
@@ -539,14 +549,14 @@ ngx_int_t
 ngx_http_echo_exec_exec(ngx_http_request_t *r,
         ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args)
 {
-    /* ngx_int_t                       rc; */
     ngx_str_t                       *uri;
     ngx_str_t                       *user_args;
-    ngx_str_t                       args;
-    ngx_uint_t                      flags;
+    ngx_str_t                        args;
+    ngx_uint_t                       flags;
     ngx_str_t                       *computed_arg;
 
     computed_arg = computed_args->elts;
+
     uri = &computed_arg[0];
 
     if (uri->len == 0) {
@@ -561,6 +571,7 @@ ngx_http_echo_exec_exec(ngx_http_request_t *r,
 
     args.data = NULL;
     args.len = 0;
+
     if (ngx_http_parse_unsafe_uri(r, uri, &args, &flags)
             != NGX_OK) {
         ctx->headers_sent = 1;

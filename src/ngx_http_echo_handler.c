@@ -159,8 +159,7 @@ ngx_http_echo_run_cmds(ngx_http_request_t *r)
             break;
 
         case echo_opcode_echo_location:
-            rc = ngx_http_echo_exec_echo_location(r, ctx, computed_args);
-            goto done;
+            return ngx_http_echo_exec_echo_location(r, ctx, computed_args);
             break;
 
         case echo_opcode_echo_subrequest_async:
@@ -170,13 +169,11 @@ ngx_http_echo_run_cmds(ngx_http_request_t *r)
             break;
 
         case echo_opcode_echo_subrequest:
-            rc = ngx_http_echo_exec_echo_subrequest(r, ctx, computed_args);
-            goto done;
+            return ngx_http_echo_exec_echo_subrequest(r, ctx, computed_args);
             break;
 
         case echo_opcode_echo_sleep:
-            rc = ngx_http_echo_exec_echo_sleep(r, ctx, computed_args);
-            goto done;
+            return ngx_http_echo_exec_echo_sleep(r, ctx, computed_args);
             break;
 
         case echo_opcode_echo_flush:
@@ -216,7 +213,7 @@ ngx_http_echo_run_cmds(ngx_http_request_t *r)
 
             r->write_event_handler = ngx_http_request_empty_handler;
 
-            goto done;
+            return rc;
             break;
 
         case echo_opcode_echo_foreach_split:
@@ -258,8 +255,5 @@ ngx_http_echo_run_cmds(ngx_http_request_t *r)
     }
 
     return NGX_OK;
-
-done:
-    return rc;
 }
 

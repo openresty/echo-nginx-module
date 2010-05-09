@@ -1,9 +1,11 @@
 # vi:filetype=perl
 
 use lib 'lib';
-use Test::Nginx::LWP;
+use Test::Nginx::Socket;
 
-plan tests => $Test::Nginx::LWP::RepeatEach * 2 * blocks();
+repeat_each(2);
+
+plan tests => repeat_each() * 2 * blocks();
 
 run_tests();
 
