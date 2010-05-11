@@ -14,6 +14,7 @@ if [[ "$BUILD_CLEAN" -eq 1 || ! -f Makefile \
         || "$root/config" -nt Makefile
         || "$root/util/build.sh" -nt Makefile ]]; then
     ./configure --prefix=/opt/nginx \
+            --with-cc-opt="-DDEBUG_MALLOC" \
             --with-http_stub_status_module \
             --without-mail_pop3_module \
             --without-mail_imap_module \
