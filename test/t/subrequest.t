@@ -458,3 +458,34 @@ hello, body!
 --- response_body chomp
 hello, body!
 
+
+=== TEST 19: deep nested echo_subrequest/echo_subrequest_async
+--- config
+    location /main {
+        echo_subrequest GET /bar;
+        echo_subrequest_async GET /bar;
+        echo_subrequest_async GET /bar;
+        echo_subrequest GET /group;
+        echo_subrequest_async GET /group;
+    }
+
+    location /group {
+        echo_subrequest GET /bar;
+        echo_subrequest_async GET /bar;
+    }
+
+    location /bar {
+        echo $echo_incr;
+    }
+--- request
+GET /main
+--- response_body
+1
+2
+3
+4
+6
+5
+7
+--- timeout: 2
+

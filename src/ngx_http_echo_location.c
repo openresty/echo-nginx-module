@@ -144,7 +144,7 @@ ngx_http_echo_exec_echo_location(ngx_http_request_t *r,
         return NGX_ERROR;
     }
 
-    r->write_event_handler = ngx_http_request_empty_handler;
+    //r->write_event_handler = ngx_http_request_empty_handler;
 
     return NGX_AGAIN;
 }

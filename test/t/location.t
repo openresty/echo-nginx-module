@@ -372,3 +372,35 @@ sub
 sub
 --- skip_nginx: 2: < 0.8.11
 
+
+
+=== TEST 19: deep nested echo_location/echo_location_async
+--- config
+    location /main {
+        echo_location /bar;
+        echo_location_async /bar;
+        echo_location_async /bar;
+        echo_location /group;
+        echo_location_async /group;
+    }
+
+    location /group {
+        echo_location /bar;
+        echo_location_async /bar;
+    }
+
+    location /bar {
+        echo $echo_incr;
+    }
+--- request
+GET /main
+--- response_body
+1
+2
+3
+4
+6
+5
+7
+--- timeout: 2
+
