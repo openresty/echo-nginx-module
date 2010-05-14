@@ -19,7 +19,6 @@ if [[ "$BUILD_CLEAN" -eq 1 || ! -f Makefile \
             --without-mail_pop3_module \
             --without-mail_imap_module \
             --without-mail_smtp_module \
-            --without-http-cache \
             --without-http_upstream_ip_hash_module \
             --without-http_empty_gif_module \
             --without-http_memcached_module \

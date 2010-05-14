@@ -1,4 +1,4 @@
-#define DDEBUG 0
+#define DDEBUG 2
 
 #include "ddebug.h"
 
@@ -51,7 +51,12 @@ ngx_http_echo_wev_handler(ngx_http_request_t *r)
         if (r->main->posted_requests
                 && r->main->posted_requests->request != r)
         {
+#if defined(nginx_version) && nginx_version >= 8012
             ngx_http_post_request(r, NULL);
+#else
+            ngx_http_post_request(r);
+#endif
+
             return;
         }
     }
@@ -72,6 +77,7 @@ ngx_http_echo_wev_handler(ngx_http_request_t *r)
         dd("mark ready %d", (int) ctx->next_handler_cmd);
         ctx->waiting = 0;
         ctx->done = 1;
+        r->write_event_handler = ngx_http_core_run_phases;
         ngx_http_finalize_request(r, rc);
     }
 }
@@ -82,6 +88,7 @@ ngx_http_echo_handler(ngx_http_request_t *r)
 {
     ngx_int_t                    rc;
     ngx_http_echo_ctx_t         *ctx;
+
 
     rc = ngx_http_echo_run_cmds(r);
 
@@ -97,6 +104,11 @@ ngx_http_echo_handler(ngx_http_request_t *r)
 #if defined(nginx_version) && nginx_version >= 8011
         r->main->count++;
 #endif
+
+        /* XXX we need this for 0.7.x and 0.8.x < 0.8.11 */
+        if (r->done) {
+            return NGX_DONE;
+        }
 
         ctx = ngx_http_get_module_ctx(r, ngx_http_echo_module);
         if (ctx) {

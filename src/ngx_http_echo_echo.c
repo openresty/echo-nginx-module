@@ -1,4 +1,4 @@
-#define DDEBUG 0
+#define DDEBUG 2
 #include "ddebug.h"
 
 #include "ngx_http_echo_echo.h"

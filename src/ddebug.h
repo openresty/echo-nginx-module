@@ -36,7 +36,7 @@ static void dd_enter_helper(ngx_http_request_t *r, const char *func) {
             (int) r->method_name.len, r->method_name.data,
             (int) r->uri.len, r->uri.data,
             (int) r->args.len, r->args.data,
-            (int) r->main->count, r->main,
+            0/*(int) r->main->count*/, r->main,
             r, r->connection->data, r->parent);
 
     if (r->posted_requests) {
