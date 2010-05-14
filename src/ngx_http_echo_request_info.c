@@ -7,6 +7,7 @@
 
 #include <nginx.h>
 
+
 static void ngx_http_echo_post_read_request_body(ngx_http_request_t *r);
 
 ngx_int_t
@@ -27,6 +28,8 @@ ngx_http_echo_post_read_request_body(ngx_http_request_t *r)
     dd("wait read request body %d", (int) ctx->wait_read_request_body);
 
     if (ctx->wait_read_request_body) {
+        ctx->waiting = 0;
+        ctx->done = 1;
 
         r->write_event_handler = ngx_http_echo_wev_handler;
 

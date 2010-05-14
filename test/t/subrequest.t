@@ -459,7 +459,8 @@ hello, body!
 hello, body!
 
 
-=== TEST 19: deep nested echo_subrequest/echo_subrequest_async
+
+=== TEST 23: deep nested echo_subrequest/echo_subrequest_async
 --- config
     location /main {
         echo_subrequest GET /bar;
@@ -487,5 +488,28 @@ GET /main
 5
 6
 7
+
+
+=== TEST 23: deep nested echo_subrequest/echo_subrequest_async
+--- config
+    location /main {
+        echo_subrequest GET /bar?a;
+        echo_subrequest_async GET /bar?b;
+        echo_subrequest_async GET /bar?c;
+        echo_subrequest GET /group?a=d&b=e;
+        echo_subrequest_async GET /group?a=f&b=g;
+    }
+
+    location /group {
+        echo_subrequest GET /bar?$arg_a;
+        echo_subrequest_async GET /bar?$arg_b;
+    }
+
+    location /bar {
+        echo -n $query_string;
+    }
+--- request
+GET /main
+--- response_body: abcdefg
 --- timeout: 2
 

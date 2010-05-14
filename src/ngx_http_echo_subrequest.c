@@ -54,6 +54,9 @@ ngx_http_echo_exec_echo_subrequest_async(ngx_http_request_t *r,
     ngx_str_t                       args;
     ngx_uint_t                      flags;
 
+
+    dd_enter();
+
     rc = ngx_http_echo_parse_subrequest_spec(r, computed_args, &parsed_sr);
     if (rc != NGX_OK) {
         return rc;
@@ -109,6 +112,9 @@ ngx_http_echo_exec_echo_subrequest(ngx_http_request_t *r,
     ngx_http_echo_subrequest_t          *parsed_sr;
     ngx_str_t                           args;
     ngx_uint_t                          flags;
+
+
+    dd_enter();
 
     rc = ngx_http_echo_parse_subrequest_spec(r, computed_args, &parsed_sr);
     if (rc != NGX_OK) {
@@ -539,6 +545,7 @@ ngx_http_echo_exec_exec(ngx_http_request_t *r,
     ngx_str_t                        args;
     ngx_uint_t                       flags;
     ngx_str_t                       *computed_arg;
+
 
     computed_arg = computed_args->elts;
 

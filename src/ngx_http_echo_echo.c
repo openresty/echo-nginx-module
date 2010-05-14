@@ -59,7 +59,8 @@ ngx_http_echo_exec_echo(ngx_http_request_t *r,
     ngx_chain_t *cl  = NULL; /* the head of the chain link */
     ngx_chain_t **ll = &cl;  /* always point to the address of the last link */
 
-    dd("now exec echo...");
+
+    dd_enter();
 
     if (computed_args == NULL) {
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
@@ -213,6 +214,9 @@ ngx_http_echo_exec_echo_duplicate(ngx_http_request_t *r,
 
     ngx_buf_t                   *buf;
     ngx_chain_t                 *cl;
+
+
+    dd_enter();
 
     computed_arg_elts = computed_args->elts;
 

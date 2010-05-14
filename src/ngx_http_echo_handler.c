@@ -46,13 +46,32 @@ ngx_http_echo_wev_handler(ngx_http_request_t *r)
         return;
     }
 
+    if (ctx->waiting || ! ctx->done) {
+        dd("waiting and not done");
+        if (r->main->posted_requests
+                && r->main->posted_requests->request != r)
+        {
+            ngx_http_post_request(r, NULL);
+            return;
+        }
+    }
+
+    ctx->done = 0;
+
     ctx->next_handler_cmd++;
 
     rc = ngx_http_echo_run_cmds(r);
 
     dd("rc: %d", (int) rc);
 
-    if (rc != NGX_AGAIN && rc != NGX_DONE) {
+    if (rc == NGX_AGAIN || rc == NGX_DONE) {
+        dd("mark busy %d", (int) ctx->next_handler_cmd);
+        ctx->waiting = 1;
+        ctx->done = 0;
+    } else {
+        dd("mark ready %d", (int) ctx->next_handler_cmd);
+        ctx->waiting = 0;
+        ctx->done = 1;
         ngx_http_finalize_request(r, rc);
     }
 }
@@ -61,7 +80,8 @@ ngx_http_echo_wev_handler(ngx_http_request_t *r)
 ngx_int_t
 ngx_http_echo_handler(ngx_http_request_t *r)
 {
-    ngx_int_t           rc;
+    ngx_int_t                    rc;
+    ngx_http_echo_ctx_t         *ctx;
 
     rc = ngx_http_echo_run_cmds(r);
 
@@ -77,6 +97,13 @@ ngx_http_echo_handler(ngx_http_request_t *r)
 #if defined(nginx_version) && nginx_version >= 8011
         r->main->count++;
 #endif
+
+        ctx = ngx_http_get_module_ctx(r, ngx_http_echo_module);
+        if (ctx) {
+            dd("mark busy %d", (int) ctx->next_handler_cmd);
+            ctx->waiting = 1;
+            ctx->done = 0;
+        }
 
         return NGX_DONE;
     }
@@ -96,6 +123,7 @@ ngx_http_echo_run_cmds(ngx_http_request_t *r)
     ngx_http_echo_cmd_t         *cmd;
     ngx_http_echo_cmd_t         *cmd_elts;
     ngx_array_t                 *opts = NULL;
+
 
     elcf = ngx_http_get_module_loc_conf(r, ngx_http_echo_module);
     cmds = elcf->handler_cmds;
@@ -283,12 +311,19 @@ ngx_http_echo_post_subrequest(ngx_http_request_t *r,
         return NGX_ERROR;
     }
 
+    dd("mark ready %d", (int) pr_ctx->next_handler_cmd);
+
+    pr_ctx->waiting = 0;
+    pr_ctx->done = 1;
+
     pr->write_event_handler = ngx_http_echo_wev_handler;
 
     /* ensure that the parent request is (or will be)
      *  posted out the head of the r->posted_requests chain */
 
-    if (r->main->posted_requests) {
+    if (r->main->posted_requests
+            && r->main->posted_requests->request != pr)
+    {
         rc = ngx_http_echo_post_request_at_head(pr, NULL);
         if (rc != NGX_OK) {
             return NGX_ERROR;

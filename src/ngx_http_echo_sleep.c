@@ -73,6 +73,13 @@ ngx_http_echo_post_sleep(ngx_http_request_t *r)
 
     ctx = ngx_http_get_module_ctx(r, ngx_http_echo_module);
 
+    if (ctx == NULL) {
+        return;
+    }
+
+    ctx->waiting = 0;
+    ctx->done = 1;
+
     dd("sleep: after get module ctx");
 
     dd("timed out? %d", ctx->sleep.timedout);

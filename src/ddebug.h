@@ -31,7 +31,7 @@ static void dd(const char * fmt, ...) {
 static void dd_enter_helper(ngx_http_request_t *r, const char *func) {
     ngx_http_posted_request_t       *pr;
 
-    fprintf(stderr, "%s: enter %.*s %.*s?%.*s c:%d m:%p r:%p ar:%p pr:%p",
+    fprintf(stderr, ">enter %s %.*s %.*s?%.*s c:%d m:%p r:%p ar:%p pr:%p",
             func,
             (int) r->method_name.len, r->method_name.data,
             (int) r->uri.len, r->uri.data,
