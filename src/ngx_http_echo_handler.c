@@ -1,4 +1,4 @@
-#define DDEBUG 2
+#define DDEBUG 0
 
 #include "ddebug.h"
 

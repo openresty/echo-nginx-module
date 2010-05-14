@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ./update-readme
-ack '(?<=\#define)\s*DDEBUG\s*1' src
+ack '(?<=\#define)\s*DDEBUG\s*[12]' src
 echo =======================================
 ack '(?<=This document describes echo-nginx-module v)\d+\.\d+' README
 
