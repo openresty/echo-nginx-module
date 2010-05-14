@@ -77,7 +77,7 @@ ngx_http_echo_wev_handler(ngx_http_request_t *r)
         dd("mark ready %d", (int) ctx->next_handler_cmd);
         ctx->waiting = 0;
         ctx->done = 1;
-        r->write_event_handler = ngx_http_core_run_phases;
+        dd("finalizing with rc %d", (int) rc);
         ngx_http_finalize_request(r, rc);
     }
 }
