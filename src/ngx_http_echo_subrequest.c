@@ -40,9 +40,6 @@ static ngx_int_t ngx_http_echo_parse_method_name(ngx_str_t **method_name_ptr);
 static ngx_int_t ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr,
         ngx_http_echo_subrequest_t *parsed_sr);
 
-static ngx_int_t ngx_http_echo_post_subrequest(ngx_http_request_t *r,
-        void *data, ngx_int_t rc);
-
 static ngx_int_t ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
         ngx_array_t *computed_args, ngx_http_echo_subrequest_t **parsed_sr_ptr);
 
@@ -159,19 +156,7 @@ ngx_http_echo_exec_echo_subrequest(ngx_http_request_t *r,
         return NGX_ERROR;
     }
 
-    /* r->write_event_handler = ngx_http_request_empty_handler; */
-
     return NGX_AGAIN;
-}
-
-
-static ngx_int_t
-ngx_http_echo_post_subrequest(ngx_http_request_t *r,
-        void *data, ngx_int_t rc)
-{
-    r->parent->write_event_handler = ngx_http_echo_wev_handler;
-
-    return rc;
 }
 
 

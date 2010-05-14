@@ -78,7 +78,6 @@ typedef struct {
     ngx_array_t     *choices; /* items after splitting */
     ngx_uint_t      next_choice;  /* current item index */
     ngx_uint_t      cmd_index; /* cmd index for the echo_foreach direcitve */
-
 } ngx_http_echo_foreach_ctx_t;
 
 /* context struct in the request handling cycle, holding
@@ -109,7 +108,6 @@ typedef struct {
     ngx_uint_t       counter;
 
     ngx_flag_t       wait_read_request_body;
-
 } ngx_http_echo_ctx_t;
 
 #endif /* NGX_HTTP_ECHO_MODULE_H */

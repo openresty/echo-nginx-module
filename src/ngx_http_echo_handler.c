@@ -1,4 +1,4 @@
-#define DDEBUG 0
+#define DDEBUG 2
 
 #include "ddebug.h"
 
@@ -36,7 +36,15 @@ ngx_http_echo_wev_handler(ngx_http_request_t *r)
     ngx_int_t                    rc;
     ngx_http_echo_ctx_t         *ctx;
 
+
+    dd_enter();
+
     ctx = ngx_http_get_module_ctx(r, ngx_http_echo_module);
+
+    if (ctx == NULL) {
+        ngx_http_finalize_request(r, NGX_ERROR);
+        return;
+    }
 
     ctx->next_handler_cmd++;
 
@@ -255,5 +263,38 @@ ngx_http_echo_run_cmds(ngx_http_request_t *r)
     }
 
     return NGX_OK;
+}
+
+
+ngx_int_t
+ngx_http_echo_post_subrequest(ngx_http_request_t *r,
+        void *data, ngx_int_t rc)
+{
+    ngx_http_request_t          *pr;
+    ngx_http_echo_ctx_t         *pr_ctx;
+
+
+    dd_enter();
+
+    pr = r->parent;
+
+    pr_ctx = ngx_http_get_module_ctx(pr, ngx_http_echo_module);
+    if (pr_ctx == NULL) {
+        return NGX_ERROR;
+    }
+
+    pr->write_event_handler = ngx_http_echo_wev_handler;
+
+    /* ensure that the parent request is (or will be)
+     *  posted out the head of the r->posted_requests chain */
+
+    if (r->main->posted_requests) {
+        rc = ngx_http_echo_post_request_at_head(pr, NULL);
+        if (rc != NGX_OK) {
+            return NGX_ERROR;
+        }
+    }
+
+    return rc;
 }
 

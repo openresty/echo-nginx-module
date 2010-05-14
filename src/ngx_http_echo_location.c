@@ -1,4 +1,4 @@
-#define DDEBUG 0
+#define DDEBUG 2
 #include "ddebug.h"
 
 #include "ngx_http_echo_util.h"
@@ -8,9 +8,6 @@
 #include <nginx.h>
 
 static ngx_int_t ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr);
-
-static ngx_int_t ngx_http_echo_post_subrequest(ngx_http_request_t *r,
-        void *data, ngx_int_t rc);
 
 
 ngx_int_t
@@ -24,6 +21,9 @@ ngx_http_echo_exec_echo_location_async(ngx_http_request_t *r,
     ngx_str_t                   *url_args;
     ngx_str_t                    args;
     ngx_uint_t                   flags;
+
+
+    dd_enter();
 
     computed_arg_elts = computed_args->elts;
 
@@ -91,6 +91,9 @@ ngx_http_echo_exec_echo_location(ngx_http_request_t *r,
     ngx_str_t                           args;
     ngx_uint_t                          flags;
 
+
+    dd_enter();
+
     computed_arg_elts = computed_args->elts;
 
     location = computed_arg_elts[0];
@@ -144,21 +147,7 @@ ngx_http_echo_exec_echo_location(ngx_http_request_t *r,
         return NGX_ERROR;
     }
 
-    /* r->write_event_handler = ngx_http_request_empty_handler; */
-
     return NGX_AGAIN;
-}
-
-
-static ngx_int_t
-ngx_http_echo_post_subrequest(ngx_http_request_t *r,
-        void *data, ngx_int_t rc)
-{
-    dd("rc: %d", (int) rc);
-
-    r->parent->write_event_handler = ngx_http_echo_wev_handler;
-
-    return rc;
 }
 
 
@@ -166,6 +155,7 @@ static ngx_int_t
 ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr)
 {
     ngx_http_core_main_conf_t  *cmcf;
+
 
     /* we do not inherit the parent request's variables */
     cmcf = ngx_http_get_module_main_conf(sr, ngx_http_core_module);

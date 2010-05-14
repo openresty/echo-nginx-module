@@ -1,7 +1,8 @@
-#ifndef ECHO_UTIL_H
-#define ECHO_UTIL_H
+#ifndef NGX_HTTP_ECHO_UTIL_H
+#define NGX_HTTP_ECHO_UTIL_H
 
 #include "ngx_http_echo_module.h"
+
 
 #ifndef ngx_str4cmp
 
@@ -60,5 +61,9 @@ ssize_t ngx_http_echo_atosz(u_char *line, size_t n);
 
 u_char * ngx_http_echo_strlstrn(u_char *s1, u_char *last, u_char *s2, size_t n);
 
-#endif /* ECHO_UTIL_H */
+ngx_int_t ngx_http_echo_post_request_at_head(ngx_http_request_t *r,
+        ngx_http_posted_request_t *pr);
+
+
+#endif /* NGX_HTTP_ECHO_UTIL_H */
 

@@ -1,8 +1,9 @@
-#define DDEBUG 0
+#define DDEBUG 2
 #include "ddebug.h"
 
 #include "ngx_http_echo_util.h"
 #include "ngx_http_echo_sleep.h"
+
 
 ngx_int_t
 ngx_http_echo_init_ctx(ngx_http_request_t *r, ngx_http_echo_ctx_t **ctx_ptr)
@@ -219,5 +220,26 @@ ngx_http_echo_strlstrn(u_char *s1, u_char *last, u_char *s2, size_t n)
     } while (ngx_strncmp(s1, s2, n) != 0);
 
     return --s1;
+}
+
+
+ngx_int_t
+ngx_http_echo_post_request_at_head(ngx_http_request_t *r,
+        ngx_http_posted_request_t *pr)
+{
+    dd_enter();
+
+    if (pr == NULL) {
+        pr = ngx_palloc(r->pool, sizeof(ngx_http_posted_request_t));
+        if (pr == NULL) {
+            return NGX_ERROR;
+        }
+    }
+
+    pr->request = r;
+    pr->next = r->main->posted_requests;
+    r->main->posted_requests = pr;
+
+    return NGX_OK;
 }
 
