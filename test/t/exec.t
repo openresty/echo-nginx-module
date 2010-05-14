@@ -27,7 +27,7 @@ __DATA__
 --- response_body
 /bar:
 bar
---- ONLY
+
 
 
 === TEST 2: location with args (inlined in uri)
