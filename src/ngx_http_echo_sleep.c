@@ -98,7 +98,7 @@ ngx_http_echo_post_sleep(ngx_http_request_t *r)
         ngx_del_timer(&ctx->sleep);
     }
 
-    r->write_event_handler = ngx_http_request_empty_handler;
+    /* r->write_event_handler = ngx_http_request_empty_handler; */
 
     ngx_http_echo_wev_handler(r);
 }

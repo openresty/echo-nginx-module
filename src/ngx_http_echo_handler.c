@@ -259,7 +259,7 @@ ngx_http_echo_run_cmds(ngx_http_request_t *r)
 
             ctx->wait_read_request_body = 1;
 
-            r->write_event_handler = ngx_http_request_empty_handler;
+            /* r->write_event_handler = ngx_http_request_empty_handler; */
 
             return rc;
             break;

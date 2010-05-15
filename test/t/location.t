@@ -390,6 +390,7 @@ sub
     }
 
     location /bar {
+        echo_sleep 0.001;
         echo $echo_incr;
     }
 --- request
