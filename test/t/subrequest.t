@@ -490,7 +490,8 @@ GET /main
 7
 
 
-=== TEST 23: deep nested echo_subrequest/echo_subrequest_async
+
+=== TEST 24: deep nested echo_subrequest/echo_subrequest_async
 --- config
     location /main {
         echo_subrequest GET /bar?a;

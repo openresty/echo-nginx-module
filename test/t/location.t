@@ -390,6 +390,39 @@ sub
     }
 
     location /bar {
+        #echo_sleep 0.001;
+        echo $echo_incr;
+    }
+--- request
+GET /main
+--- response_body
+1
+2
+3
+4
+5
+6
+7
+--- timeout: 2
+
+
+
+=== TEST 20: deep nested echo_location/echo_location_async (with sleep)
+--- config
+    location /main {
+        echo_location /bar;
+        echo_location_async /bar;
+        echo_location_async /bar;
+        echo_location /group;
+        echo_location_async /group;
+    }
+
+    location /group {
+        echo_location /bar;
+        echo_location_async /bar;
+    }
+
+    location /bar {
         echo_sleep 0.001;
         echo $echo_incr;
     }
@@ -403,5 +436,43 @@ GET /main
 5
 6
 7
+--- timeout: 2
+--- SKIP
+
+
+
+=== TEST 21: deep nested echo_location (with sleep)
+--- config
+    location /main {
+        echo_location /bar;
+        echo_location /bar;
+        echo_location /bar;
+        echo_location /group;
+        echo_location /group;
+    }
+
+    location /group {
+        echo_location /bar;
+        echo_location /bar;
+    }
+
+    location /incr {
+        echo_sleep 0.001;
+        echo $echo_incr;
+    }
+
+    location /bar {
+        proxy_pass $scheme://127.0.0.1:$server_port/incr;
+    }
+--- request
+GET /main
+--- response_body
+1
+1
+1
+1
+1
+1
+1
 --- timeout: 2
 
