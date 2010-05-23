@@ -23,6 +23,8 @@ our $MAX_PROCESSES = 10;
 
 our $NoShuffle = 0;
 
+our $UseValgrind = $ENV{TEST_NGINX_USE_VALGRIND};
+
 sub no_shuffle () {
     $NoShuffle = 1;
 }
@@ -442,6 +444,10 @@ start_nginx:
                 $cmd = "nginx -c $ConfFile > /dev/null";
             }
 
+            if ($UseValgrind) {
+                $cmd = "valgrind --trace-children=yes --leak-check=yes $cmd";
+            }
+
             if ($Profiling) {
                 my $pid = $ForkManager->start;
                 if (!$pid) {
@@ -506,6 +512,27 @@ start_nginx:
             } else {
                 unlink $PidFile or
                     die "Failed to remove pid file $PidFile\n";
+            }
+        }
+    }
+}
+
+END {
+    if ($UseValgrind) {
+        if (-f $PidFile) {
+            my $pid = get_pid_from_pidfile('');
+            if (system("ps $pid > /dev/null") == 0) {
+                if (kill(SIGQUIT, $pid) == 0) { # send quit signal
+                    #warn("$name - Failed to send quit signal to the nginx process with PID $pid");
+                }
+                sleep 0.02;
+                if (system("ps $pid > /dev/null") == 0) {
+                    #warn "killing with force...\n";
+                    kill(SIGKILL, $pid);
+                    sleep 0.02;
+                }
+            } else {
+                unlink $PidFile;
             }
         }
     }

@@ -73,11 +73,14 @@ ngx_http_echo_wev_handler(ngx_http_request_t *r)
         dd("mark busy %d", (int) ctx->next_handler_cmd);
         ctx->waiting = 1;
         ctx->done = 0;
+
     } else {
         dd("mark ready %d", (int) ctx->next_handler_cmd);
         ctx->waiting = 0;
         ctx->done = 1;
         dd("finalizing with rc %d", (int) rc);
+
+        dd("finalize request %.*s with %d", (int) r->uri.len, r->uri.data, (int) rc);
         ngx_http_finalize_request(r, rc);
     }
 }
