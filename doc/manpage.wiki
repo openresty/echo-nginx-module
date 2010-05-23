@@ -6,7 +6,7 @@
 
 = Version =
 
-This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/tarball/v0.30 v0.30] released on May 6, 2010.
+This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/tarball/v0.31 v0.31] released on May 24, 2010.
 
 = Synopsis =
 
@@ -1279,6 +1279,13 @@ Although a lot of effort has been put into testing and code tuning, there must b
 Available on github at [http://github.com/agentzh/echo-nginx-module agentzh/echo-nginx-module].
 
 = ChangeLog =
+
+== v0.31 ==
+
+* the echo wev handler should not proceed if it is still waiting for some sequential subrequest or has just processed one to avoid bouncing issues.
+* fixed a segfault for echo_exec for 0.7.x: we should check <code>r->done</code> before proceeding.
+* no longer explicitly set <code>r->write_event_handler</code> to <code>ngx_http_request_empty_handler</code> because it's totally wrong for the state machine.
+* fixed the sequential subrequest model bugs: we should ensure the <code>pr->write_event_handler</code> gets called immediately after the <code>post_subrequest</code> callback when the subrequest finalizes.
 
 == v0.30 ==
 
