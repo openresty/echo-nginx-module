@@ -1313,7 +1313,7 @@ Installation
 Compatibility
     The following versions of Nginx should work with this module:
 
-    *   0.8.x (last tested version is 0.8.36)
+    *   0.8.x (last tested version is 0.8.37)
 
     *   0.7.x >= 0.7.21 (last tested version is 0.7.65)
 
