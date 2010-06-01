@@ -169,6 +169,7 @@ ngx_http_echo_send_header_if_needed(ngx_http_request_t* r,
             return ngx_http_send_header(r);
         }
     }
+
     return NGX_OK;
 }
 

@@ -46,8 +46,7 @@ ngx_http_echo_wev_handler(ngx_http_request_t *r)
         return;
     }
 
-    if (ctx->waiting || ! ctx->done) {
-        dd("waiting and not done");
+    if (ctx->waiting && ! ctx->done) {
         if (r->main->posted_requests
                 && r->main->posted_requests->request != r)
         {
