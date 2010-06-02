@@ -162,13 +162,14 @@ ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
         return NGX_OK;
     }
 
-    buf = ngx_alloc_buf(r->pool);
+    buf = ngx_calloc_buf(r->pool);
     buf->last_buf = 1;
 
     cl = ngx_alloc_chain_link(r->pool);
     if (cl == NULL) {
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
+
     cl->next = NULL;
     cl->buf = buf;
 

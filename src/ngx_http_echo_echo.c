@@ -72,14 +72,17 @@ ngx_http_echo_exec_echo(ngx_http_request_t *r,
 
         if (computed_arg->len == 0) {
             buf = NULL;
+
         } else {
             buf = ngx_calloc_buf(r->pool);
             if (buf == NULL) {
                 return NGX_HTTP_INTERNAL_SERVER_ERROR;
             }
+
             buf->start = buf->pos = computed_arg->data;
             buf->last = buf->end = computed_arg->data +
                 computed_arg->len;
+
             buf->memory = 1;
         }
 
@@ -94,10 +97,13 @@ ngx_http_echo_exec_echo(ngx_http_request_t *r,
         } else {
             /* append a space first */
             *ll = ngx_alloc_chain_link(r->pool);
+
             if (*ll == NULL) {
                 return NGX_HTTP_INTERNAL_SERVER_ERROR;
             }
+
             space_buf = ngx_calloc_buf(r->pool);
+
             if (space_buf == NULL) {
                 return NGX_HTTP_INTERNAL_SERVER_ERROR;
             }
