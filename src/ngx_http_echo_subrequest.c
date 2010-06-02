@@ -52,7 +52,7 @@ ngx_http_echo_exec_echo_subrequest_async(ngx_http_request_t *r,
     ngx_http_echo_subrequest_t      *parsed_sr;
     ngx_http_request_t              *sr; /* subrequest object */
     ngx_str_t                       args;
-    ngx_uint_t                      flags;
+    ngx_uint_t                      flags = 0;
 
 
     dd_enter();
@@ -111,7 +111,7 @@ ngx_http_echo_exec_echo_subrequest(ngx_http_request_t *r,
     ngx_http_post_subrequest_t          *psr;
     ngx_http_echo_subrequest_t          *parsed_sr;
     ngx_str_t                           args;
-    ngx_uint_t                          flags;
+    ngx_uint_t                          flags = 0;
 
 
     dd_enter();

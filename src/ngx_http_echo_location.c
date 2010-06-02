@@ -21,7 +21,7 @@ ngx_http_echo_exec_echo_location_async(ngx_http_request_t *r,
     ngx_str_t                    location;
     ngx_str_t                   *url_args;
     ngx_str_t                    args;
-    ngx_uint_t                   flags;
+    ngx_uint_t                   flags = 0;
 
 
     dd_enter();
@@ -90,7 +90,7 @@ ngx_http_echo_exec_echo_location(ngx_http_request_t *r,
     ngx_str_t                           *url_args;
     ngx_http_post_subrequest_t          *psr;
     ngx_str_t                           args;
-    ngx_uint_t                          flags;
+    ngx_uint_t                          flags = 0;
 
 
     dd_enter();

@@ -350,7 +350,8 @@ sub send_request ($$$$) {
         PeerAddr => $ServerAddr,
         PeerPort => $ServerPortForClient,
         Proto    => 'tcp'
-    ) or die "Can't connect to localhost:$ServerPortForClient: $!\n";
+    ) or
+        die "Can't connect to $ServerAddr:$ServerPortForClient: $!\n";
 
     my $flags = fcntl $sock, F_GETFL, 0
         or die "Failed to get flags: $!\n";
