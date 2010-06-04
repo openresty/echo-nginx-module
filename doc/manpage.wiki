@@ -6,7 +6,7 @@
 
 = Version =
 
-This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/tarball/v0.31 v0.31] released on May 24, 2010.
+This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/tarball/v0.32 v0.32] released on June 4, 2010.
 
 = Synopsis =
 
@@ -1243,7 +1243,7 @@ Download the latest version of the release tarball of this module from [http://g
 
 The following versions of Nginx should work with this module:
 
-* '''0.8.x'''                       (last tested version is 0.8.37)
+* '''0.8.x'''                       (last tested version is 0.8.39)
 * '''0.7.x >= 0.7.21'''             (last tested version is 0.7.65)
 
 In particular,
@@ -1279,6 +1279,11 @@ Although a lot of effort has been put into testing and code tuning, there must b
 Available on github at [http://github.com/agentzh/echo-nginx-module agentzh/echo-nginx-module].
 
 = ChangeLog =
+
+== v0.32 ==
+* we should have used <code>ngx_calloc_buf</code> instead of <code>ngx_alloc_buf</code> for the last chunk generated for [[#echo_after_body|echo_after_body]]. thanks valgrind's memcheck tool.
+* we should initialize flags before feeding it into <code>ngx_http_parse_unsafe_uri</code>. thanks valgrind's memcheck tool.
+* fixed a minor issue in the [[#echo_location|echo_location]]/[[#echo_subrequest|echo_subrequest]] implementation, which used to have race conditions.
 
 == v0.31 ==
 
