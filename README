@@ -1,5 +1,5 @@
 Name
-    echo-nginx-module - Brings "echo", "sleep", "time", "exec" and more
+    ngx_echo - Brings "echo", "sleep", "time", "exec" and more
     shell-style goodies to Nginx config file.
 
     *This module is not distributed with the Nginx source.* See the
