@@ -280,11 +280,19 @@ ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr,
 {
     ngx_table_elt_t            *h;
     ngx_http_core_main_conf_t  *cmcf;
+    ngx_http_request_t         *r;
 
     sr->method = parsed_sr->method;
     sr->method_name = *(parsed_sr->method_name);
 
-    sr->header_in = sr->parent->header_in;
+    r = sr->parent;
+
+    sr->header_in = r->header_in;
+
+    /* XXX work-around a bug in ngx_http_subrequest */
+    if (r->headers_in.headers.last == &r->headers_in.headers.part) {
+        sr->headers_in.headers.last = &sr->headers_in.headers.part;
+    }
 
     /* we do not inherit the parent request's variables */
     cmcf = ngx_http_get_module_main_conf(sr, ngx_http_core_module);
