@@ -83,14 +83,14 @@ ngx_int_t
 ngx_http_echo_exec_echo_location(ngx_http_request_t *r,
         ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args)
 {
-    ngx_int_t                           rc;
+    ngx_int_t                            rc;
     ngx_http_request_t                  *sr; /* subrequest object */
     ngx_str_t                           *computed_arg_elts;
-    ngx_str_t                           location;
+    ngx_str_t                            location;
     ngx_str_t                           *url_args;
     ngx_http_post_subrequest_t          *psr;
-    ngx_str_t                           args;
-    ngx_uint_t                          flags = 0;
+    ngx_str_t                            args;
+    ngx_uint_t                           flags = 0;
 
 
     dd_enter();

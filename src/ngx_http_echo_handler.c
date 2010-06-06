@@ -50,6 +50,8 @@ ngx_http_echo_wev_handler(ngx_http_request_t *r)
         if (r->main->posted_requests
                 && r->main->posted_requests->request != r)
         {
+            dd("HOT SPIN");
+
 #if defined(nginx_version) && nginx_version >= 8012
             ngx_http_post_request(r, NULL);
 #else
