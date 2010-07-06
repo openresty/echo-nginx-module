@@ -41,13 +41,13 @@ if [[ "$BUILD_CLEAN" -eq 1 || ! -f Makefile \
           --with-http_addition_module \
           --add-module=$root/../ndk-nginx-module \
           --add-module=$root/../set-misc-nginx-module \
-          --add-module=$root/../lz-session-nginx-module \
           --add-module=$root/../eval-nginx-module \
           --add-module=$root/../xss-nginx-module \
           --add-module=$root/../rds-json-nginx-module \
           --add-module=$root/../headers-more-nginx-module \
           --add-module=$root $opts \
           --with-debug
+          #--add-module=$root/../lz-session-nginx-module \
           #--add-module=$home/work/ndk \
           #--add-module=$home/work/ndk/examples/http/set_var \
           #--add-module=$root/../eval-nginx-module \
