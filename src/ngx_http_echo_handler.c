@@ -1,4 +1,4 @@
-#define DDEBUG 0
+#define DDEBUG 1
 
 #include "ddebug.h"
 
@@ -36,7 +36,6 @@ ngx_http_echo_wev_handler(ngx_http_request_t *r)
     ngx_int_t                    rc;
     ngx_http_echo_ctx_t         *ctx;
 
-
     dd_enter();
 
     ctx = ngx_http_get_module_ctx(r, ngx_http_echo_module);
@@ -70,7 +69,11 @@ ngx_http_echo_wev_handler(ngx_http_request_t *r)
 
     dd("rc: %d", (int) rc);
 
-    if (rc == NGX_AGAIN || rc == NGX_DONE) {
+    if (rc == NGX_DONE) {
+        return;
+    }
+
+    if (rc == NGX_AGAIN) {
         dd("mark busy %d", (int) ctx->next_handler_cmd);
         ctx->waiting = 1;
         ctx->done = 0;
@@ -79,9 +82,11 @@ ngx_http_echo_wev_handler(ngx_http_request_t *r)
         dd("mark ready %d", (int) ctx->next_handler_cmd);
         ctx->waiting = 0;
         ctx->done = 1;
+
         dd("finalizing with rc %d", (int) rc);
 
         dd("finalize request %.*s with %d", (int) r->uri.len, r->uri.data, (int) rc);
+
         ngx_http_finalize_request(r, rc);
     }
 }
@@ -93,7 +98,6 @@ ngx_http_echo_handler(ngx_http_request_t *r)
     ngx_int_t                    rc;
     ngx_http_echo_ctx_t         *ctx;
 
-
     rc = ngx_http_echo_run_cmds(r);
 
     if (rc == NGX_ERROR) {
@@ -104,15 +108,18 @@ ngx_http_echo_handler(ngx_http_request_t *r)
         return rc;
     }
 
-    if (rc == NGX_AGAIN || rc == NGX_DONE) {
+    if (rc == NGX_DONE) {
+        return NGX_DONE;
+    }
+
+    if (rc == NGX_AGAIN) {
 #if defined(nginx_version) && nginx_version >= 8011
         r->main->count++;
 #endif
 
         /* XXX we need this for 0.7.x and 0.8.x < 0.8.11 */
-        if (r->done) {
-            return NGX_DONE;
-        }
+        dd("%d", r->connection->destroyed);
+        dd("%d", r->done);
 
         ctx = ngx_http_get_module_ctx(r, ngx_http_echo_module);
         if (ctx) {
@@ -277,15 +284,8 @@ ngx_http_echo_run_cmds(ngx_http_request_t *r)
             break;
 
         case echo_opcode_echo_exec:
-            rc = ngx_http_echo_exec_exec(r, ctx, computed_args);
-
-#if defined(nginx_version) && nginx_version >= 8011
-            if (rc == NGX_DONE) {
-                r->main->count--;
-            }
-#endif
-
-            return rc;
+            dd("echo_exec");
+            return ngx_http_echo_exec_exec(r, ctx, computed_args);
             break;
 
         default:

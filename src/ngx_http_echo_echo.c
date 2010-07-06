@@ -227,16 +227,17 @@ ngx_http_echo_exec_echo_duplicate(ngx_http_request_t *r,
     computed_arg_elts = computed_args->elts;
 
     computed_arg = &computed_arg_elts[0];
+
     count = ngx_http_echo_atosz(computed_arg->data, computed_arg->len);
+
     if (count == NGX_ERROR) {
         ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
                    "invalid size specified: \"%V\"", computed_arg);
+
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
 
     str = &computed_arg_elts[1];
-    if (str->len == 0) {
-    }
 
     if (count == 0 || str->len == 0) {
         rc = ngx_http_echo_send_header_if_needed(r, ctx);
@@ -251,9 +252,9 @@ ngx_http_echo_exec_echo_duplicate(ngx_http_request_t *r,
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
 
-    p = buf->pos = buf->start;
+    p = buf->pos;
     for (i = 0; i < count; i++) {
-        p = ngx_cpymem(p, str->data, str->len);
+        p = ngx_copy(p, str->data, str->len);
     }
     buf->last = p;
 

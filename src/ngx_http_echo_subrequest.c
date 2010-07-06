@@ -344,6 +344,8 @@ ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr,
         dd("sr content length: %s", sr->headers_in.content_length->value.data);
     }
 
+    dd("subrequest body: %p", sr->request_body);
+
     return NGX_OK;
 }
 
@@ -553,7 +555,6 @@ ngx_http_echo_exec_exec(ngx_http_request_t *r,
     ngx_str_t                        args;
     ngx_uint_t                       flags;
     ngx_str_t                       *computed_arg;
-
 
     computed_arg = computed_args->elts;
 
