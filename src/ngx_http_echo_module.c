@@ -254,11 +254,11 @@ ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
 {
     ngx_http_core_loc_conf_t        *clcf;
     /* ngx_http_echo_loc_conf_t        *ulcf = conf; */
-    ngx_array_t                     **args_ptr;
-    ngx_http_script_compile_t       sc;
+    ngx_array_t                    **args_ptr;
+    ngx_http_script_compile_t        sc;
     ngx_str_t                       *raw_args;
     ngx_http_echo_arg_template_t    *arg;
-    ngx_array_t                     **cmds_ptr;
+    ngx_array_t                    **cmds_ptr;
     ngx_http_echo_cmd_t             *echo_cmd;
     ngx_uint_t                       i, n;
 
@@ -266,52 +266,69 @@ ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
      * handler_cmds, before_body_cmds, or after_body_cmds
      * array, depending on the actual offset */
     cmds_ptr = (ngx_array_t**)(((u_char*)conf) + cmd->offset);
+
     if (*cmds_ptr == NULL) {
         *cmds_ptr = ngx_array_create(cf->pool, 1,
                 sizeof(ngx_http_echo_cmd_t));
+
         if (*cmds_ptr == NULL) {
             return NGX_CONF_ERROR;
         }
+
         if (cat == echo_handler_cmd) {
             dd("registering the content handler");
             /* register the content handler */
             clcf = ngx_http_conf_get_module_loc_conf(cf,
                     ngx_http_core_module);
-            if (clcf == NULL) {
-                return NGX_CONF_ERROR;
-            }
+
             dd("registering the content handler (2)");
             clcf->handler = ngx_http_echo_handler;
+
         } else {
             dd("filter used = 1");
             ngx_http_echo_filter_used = 1;
         }
     }
+
     echo_cmd = ngx_array_push(*cmds_ptr);
+
     if (echo_cmd == NULL) {
         return NGX_CONF_ERROR;
     }
+
     echo_cmd->opcode = opcode;
+
     args_ptr = &echo_cmd->args;
     *args_ptr = ngx_array_create(cf->pool, 1,
             sizeof(ngx_http_echo_arg_template_t));
+
     if (*args_ptr == NULL) {
         return NGX_CONF_ERROR;
     }
+
     raw_args = cf->args->elts;
+
     /* we skip the first arg and start from the second */
+
     for (i = 1 ; i < cf->args->nelts; i++) {
         arg = ngx_array_push(*args_ptr);
+
         if (arg == NULL) {
             return NGX_CONF_ERROR;
         }
+
         arg->raw_value = raw_args[i];
+
         dd("found raw arg %s", raw_args[i].data);
+
         arg->lengths = NULL;
         arg->values  = NULL;
+
         n = ngx_http_script_variables_count(&arg->raw_value);
+
         if (n > 0) {
             ngx_memzero(&sc, sizeof(ngx_http_script_compile_t));
+
             sc.cf = cf;
             sc.source = &arg->raw_value;
             sc.lengths = &arg->lengths;
@@ -319,11 +336,13 @@ ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
             sc.variables = n;
             sc.complete_lengths = 1;
             sc.complete_values = 1;
+
             if (ngx_http_script_compile(&sc) != NGX_OK) {
                 return NGX_CONF_ERROR;
             }
         }
     } /* end for */
+
     return NGX_CONF_OK;
 }
 

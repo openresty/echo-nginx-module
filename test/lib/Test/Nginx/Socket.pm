@@ -5,7 +5,7 @@ use lib 'inc';
 
 use Test::Base -Base;
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 use Encode;
 use Data::Dumper;
@@ -42,6 +42,8 @@ use Test::Nginx::Util qw(
     log_level
     no_shuffle
     no_root_location
+    server_root
+    html_dir
 );
 
 #use Smart::Comments::JSON '###';
@@ -58,7 +60,7 @@ our @EXPORT = qw( plan run_tests run_test
     master_process_enabled
     no_long_string workers master_on
     log_level no_shuffle no_root_location
-    server_addr
+    server_addr server_root html_dir
 );
 
 sub send_request ($$$$);
@@ -218,6 +220,13 @@ $parsed_req->{content}";
 
     #warn "raw resonse: [$raw_resp]\n";
 
+    my $raw_headers = '';
+    if ($raw_resp =~ /(.*?)\r\n\r\n/s) {
+        #warn "\$1: $1";
+        $raw_headers = $1;
+    }
+    #warn "raw headers: $raw_headers\n";
+
     my $res = HTTP::Response->parse($raw_resp);
     my $enc = $res->header('Transfer-Encoding');
 
@@ -275,11 +284,18 @@ $parsed_req->{content}";
     if (defined $block->response_headers) {
         my $headers = parse_headers($block->response_headers);
         while (my ($key, $val) = each %$headers) {
-            my $expected_val = $res->header($key);
-            if (!defined $expected_val) {
-                $expected_val = '';
+            if (!defined $val) {
+                #warn "HIT";
+                unlike $raw_headers, qr/^\s*\Q$key\E\s*:/ms, "$name - header $key not present in the raw headers";
+                next;
             }
-            is $expected_val, $val,
+
+            my $actual_val = $res->header($key);
+            if (!defined $actual_val) {
+                $actual_val = '';
+            }
+
+            is $actual_val, $val,
                 "$name - header $key ok";
         }
     } elsif (defined $block->response_headers_like) {
@@ -694,6 +710,12 @@ The following sections are supported:
 =item error_code
 
 =item raw_request
+
+=item user_files
+
+=item skip_nginx
+
+=item skip_nginx2
 
 Both string scalar and string arrays are supported as values.
 
