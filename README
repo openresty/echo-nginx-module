@@ -101,9 +101,9 @@ Synopsis
       # Accessing /dup gives
       #   ------ END ------
       location /dup {
-        echo_duplicate 3 "---";
+        echo_duplicate 3 "--";
         echo_duplicate 1 " END ";
-        echo_duplicate 3 "---";
+        echo_duplicate 3 "--";
         echo;
       }   
 
@@ -334,14 +334,15 @@ Content Handler Directives
 
         location /echo {
             set $opt -n;
-            echo $opt "hello, ";
+            echo $opt "hello,";
             echo "world";
         }
 
     This gives the following output
 
         $ curl 'http://localhost/echo'
-        -n hello, world
+        -n hello,
+        world
 
     One can output leading "-n" literals and other options using the special
     "--" option like this
@@ -877,8 +878,8 @@ Content Handler Directives
 
     This is the synchronous version of the echo_subrequest_async directive.
     And just like echo_location, it does not block the Nginx worker process
-    as echo_blocking_sleep, rather, it uses continuation to pass control
-    along the subrequest chain.
+    (while echo_blocking_sleep does), rather, it uses continuation to pass
+    control along the subrequest chain.
 
     See echo_subrequest_async for more details.
 
@@ -1534,7 +1535,7 @@ ChangeLog
     *   Fixed the special cases when the outputs of a echo_duplicate
         directive is empty.
 
-    *   Now we explicitly clears content lenth and accept ranges headers in
+    *   Now we explicitly clear content length and accept ranges headers in
         the content handler.
 
   v0.12

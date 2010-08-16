@@ -115,9 +115,9 @@ This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-
   # Accessing /dup gives
   #   ------ END ------
   location /dup {
-    echo_duplicate 3 "---";
+    echo_duplicate 3 "--";
     echo_duplicate 1 " END ";
-    echo_duplicate 3 "---";
+    echo_duplicate 3 "--";
     echo;
   }   
 </geshi>
@@ -326,7 +326,7 @@ Leading <code>-n</code> in variable values won't take effect and will be emitted
 <geshi lang="nginx">
     location /echo {
         set $opt -n;
-        echo $opt "hello, ";
+        echo $opt "hello,";
         echo "world";
     }
 </geshi>
@@ -335,7 +335,8 @@ This gives the following output
 
 <geshi lang="bash">
     $ curl 'http://localhost/echo'
-    -n hello, world
+    -n hello,
+    world
 </geshi>
 
 One can output leading <code>-n</code> literals and other options using the special <code>--</code> option like this
@@ -819,7 +820,7 @@ See also the [[#echo_subrequest|echo_subrequest]] and [[#echo_location_async|ech
 
 '''context:''' ''location''
 
-This is the synchronous version of the [[#echo_subrequest_async|echo_subrequest_async]] directive. And just like [[#echo_location|echo_location]], it does not block the Nginx worker process as [[#echo_blocking_sleep|echo_blocking_sleep]], rather, it uses continuation to pass control along the subrequest chain.
+This is the synchronous version of the [[#echo_subrequest_async|echo_subrequest_async]] directive. And just like [[#echo_location|echo_location]], it does not block the Nginx worker process (while [[#echo_blocking_sleep|echo_blocking_sleep]] does), rather, it uses continuation to pass control along the subrequest chain.
 
 See [[#echo_subrequest_async|echo_subrequest_async]] for more details.
 
@@ -1380,7 +1381,7 @@ Available on github at [http://github.com/agentzh/echo-nginx-module agentzh/echo
 == v0.13 ==
 
 * Fixed the special cases when the outputs of a [[#echo_duplicate|echo_duplicate]] directive is empty.
-* Now we explicitly clears content lenth and accept ranges headers in the content handler.
+* Now we explicitly clear content length and accept ranges headers in the content handler.
 
 == v0.12 ==
 
