@@ -15,7 +15,7 @@ use List::MoreUtils qw( any );
 use IO::Select ();
 
 our $ServerAddr = 'localhost';
-our $Timeout = 2;
+our $Timeout = $ENV{TEST_NGINX_TIMEOUT} || 2;
 
 use Test::Nginx::Util qw(
     setup_server_root
@@ -44,6 +44,7 @@ use Test::Nginx::Util qw(
     no_root_location
     server_root
     html_dir
+    server_port
 );
 
 #use Smart::Comments::JSON '###';
@@ -60,12 +61,13 @@ our @EXPORT = qw( plan run_tests run_test
     master_process_enabled
     no_long_string workers master_on
     log_level no_shuffle no_root_location
-    server_addr server_root html_dir
+    server_addr server_root html_dir server_port
+    timeout
 );
 
 sub send_request ($$$$);
 
-sub run_test_helper ($);
+sub run_test_helper ($$);
 
 sub error_event_handler ($);
 sub read_event_handler ($);
@@ -81,6 +83,14 @@ sub server_addr (@) {
         $ServerAddr = shift;
     } else {
         return $ServerAddr;
+    }
+}
+
+sub timeout (@) {
+    if (@_) {
+        $Timeout = shift;
+    } else {
+        $Timeout;
     }
 }
 
@@ -116,8 +126,8 @@ sub parse_request ($$) {
     };
 }
 
-sub run_test_helper ($) {
-    my $block = shift;
+sub run_test_helper ($$) {
+    my ($block, $dry_run) = @_;
 
     my $name = $block->name;
 
@@ -215,8 +225,14 @@ $parsed_req->{content}";
         $timeout = $Timeout;
     }
 
-    my $raw_resp = send_request($req, $block->raw_request_middle_delay,
-        $timeout, $block->name);
+    my $raw_resp;
+
+    if ($dry_run) {
+        $raw_resp = "200 OK HTTP/1.0\r\nContent-Length: 0\r\n\r\n";
+    } else {
+        $raw_resp = send_request($req, $block->raw_request_middle_delay,
+            $timeout, $block->name);
+    }
 
     #warn "raw resonse: [$raw_resp]\n";
 
@@ -275,10 +291,16 @@ $parsed_req->{content}";
         $res->content($decoded);
     }
 
-    if (defined $block->error_code) {
-        is($res->code || '', $block->error_code, "$name - status code ok");
+    if ($dry_run) {
+        SKIP: {
+            Test::More::skip("$name - tests skipped due to the lack of directive $dry_run", 1);
+        }
     } else {
-        is($res->code || '', 200, "$name - status code ok");
+        if (defined $block->error_code) {
+            is($res->code || '', $block->error_code, "$name - status code ok");
+        } else {
+            is($res->code || '', 200, "$name - status code ok");
+        }
     }
 
     if (defined $block->response_headers) {
@@ -286,7 +308,13 @@ $parsed_req->{content}";
         while (my ($key, $val) = each %$headers) {
             if (!defined $val) {
                 #warn "HIT";
-                unlike $raw_headers, qr/^\s*\Q$key\E\s*:/ms, "$name - header $key not present in the raw headers";
+                if ($dry_run) {
+                    SKIP: {
+                        Test::More::skip("$name - tests skipped due to the lack of directive $dry_run", 1);
+                    }
+                } else {
+                    unlike $raw_headers, qr/^\s*\Q$key\E\s*:/ms, "$name - header $key not present in the raw headers";
+                }
                 next;
             }
 
@@ -295,8 +323,14 @@ $parsed_req->{content}";
                 $actual_val = '';
             }
 
-            is $actual_val, $val,
-                "$name - header $key ok";
+            if ($dry_run) {
+                SKIP: {
+                    Test::More::skip("$name - tests skipped due to the lack of directive $dry_run", 1);
+                }
+            } else {
+                is $actual_val, $val,
+                    "$name - header $key ok";
+            }
         }
     } elsif (defined $block->response_headers_like) {
         my $headers = parse_headers($block->response_headers_like);
@@ -305,8 +339,14 @@ $parsed_req->{content}";
             if (!defined $expected_val) {
                 $expected_val = '';
             }
-            like $expected_val, qr/^$val$/,
-                "$name - header $key like ok";
+            if ($dry_run) {
+                SKIP: {
+                    Test::More::skip("$name - tests skipped due to the lack of directive $dry_run", 1);
+                }
+            } else {
+                like $expected_val, qr/^$val$/,
+                    "$name - header $key like ok";
+            }
         }
     }
 
@@ -337,10 +377,16 @@ $parsed_req->{content}";
         #warn show_all_chars($content);
 
         #warn "no long string: $NoLongString";
-        if ($NoLongString) {
-            is($content, $expected, "$name - response_body - response is expected");
+        if ($dry_run) {
+            SKIP: {
+                Test::More::skip("$name - tests skipped due to the lack of directive $dry_run", 1);
+            }
         } else {
-            is_string($content, $expected, "$name - response_body - response is expected");
+            if ($NoLongString) {
+                is($content, $expected, "$name - response_body - response is expected");
+            } else {
+                is_string($content, $expected, "$name - response_body - response is expected");
+            }
         }
 
     } elsif (defined $block->response_body_like) {
@@ -353,7 +399,14 @@ $parsed_req->{content}";
         $expected_pat =~ s/\$ServerPort\b/$ServerPort/g;
         $expected_pat =~ s/\$ServerPortForClient\b/$ServerPortForClient/g;
         my $summary = trim($content);
-        like($content, qr/$expected_pat/s, "$name - response_body_like - response is expected ($summary)");
+
+        if ($dry_run) {
+            SKIP: {
+                Test::More::skip("$name - tests skipped due to the lack of directive $dry_run", 1);
+            }
+        } else {
+            like($content, qr/$expected_pat/s, "$name - response_body_like - response is expected ($summary)");
+        }
     }
 }
 
