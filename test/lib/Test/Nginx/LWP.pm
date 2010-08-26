@@ -4,7 +4,7 @@ use lib 'lib';
 use lib 'inc';
 use Test::Base -Base;
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 our $NoLongString;
 

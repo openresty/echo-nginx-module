@@ -3,17 +3,17 @@ package Test::Nginx::Util;
 use strict;
 use warnings;
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 use base 'Exporter';
 
 use POSIX qw( SIGQUIT SIGKILL SIGTERM );
 use File::Spec ();
 use HTTP::Response;
-use Module::Install::Can;
 use Cwd qw( cwd );
 use List::Util qw( shuffle );
 use Time::HiRes qw( sleep );
+use ExtUtils::MakeMaker ();
 
 our $LatestNginxVersion = 0.008039;
 
@@ -45,10 +45,10 @@ our $NginxBinary            = $ENV{TEST_NGINX_BINARY} || 'nginx';
 our $Workers                = 1;
 our $WorkerConnections      = 64;
 our $LogLevel               = $ENV{TEST_NGINX_LOG_LEVEL} || 'debug';
-our $MasterProcessEnabled   = 'off';
+our $MasterProcessEnabled   = $ENV{TEST_NGINX_MASTER_PROCESS} || 'off';
 our $DaemonEnabled          = 'on';
-our $ServerPort             = $ENV{TEST_NGINX_PORT} || $ENV{TEST_NGINX_SERVER_PORT} || 1984;
-our $ServerPortForClient    = $ENV{TEST_NGINX_PORT} || $ENV{TEST_NGINX_CLIENT_PORT} || 1984;
+our $ServerPort             = $ENV{TEST_NGINX_SERVER_PORT} || $ENV{TEST_NGINX_PORT} || 1984;
+our $ServerPortForClient    = $ENV{TEST_NGINX_CLIENT_PORT} || $ENV{TEST_NGINX_PORT} || 1984;
 our $NoRootLocation         = 0;
 our $TestNginxSleep         = $ENV{TEST_NGINX_SLEEP} || 0;
 
@@ -152,7 +152,7 @@ our $TODO;
 
 #our ($PrevRequest, $PrevConfig);
 
-our $ServRoot   = $ENV{TEST_NGINX_ROOT} || File::Spec->catfile(cwd(), 't/servroot');
+our $ServRoot   = $ENV{TEST_NGINX_SERVROOT} || File::Spec->catfile(cwd(), 't/servroot');
 our $LogDir     = File::Spec->catfile($ServRoot, 'logs');
 our $ErrLogFile = File::Spec->catfile($LogDir, 'error.log');
 our $AccLogFile = File::Spec->catfile($LogDir, 'access.log');
@@ -190,7 +190,7 @@ sub run_tests () {
 sub setup_server_root () {
     if (-d $ServRoot) {
         # Take special care, so we won't accidentally remove
-        # real user data when TEST_NGINX_ROOT is mis-used.
+        # real user data when TEST_NGINX_SERVROOT is mis-used.
         system("rm -rf $ConfDir > /dev/null") == 0 or
             die "Can't remove $ConfDir";
         system("rm -rf $HtmlDir > /dev/null") == 0 or
@@ -537,7 +537,7 @@ start_nginx:
             setup_server_root();
             write_user_files($block);
             write_config_file($config, $block->http_config, $block->main_config);
-            if ( ! Module::Install::Can->can_run($NginxBinary) ) {
+            if ( ! can_run($NginxBinary) ) {
                 Test::More::BAIL_OUT("$name - Cannot find the nginx executable in the PATH environment");
                 die;
             }
@@ -698,6 +698,22 @@ END {
             }
         }
     }
+}
+
+# check if we can run some command
+sub can_run {
+	my ($cmd) = @_;
+
+	my $_cmd = $cmd;
+	return $_cmd if (-x $_cmd or $_cmd = MM->maybe_command($_cmd));
+
+	for my $dir ((split /$Config::Config{path_sep}/, $ENV{PATH}), '.') {
+		next if $dir eq '';
+		my $abs = File::Spec->catfile($dir, $_[1]);
+		return $abs if (-x $abs or $abs = MM->maybe_command($abs));
+	}
+
+	return;
 }
 
 1;

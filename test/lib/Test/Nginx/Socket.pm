@@ -5,7 +5,7 @@ use lib 'inc';
 
 use Test::Base -Base;
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 use Encode;
 use Data::Dumper;
@@ -731,6 +731,10 @@ You'll find live samples in the following Nginx 3rd-party modules:
 
 =over
 
+=item ngx_echo
+
+L<http://github.com/agentzh/echo-nginx-module>
+
 =item ngx_chunkin
 
 L<http://wiki.nginx.org/NginxHttpChunkinModule>
@@ -750,6 +754,42 @@ L<http://github.com/agentzh/rds-json-nginx-module>
 =item ngx_xss
 
 L<http://github.com/agentzh/xss-nginx-module>
+
+=item ngx_srcache
+
+L<http://github.com/agentzh/srcache-nginx-module>
+
+=item ngx_lua
+
+L<http://github.com/chaoslawful/lua-nginx-module>
+
+=item ngx_set_misc
+
+L<http://github.com/agentzh/set-misc-nginx-module>
+
+=item ngx_array_var
+
+L<http://github.com/agentzh/array-var-nginx-module>
+
+=item ngx_form_input
+
+L<http://github.com/calio/form-input-nginx-module>
+
+=item ngx_iconv
+
+L<http://github.com/calio/iconv-nginx-module>
+
+=item ngx_set_cconv
+
+L<http://github.com/liseen/set-cconv-nginx-module>
+
+=item ngx_postgres
+
+L<http://github.com/FRiCKLE/ngx_postgres>
+
+=item ngx_coolkit
+
+L<http://github.com/FRiCKLE/ngx_coolkit>
 
 =back
 
