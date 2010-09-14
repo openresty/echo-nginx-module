@@ -6,9 +6,9 @@ Name
     installation instructions.
 
 Version
-    This document describes echo-nginx-module v0.33
-    (<http://github.com/agentzh/echo-nginx-module/tarball/v0.33 >) released
-    on June 8, 2010.
+    This document describes echo-nginx-module v0.34
+    (<http://github.com/agentzh/echo-nginx-module/tarball/v0.34 >) released
+    on September 14, 2010.
 
 Synopsis
       location /hello {
@@ -508,8 +508,7 @@ Content Handler Directives
     See the documentation of echo_sleep for more detail.
 
     Behind the curtain, it calls the ngx_msleep macro provided by the Nginx
-    core which maps to usleep on POSIX-compliant systems or WinSock select
-    on Windows.
+    core which maps to usleep on POSIX-compliant systems.
 
     Note that this directive will block the current Nginx worker process
     completely while being executed, so never use it in production
@@ -1293,12 +1292,12 @@ Variables
 
 Installation
     Grab the nginx source code from nginx.net (<http://nginx.net/ >), for
-    example, the version 0.8.28 (see nginx compatibility), and then build
+    example, the version 0.8.41 (see nginx compatibility), and then build
     the source with this module:
 
-        $ wget 'http://sysoev.ru/nginx/nginx-0.8.28.tar.gz'
-        $ tar -xzvf nginx-0.8.28.tar.gz
-        $ cd nginx-0.8.28/
+        $ wget 'http://sysoev.ru/nginx/nginx-0.8.41.tar.gz'
+        $ tar -xzvf nginx-0.8.41.tar.gz
+        $ cd nginx-0.8.41/
 
         # Here we assume you would install you nginx under /opt/nginx/.
         $ ./configure --prefix=/opt/nginx \
@@ -1368,6 +1367,11 @@ Source Repository
     (<http://github.com/agentzh/echo-nginx-module >).
 
 ChangeLog
+  v0.34
+    *   we no longer use the problematic "ngx_strXcmp" macros in our source
+        because it may cause invalid reads and thus segmentation faults.
+        thanks Piotr Sikora.
+
   v0.33
     *   fixed compatibility with nginx 0.7.66+ because the ngx_time_update
         macro's parameter list has changed. Thanks Guang Feng (蔡镜明).
