@@ -357,13 +357,13 @@ ngx_http_echo_parse_method_name(ngx_str_t **method_name_ptr)
 
     switch (method_name->len) {
     case 3:
-        if (ngx_str3cmp(method_name->data, 'G', 'E', 'T')) {
+        if (ngx_http_echo_strcmp_const(method_name->data, "GET") == 0) {
             *method_name_ptr = &ngx_http_echo_get_method;
             return NGX_HTTP_GET;
             break;
         }
 
-        if (ngx_str3cmp(method_name->data, 'P', 'U', 'T')) {
+        if (ngx_http_echo_strcmp_const(method_name->data, "PUT") == 0) {
             *method_name_ptr = &ngx_http_echo_put_method;
             return NGX_HTTP_PUT;
             break;
@@ -373,27 +373,27 @@ ngx_http_echo_parse_method_name(ngx_str_t **method_name_ptr)
         break;
 
     case 4:
-        if (ngx_str4cmp(method_name->data, 'P', 'O', 'S', 'T')) {
+        if (ngx_http_echo_strcmp_const(method_name->data, "POST") == 0) {
             *method_name_ptr = &ngx_http_echo_post_method;
             return NGX_HTTP_POST;
             break;
         }
-        if (ngx_str4cmp(method_name->data, 'H', 'E', 'A', 'D')) {
+        if (ngx_http_echo_strcmp_const(method_name->data, "HEAD") == 0) {
             *method_name_ptr = &ngx_http_echo_head_method;
             return NGX_HTTP_HEAD;
             break;
         }
-        if (ngx_str4cmp(method_name->data, 'C', 'O', 'P', 'Y')) {
+        if (ngx_http_echo_strcmp_const(method_name->data, "COPY") == 0) {
             *method_name_ptr = &ngx_http_echo_copy_method;
             return NGX_HTTP_COPY;
             break;
         }
-        if (ngx_str4cmp(method_name->data, 'M', 'O', 'V', 'E')) {
+        if (ngx_http_echo_strcmp_const(method_name->data, "MOVE") == 0) {
             *method_name_ptr = &ngx_http_echo_move_method;
             return NGX_HTTP_MOVE;
             break;
         }
-        if (ngx_str4cmp(method_name->data, 'L', 'O', 'C', 'K')) {
+        if (ngx_http_echo_strcmp_const(method_name->data, "LOCK") == 0) {
             *method_name_ptr = &ngx_http_echo_lock_method;
             return NGX_HTTP_LOCK;
             break;
@@ -402,12 +402,12 @@ ngx_http_echo_parse_method_name(ngx_str_t **method_name_ptr)
         break;
 
     case 5:
-        if (ngx_strncmp("MKCOL", method_name->data, method_name->len) == 0) {
+        if (ngx_http_echo_strcmp_const(method_name->data, "MKCOL") == 0) {
             *method_name_ptr = &ngx_http_echo_mkcol_method;
             return NGX_HTTP_MKCOL;
             break;
         }
-        if (ngx_strncmp("TRACE", method_name->data, method_name->len) == 0) {
+        if (ngx_http_echo_strcmp_const(method_name->data, "TRACE") == 0) {
             *method_name_ptr = &ngx_http_echo_trace_method;
             return NGX_HTTP_TRACE;
             break;
@@ -416,13 +416,13 @@ ngx_http_echo_parse_method_name(ngx_str_t **method_name_ptr)
         break;
 
     case 6:
-        if (ngx_str6cmp(method_name->data, 'D', 'E', 'L', 'E', 'T', 'E')) {
+        if (ngx_http_echo_strcmp_const(method_name->data, "DELETE") == 0) {
             *method_name_ptr = &ngx_http_echo_delete_method;
             return NGX_HTTP_DELETE;
             break;
         }
 
-        if (ngx_str6cmp(method_name->data, 'U', 'N', 'L', 'O', 'C', 'K')) {
+        if (ngx_http_echo_strcmp_const(method_name->data, "UNLOCK") == 0) {
             *method_name_ptr = &ngx_http_echo_unlock_method;
             return NGX_HTTP_UNLOCK;
             break;
@@ -431,7 +431,7 @@ ngx_http_echo_parse_method_name(ngx_str_t **method_name_ptr)
         break;
 
     case 7:
-        if (ngx_strncmp("OPTIONS", method_name->data, method_name->len) == 0) {
+        if (ngx_http_echo_strcmp_const(method_name->data, "OPTIONS") == 0) {
             *method_name_ptr = &ngx_http_echo_options_method;
             return NGX_HTTP_OPTIONS;
             break;
@@ -440,7 +440,7 @@ ngx_http_echo_parse_method_name(ngx_str_t **method_name_ptr)
         break;
 
     case 8:
-        if (ngx_strncmp("PROPFIND", method_name->data, method_name->len) == 0) {
+        if (ngx_http_echo_strcmp_const(method_name->data, "PROPFIND") == 0) {
             *method_name_ptr = &ngx_http_echo_propfind_method;
             return NGX_HTTP_PROPFIND;
             break;
@@ -449,7 +449,7 @@ ngx_http_echo_parse_method_name(ngx_str_t **method_name_ptr)
         break;
 
     case 9:
-        if (ngx_strncmp("PROPPATCH", method_name->data, method_name->len) == 0) {
+        if (ngx_http_echo_strcmp_const(method_name->data, "PROPPATCH") == 0) {
             *method_name_ptr = &ngx_http_echo_proppatch_method;
             return NGX_HTTP_PROPPATCH;
             break;
