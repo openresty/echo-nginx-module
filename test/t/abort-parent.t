@@ -23,7 +23,7 @@ __DATA__
     }
 
     location /proxy {
-        proxy_pass "http://127.0.0.1:1984/sleep?$query_string";
+        proxy_pass "http://127.0.0.1:$server_port/sleep?$query_string";
     }
 
     location /sleep {
