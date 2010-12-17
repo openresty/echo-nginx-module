@@ -5,7 +5,7 @@
 root=`pwd`
 cd ~/work
 version=$1
-opts=$2
+#opts=$2
 home=~
 
 if [ ! -s "nginx-$version.tar.gz" ]; then

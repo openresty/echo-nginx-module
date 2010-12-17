@@ -7,7 +7,8 @@
 
 #define ngx_http_echo_method_name(m) { sizeof(m) - 1, (u_char *) m " " }
 
-ngx_str_t  ngx_http_echo_content_length_header_key = ngx_string("Content-Length");
+ngx_str_t  ngx_http_echo_content_length_header_key =
+        ngx_string("Content-Length");
 
 ngx_str_t  ngx_http_echo_get_method = ngx_http_echo_method_name("GET");
 ngx_str_t  ngx_http_echo_put_method = ngx_http_echo_method_name("PUT");
