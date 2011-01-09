@@ -88,11 +88,11 @@ ngx_http_echo_eval_cmd_args(ngx_http_request_t *r,
 
 ngx_int_t
 ngx_http_echo_send_chain_link(ngx_http_request_t* r,
-        ngx_http_echo_ctx_t *ctx, ngx_chain_t *cl)
+        ngx_http_echo_ctx_t *ctx, ngx_chain_t *in)
 {
-    ngx_int_t       rc;
-    size_t          size;
-    ngx_chain_t     *p;
+    ngx_int_t        rc;
+    size_t           size;
+    ngx_chain_t     *cl;
 
     rc = ngx_http_echo_send_header_if_needed(r, ctx);
 
@@ -105,10 +105,8 @@ ngx_http_echo_send_chain_link(ngx_http_request_t* r,
 
         size = 0;
 
-        for (p = cl; p; p = p->next) {
-            if (p->buf->memory) {
-                size += p->buf->last - p->buf->pos;
-            }
+        for (cl = in; cl; cl = cl->next) {
+            size += ngx_buf_size(cl->buf);
         }
 
         r->headers_out.content_length_n = (off_t) size;
@@ -126,7 +124,7 @@ ngx_http_echo_send_chain_link(ngx_http_request_t* r,
         }
     }
 
-    if (cl == NULL) {
+    if (in == NULL) {
 
 #if defined(nginx_version) && nginx_version <= 8004
 
@@ -146,7 +144,7 @@ ngx_http_echo_send_chain_link(ngx_http_request_t* r,
         return NGX_OK;
     }
 
-    return ngx_http_output_filter(r, cl);
+    return ngx_http_output_filter(r, in);
 }
 
 ngx_int_t

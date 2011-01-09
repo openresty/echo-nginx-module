@@ -5,7 +5,7 @@ use Test::Nginx::Socket;
 
 repeat_each(1);
 
-plan tests => repeat_each() * 2 * blocks();
+plan tests => repeat_each() * (2 * blocks() + 1);
 
 #$Test::Nginx::LWP::LogLevel = 'debug';
 
@@ -287,4 +287,23 @@ helloworld
     GET /echo
 --- response_body chop
 -n hello-n world
+
+
+
+=== TEST 21: proxy
+--- config
+    location /main {
+        proxy_pass http://127.0.0.1:$server_port/echo;
+    }
+    location /echo {
+        echo hello;
+        echo world;
+    }
+--- request
+    GET /main
+--- response_headers
+Content-Length: 6
+--- response_body
+hello
+world
 
