@@ -1292,12 +1292,12 @@ Variables
 
 Installation
     Grab the nginx source code from nginx.net (<http://nginx.net/ >), for
-    example, the version 0.8.41 (see nginx compatibility), and then build
+    example, the version 0.8.54 (see nginx compatibility), and then build
     the source with this module:
 
-        $ wget 'http://sysoev.ru/nginx/nginx-0.8.41.tar.gz'
-        $ tar -xzvf nginx-0.8.41.tar.gz
-        $ cd nginx-0.8.41/
+        $ wget 'http://sysoev.ru/nginx/nginx-0.8.54.tar.gz'
+        $ tar -xzvf nginx-0.8.54.tar.gz
+        $ cd nginx-0.8.54/
 
         # Here we assume you would install you nginx under /opt/nginx/.
         $ ./configure --prefix=/opt/nginx \
@@ -1313,9 +1313,11 @@ Installation
 Compatibility
     The following versions of Nginx should work with this module:
 
-    *   0.8.x (last tested version is 0.8.40)
+    *   0.9.x (last tested: 0.9.4)
 
-    *   0.7.x >= 0.7.21 (last tested version is 0.7.66)
+    *   0.8.x (last tested: 0.8.54)
+
+    *   0.7.x >= 0.7.21 (last tested: 0.7.68)
 
     In particular,
 
@@ -1589,7 +1591,6 @@ Test Suite
 
     To run it on your side:
 
-        $ cd test
         $ PATH=/path/to/your/nginx-with-echo-module:$PATH prove -r t
 
     You need to terminate any Nginx processes before running the test suite
@@ -1712,6 +1713,10 @@ Copyright & License
     *   Redistributions in binary form must reproduce the above copyright
         notice, this list of conditions and the following disclaimer in the
         documentation and/or other materials provided with the distribution.
+
+    *   Neither the name of the Taobao Inc. nor the names of its
+        contributors may be used to endorse or promote products derived from
+        this software without specific prior written permission.
 
     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
     IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED

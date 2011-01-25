@@ -1223,12 +1223,12 @@ This directive was first introduced in the [[#v0.23|v0.23 release]].
 = Installation =
 
 Grab the nginx source code from [http://nginx.net/ nginx.net], for example,
-the version 0.8.41 (see [[#Compatibility|nginx compatibility]]), and then build the source with this module:
+the version 0.8.54 (see [[#Compatibility|nginx compatibility]]), and then build the source with this module:
 
 <geshi lang="bash">
-    $ wget 'http://sysoev.ru/nginx/nginx-0.8.41.tar.gz'
-    $ tar -xzvf nginx-0.8.41.tar.gz
-    $ cd nginx-0.8.41/
+    $ wget 'http://sysoev.ru/nginx/nginx-0.8.54.tar.gz'
+    $ tar -xzvf nginx-0.8.54.tar.gz
+    $ cd nginx-0.8.54/
     
     # Here we assume you would install you nginx under /opt/nginx/.
     $ ./configure --prefix=/opt/nginx \
@@ -1244,8 +1244,9 @@ Download the latest version of the release tarball of this module from [http://g
 
 The following versions of Nginx should work with this module:
 
-* '''0.8.x'''                       (last tested version is 0.8.40)
-* '''0.7.x >= 0.7.21'''             (last tested version is 0.7.66)
+* '''0.9.x'''                       (last tested: 0.9.4)
+* '''0.8.x'''                       (last tested: 0.8.54)
+* '''0.7.x >= 0.7.21'''             (last tested: 0.7.68)
 
 In particular,
 
@@ -1419,7 +1420,6 @@ This module comes with a Perl-driven test suite. The [http://github.com/agentzh/
 To run it on your side:
 
 <geshi lang="bash">
-    $ cd test
     $ PATH=/path/to/your/nginx-with-echo-module:$PATH prove -r t
 </geshi>
 
