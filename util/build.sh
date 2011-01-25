@@ -12,21 +12,17 @@ if [ ! -s "nginx-$version.tar.gz" ]; then
     wget "http://sysoev.ru/nginx/nginx-$version.tar.gz" -O nginx-$version.tar.gz || exit 1
     tar -xzvf nginx-$version.tar.gz || exit 1
     if [ "$version" = "0.8.41" ]; then
-        cp $root/../no-pool-nginx/nginx-$version-no_pool.patch ./
+        cp $root/../no-pool-nginx/nginx-$version-no_pool.patch ./ || exit 1
         patch -p0 < nginx-$version-no_pool.patch || exit 1
     fi
 fi
 
 #tar -xzvf nginx-$version.tar.gz || exit 1
-#cp $root/../no-pool-nginx/nginx-$version-no_pool.patch ./
-#patch -p0 < nginx-$version-no_pool.patch || exit 1
+#cp $root/../no-pool-nginx/nginx-$version-no_pool.patch ./ || exit 1
+#patch -p0 < nginx-$version-no_pool.patch || exit 1 || exit 1
 #patch -p0 < ~/work/nginx-$version-rewrite_phase_fix.patch || exit 1
 
-if [ -n "$2" ]; then
-    cd nginx-$version-$2/
-else
-    cd nginx-$version/
-fi
+cd nginx-$version/
 
 if [[ "$BUILD_CLEAN" -eq 1 || ! -f Makefile \
         || "$root/config" -nt Makefile
@@ -52,7 +48,7 @@ if [[ "$BUILD_CLEAN" -eq 1 || ! -f Makefile \
           --add-module=$root/../rds-json-nginx-module \
           --add-module=$root/../headers-more-nginx-module \
           --add-module=$root $opts \
-          --with-debug
+          --with-debug || exit 1
           #--add-module=$root/../lz-session-nginx-module \
           #--add-module=$home/work/ndk \
           #--add-module=$home/work/ndk/examples/http/set_var \

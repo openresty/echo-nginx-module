@@ -12,7 +12,7 @@ print.txt
 .rsync
 *.tar.gz
 dist
-build[78]
+build[789]
 build
 tags
 update-readme
@@ -55,3 +55,4 @@ nginx
 *.html
 ctags
 t/servroot
+all.sh
