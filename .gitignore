@@ -53,3 +53,5 @@ src/foreach.h
 src/handler.c
 nginx
 *.html
+ctags
+t/servroot

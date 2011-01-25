@@ -6,10 +6,13 @@
 #include "ngx_http_echo_request_info.h"
 #include "ngx_http_echo_foreach.h"
 
+
 static ngx_int_t ngx_http_echo_incr_variable(ngx_http_request_t *r,
         ngx_http_variable_value_t *v, uintptr_t data);
 
+
 static ngx_http_variable_t ngx_http_echo_variables[] = {
+
     { ngx_string("echo_timer_elapsed"), NULL,
       ngx_http_echo_timer_elapsed_variable, 0,
       NGX_HTTP_VAR_NOCACHEABLE, 0 },
@@ -53,23 +56,30 @@ static ngx_http_variable_t ngx_http_echo_variables[] = {
     { ngx_null_string, NULL, NULL, 0, 0, 0 }
 };
 
+
 ngx_int_t
-ngx_http_echo_add_variables(ngx_conf_t *cf) {
+ngx_http_echo_add_variables(ngx_conf_t *cf)
+{
     ngx_http_variable_t *var, *v;
+
     for (v = ngx_http_echo_variables; v->name.len; v++) {
         var = ngx_http_add_variable(cf, &v->name, v->flags);
         if (var == NULL) {
             return NGX_ERROR;
         }
+
         var->get_handler = v->get_handler;
         var->data = v->data;
     }
+
     return NGX_OK;
 }
 
+
 static ngx_int_t
 ngx_http_echo_incr_variable(ngx_http_request_t *r,
-        ngx_http_variable_value_t *v, uintptr_t data) {
+        ngx_http_variable_value_t *v, uintptr_t data)
+{
     ngx_http_echo_ctx_t         *ctx;
     u_char                      *p;
 
