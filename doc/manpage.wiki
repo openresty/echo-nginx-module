@@ -1414,8 +1414,8 @@ Available on github at [http://github.com/agentzh/echo-nginx-module agentzh/echo
 
 = Test Suite =
 
-This module comes with a Perl-driven test suite. The [http://github.com/agentzh/echo-nginx-module/tree/master/test/t/ test cases] are
-[http://github.com/agentzh/echo-nginx-module/blob/master/test/t/echo.t declarative] too. Thanks to the [http://search.cpan.org/perldoc?Test::Base Test::Base] module in the Perl world.
+This module comes with a Perl-driven test suite. The [http://github.com/agentzh/echo-nginx-module/tree/master/t/ test cases] are
+[http://github.com/agentzh/echo-nginx-module/blob/master/t/echo.t declarative] too. Thanks to the [http://search.cpan.org/perldoc?Test::Base Test::Base] module in the Perl world.
 
 To run it on your side:
 
@@ -1511,9 +1511,9 @@ This wiki page is also maintained by the author himself, and everybody is encour
 
 = Copyright & License =
 
-Copyright (c) 2009, Taobao Inc., Alibaba Group ( http://www.taobao.com ).
+Copyright (c) 2009, 2010, 2011, Taobao Inc., Alibaba Group ( http://www.taobao.com ).
 
-Copyright (c) 2009, agentzh <agentzh@gmail.com>.
+Copyright (c) 2009, 2010, 2011, Yichun "agentzh" Zhang (章亦春) <agentzh@gmail.com>.
 
 This module is licensed under the terms of the BSD license.
 
@@ -1523,7 +1523,6 @@ are met:
 
 * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
 * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-* Neither the name of the Taobao Inc. nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT

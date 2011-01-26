@@ -1583,10 +1583,10 @@ ChangeLog
 
 Test Suite
     This module comes with a Perl-driven test suite. The test cases
-    (<http://github.com/agentzh/echo-nginx-module/tree/master/test/t/ >) are
+    (<http://github.com/agentzh/echo-nginx-module/tree/master/t/ >) are
     declarative
-    (<http://github.com/agentzh/echo-nginx-module/blob/master/test/t/echo.t >
-    ) too. Thanks to the Test::Base
+    (<http://github.com/agentzh/echo-nginx-module/blob/master/t/echo.t >)
+    too. Thanks to the Test::Base
     (<http://search.cpan.org/perldoc?Test::Base >) module in the Perl world.
 
     To run it on your side:
