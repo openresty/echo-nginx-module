@@ -1,4 +1,4 @@
-#define DDEBUG 0
+#define DDEBUG 1
 #include "ddebug.h"
 
 #include "ngx_http_echo_util.h"
@@ -175,11 +175,14 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
     ngx_str_t                  **to_write = NULL;
     ngx_str_t                   *method_name;
     ngx_str_t                   *body_str = NULL;
+    ngx_str_t                   *body_file = NULL;
     ngx_uint_t                   i;
     ngx_flag_t                   expecting_opt;
     ngx_http_request_body_t     *rb = NULL;
     ngx_buf_t                   *b;
     ngx_http_echo_subrequest_t  *parsed_sr;
+    ngx_open_file_info_t       of;
+    ngx_http_core_loc_conf_t  *clcf;
 
     *parsed_sr_ptr = ngx_pcalloc(r->pool, sizeof(ngx_http_echo_subrequest_t));
     if (*parsed_sr_ptr == NULL) {
@@ -228,6 +231,13 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
                 expecting_opt = 0;
                 continue;
             }
+
+            if (ngx_strncmp("-f", arg->data, arg->len) == 0) {
+              dd("found option -f");
+              to_write = &body_file;
+              expecting_opt = 0;
+              continue;
+            }
         }
 
         ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
@@ -263,6 +273,66 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
         rb->bufs->buf = b;
         rb->bufs->next = NULL;
 
+        rb->buf = b;
+    } else if (body_file != NULL && body_file->len != 0) {
+
+        dd("body_file defined %s", body_file->data);
+
+        rb = ngx_pcalloc(r->pool, sizeof(ngx_http_request_body_t));
+        if (rb == NULL) {
+            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        }
+
+        clcf = ngx_http_get_module_loc_conf(r, ngx_http_core_module);
+        ngx_memzero(&of, sizeof(ngx_open_file_info_t));
+
+
+        of.read_ahead = clcf->read_ahead;
+        of.directio = clcf->directio;
+        of.valid = clcf->open_file_cache_valid;
+        of.min_uses = clcf->open_file_cache_min_uses;
+        of.errors = clcf->open_file_cache_errors;
+        of.events = clcf->open_file_cache_events;
+
+
+        if (ngx_open_cached_file(clcf->open_file_cache, body_file, &of, r->pool)
+            != NGX_OK) {
+            dd("open body file failed");
+            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        }
+
+        parsed_sr->content_length_n = of.size;
+
+        b = ngx_pcalloc(r->pool, sizeof(ngx_buf_t));
+        if (b == NULL) {
+            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        }
+
+        b->file = ngx_pcalloc(r->pool, sizeof(ngx_file_t));
+        if (b->file == NULL) {
+            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        }
+
+        b->file_pos = 0;
+        b->file_last = of.size;
+
+        b->in_file = b->file_last ? 1: 0;
+        b->last_buf = (r == r->main) ? 1: 0;
+        b->last_in_chain = 1;
+
+
+        b->file->fd = of.fd;
+        b->file->name = *body_file;
+        b->file->log = r->connection->log;
+        b->file->directio = of.is_directio;
+
+        rb->bufs = ngx_alloc_chain_link(r->pool);
+
+        if (rb->bufs == NULL) {
+            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        }
+        rb->bufs->buf = b;
+        rb->bufs->next = NULL;
         rb->buf = b;
     }
 
