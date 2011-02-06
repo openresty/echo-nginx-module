@@ -3,7 +3,7 @@
 # this file is mostly meant to be used by the author himself.
 
 root=`pwd`
-cd ~/work
+cd ~/work || exit 1
 version=$1
 #opts=$2
 home=~
@@ -47,6 +47,7 @@ if [[ "$BUILD_CLEAN" -eq 1 || ! -f Makefile \
           --add-module=$root/../xss-nginx-module \
           --add-module=$root/../rds-json-nginx-module \
           --add-module=$root/../headers-more-nginx-module \
+          --add-module=$root/../lua-nginx-module \
           --add-module=$root $opts \
           --with-debug || exit 1
           #--add-module=$root/../lz-session-nginx-module \

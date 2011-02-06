@@ -1696,10 +1696,11 @@ Author
     is encouraged to improve this page as well.
 
 Copyright & License
-    Copyright (c) 2009, Taobao Inc., Alibaba Group ( http://www.taobao.com
-    ).
+    Copyright (c) 2009, 2010, 2011, Taobao Inc., Alibaba Group (
+    http://www.taobao.com ).
 
-    Copyright (c) 2009, agentzh <agentzh@gmail.com>.
+    Copyright (c) 2009, 2010, 2011, Yichun "agentzh" Zhang (章亦春)
+    <agentzh@gmail.com>.
 
     This module is licensed under the terms of the BSD license.
 
@@ -1713,10 +1714,6 @@ Copyright & License
     *   Redistributions in binary form must reproduce the above copyright
         notice, this list of conditions and the following disclaimer in the
         documentation and/or other materials provided with the distribution.
-
-    *   Neither the name of the Taobao Inc. nor the names of its
-        contributors may be used to endorse or promote products derived from
-        this software without specific prior written permission.
 
     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
     IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED

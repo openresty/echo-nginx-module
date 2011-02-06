@@ -244,3 +244,36 @@ ngx_http_echo_post_request_at_head(ngx_http_request_t *r,
     return NGX_OK;
 }
 
+
+u_char *
+ngx_http_echo_rebase_path(ngx_pool_t *pool, u_char *src, size_t osize,
+        size_t *nsize)
+{
+    u_char            *p, *dst;
+
+    if (osize == 0) {
+        return NULL;
+    }
+
+    if (src[0] == '/') {
+        /* being an absolute path already */
+        *nsize = osize;
+        return src;
+    }
+
+    *nsize = ngx_cycle->prefix.len + osize;
+
+    dst = ngx_palloc(pool, *nsize + 1);
+    if (dst == NULL) {
+        *nsize = 0;
+        return NULL;
+    }
+
+    p = ngx_copy(dst, ngx_cycle->prefix.data, ngx_cycle->prefix.len);
+    p = ngx_copy(p, src, osize);
+
+    *p = '\0';
+
+    return dst;
+}
+

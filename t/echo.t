@@ -1,4 +1,4 @@
-# vi:filetype=perl
+# vi:filetype=
 
 use lib 'lib';
 use Test::Nginx::Socket;
@@ -306,4 +306,23 @@ Content-Length: 6
 --- response_body
 hello
 world
+
+
+
+=== TEST 22: if is evil
+--- config
+    location /test {
+        set $a 3;
+        set_by_lua $a '
+            if ngx.var.a == "3" then
+                return 4
+            end
+        ';
+        echo $a;
+    }
+--- request
+    GET /test
+--- response_body
+4
+--- SKIP
 

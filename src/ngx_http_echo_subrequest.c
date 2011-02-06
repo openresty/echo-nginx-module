@@ -1,4 +1,4 @@
-#define DDEBUG 1
+#define DDEBUG 0
 #include "ddebug.h"
 
 #include "ngx_http_echo_util.h"
@@ -63,9 +63,9 @@ ngx_http_echo_exec_echo_subrequest_async(ngx_http_request_t *r,
         return rc;
     }
 
-    dd("location: %s", parsed_sr->location->data);
-    dd("location args: %s", (char*) (parsed_sr->query_string ?
-                parsed_sr->query_string->data : (u_char*)"NULL"));
+    dd("location: %.*s",
+            (int) parsed_sr->location->len,
+            parsed_sr->location->data);
 
     args.data = NULL;
     args.len = 0;
@@ -181,8 +181,9 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
     ngx_http_request_body_t     *rb = NULL;
     ngx_buf_t                   *b;
     ngx_http_echo_subrequest_t  *parsed_sr;
-    ngx_open_file_info_t       of;
-    ngx_http_core_loc_conf_t  *clcf;
+    ngx_open_file_info_t         of;
+    ngx_http_core_loc_conf_t    *clcf;
+    size_t                       len;
 
     *parsed_sr_ptr = ngx_pcalloc(r->pool, sizeof(ngx_http_echo_subrequest_t));
     if (*parsed_sr_ptr == NULL) {
@@ -246,7 +247,7 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
 
-    if (body_str != NULL && body_str->len != 0) {
+    if (body_str != NULL && body_str->len) {
         rb = ngx_pcalloc(r->pool, sizeof(ngx_http_request_body_t));
 
         if (rb == NULL) {
@@ -274,9 +275,22 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
         rb->bufs->next = NULL;
 
         rb->buf = b;
-    } else if (body_file != NULL && body_file->len != 0) {
 
-        dd("body_file defined %s", body_file->data);
+    } else if (body_file != NULL && body_file->len) {
+
+        dd("body_file defined %.*s", (int) body_file->len, body_file->data);
+
+        body_file->data = ngx_http_echo_rebase_path(r->pool, body_file->data,
+                body_file->len, &len);
+
+        if (body_file->data == NULL) {
+            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        }
+
+        body_file->len = len;
+
+        dd("after rebase, the path becomes %.*s", (int) body_file->len,
+                body_file->data);
 
         rb = ngx_pcalloc(r->pool, sizeof(ngx_http_request_body_t));
         if (rb == NULL) {
@@ -286,7 +300,6 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
         clcf = ngx_http_get_module_loc_conf(r, ngx_http_core_module);
         ngx_memzero(&of, sizeof(ngx_open_file_info_t));
 
-
         of.read_ahead = clcf->read_ahead;
         of.directio = clcf->directio;
         of.valid = clcf->open_file_cache_valid;
@@ -294,12 +307,17 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
         of.errors = clcf->open_file_cache_errors;
         of.events = clcf->open_file_cache_events;
 
-
         if (ngx_open_cached_file(clcf->open_file_cache, body_file, &of, r->pool)
-            != NGX_OK) {
-            dd("open body file failed");
+            != NGX_OK)
+        {
+            ngx_log_error(NGX_LOG_ERR, r->connection->log, of.err,
+                    "%s \"%V\" failed",
+                    of.failed, body_file);
+
             return NGX_HTTP_INTERNAL_SERVER_ERROR;
         }
+
+        dd("file content size: %d", (int) of.size);
 
         parsed_sr->content_length_n = of.size;
 
@@ -317,9 +335,11 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
         b->file_last = of.size;
 
         b->in_file = b->file_last ? 1: 0;
+
+#if 0
         b->last_buf = (r == r->main) ? 1: 0;
         b->last_in_chain = 1;
-
+#endif
 
         b->file->fd = of.fd;
         b->file->name = *body_file;
@@ -327,10 +347,10 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
         b->file->directio = of.is_directio;
 
         rb->bufs = ngx_alloc_chain_link(r->pool);
-
         if (rb->bufs == NULL) {
             return NGX_HTTP_INTERNAL_SERVER_ERROR;
         }
+
         rb->bufs->buf = b;
         rb->bufs->next = NULL;
         rb->buf = b;
@@ -412,7 +432,9 @@ ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr,
 
         ngx_strlow(h->lowcase_key, h->key.data, h->key.len);
 
-        dd("sr content length: %s", sr->headers_in.content_length->value.data);
+        dd("sr content length: %.*s",
+                (int) sr->headers_in.content_length->value.len,
+                sr->headers_in.content_length->value.data);
     }
 
     dd("subrequest body: %p", sr->request_body);

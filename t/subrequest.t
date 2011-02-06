@@ -1,10 +1,12 @@
-# vi:filetype=perl
+# vi:filetype=
 
 use lib 'lib';
 
 use Test::Nginx::Socket;
 
 plan tests => 2 * blocks() - 1;
+
+$ENV{TEST_NGINX_HTML_DIR} = html_dir;
 
 run_tests();
 
@@ -513,4 +515,68 @@ GET /main
 GET /main
 --- response_body: abcdefg
 --- timeout: 2
+
+
+
+=== TEST 25: POST subrequest with file body (relative paths)
+--- config
+    location /main {
+        echo_subrequest POST /sub -f html/blah.txt;
+    }
+    location /sub {
+        echo "sub method: $echo_request_method";
+        # we don't need to call echo_read_client_body explicitly here
+        echo_request_body;
+    }
+--- user_files
+>>> blah.txt
+Hello, world
+--- request
+    GET /main
+--- response_body
+sub method: POST
+Hello, world
+
+
+
+=== TEST 26: POST subrequest with file body (absolute paths)
+--- config
+    location /main {
+        echo_subrequest POST /sub -f $TEST_NGINX_HTML_DIR/blah.txt;
+    }
+    location /sub {
+        echo "sub method: $echo_request_method";
+        # we don't need to call echo_read_client_body explicitly here
+        echo_request_body;
+    }
+--- user_files
+>>> blah.txt
+Hello, world!
+Haha
+--- request
+    GET /main
+--- response_body
+sub method: POST
+Hello, world!
+Haha
+
+
+
+=== TEST 27: POST subrequest with file body (file not found)
+--- config
+    location /main {
+        echo_subrequest POST /sub -f html/blah/blah.txt;
+    }
+    location /sub {
+        echo "sub method: $echo_request_method";
+        # we don't need to call echo_read_client_body explicitly here
+        echo_request_body;
+    }
+--- user_files
+>>> blah.txt
+Hello, world
+--- request
+    GET /main
+--- response_body_like: 500 Internal Server Error
+--- error_code: 500
 
