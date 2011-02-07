@@ -1,11 +1,12 @@
 #define DDEBUG 0
-
 #include "ddebug.h"
+
 #include "ngx_http_echo_filter.h"
 #include "ngx_http_echo_util.h"
 #include "ngx_http_echo_echo.h"
 
 #include <ngx_log.h>
+
 
 ngx_flag_t ngx_http_echo_filter_used = 0;
 
@@ -15,7 +16,8 @@ ngx_http_output_body_filter_pt ngx_http_echo_next_body_filter;
 
 static ngx_int_t ngx_http_echo_header_filter(ngx_http_request_t *r);
 
-static ngx_int_t ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in);
+static ngx_int_t ngx_http_echo_body_filter(ngx_http_request_t *r,
+        ngx_chain_t *in);
 
 /* filter handlers */
 static ngx_int_t ngx_http_echo_exec_filter_cmds(ngx_http_request_t *r,
@@ -26,11 +28,14 @@ ngx_int_t
 ngx_http_echo_filter_init (ngx_conf_t *cf)
 {
     if (ngx_http_echo_filter_used) {
-        dd("top header filter: %ld", (unsigned long) ngx_http_top_header_filter);
+        dd("top header filter: %ld",
+                (unsigned long) ngx_http_top_header_filter);
+
         ngx_http_echo_next_header_filter = ngx_http_top_header_filter;
         ngx_http_top_header_filter  = ngx_http_echo_header_filter;
 
         dd("top body filter: %ld", (unsigned long) ngx_http_top_body_filter);
+
         ngx_http_echo_next_body_filter = ngx_http_top_body_filter;
         ngx_http_top_body_filter  = ngx_http_echo_body_filter;
     }
@@ -74,7 +79,9 @@ ngx_http_echo_header_filter(ngx_http_request_t *r)
         if (rc != NGX_OK) {
             return NGX_ERROR;
         }
+
         ctx->headers_sent = 1;
+
         ngx_http_set_ctx(r, ctx, ngx_http_echo_module);
     }
 
@@ -145,7 +152,10 @@ ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
     }
 
     dd("exec filter cmds for after body cmds");
-    rc = ngx_http_echo_exec_filter_cmds(r, ctx, conf->after_body_cmds, &ctx->next_after_body_cmd);
+
+    rc = ngx_http_echo_exec_filter_cmds(r, ctx, conf->after_body_cmds,
+            &ctx->next_after_body_cmd);
+
     if (rc != NGX_OK) {
         dd("FAILED: exec filter cmds for after body cmds");
         return NGX_ERROR;

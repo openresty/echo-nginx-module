@@ -14,7 +14,8 @@ ngx_int_t
 ngx_http_echo_exec_echo_read_request_body(
         ngx_http_request_t* r, ngx_http_echo_ctx_t *ctx)
 {
-    return ngx_http_read_client_request_body(r, ngx_http_echo_post_read_request_body);
+    return ngx_http_read_client_request_body(r,
+            ngx_http_echo_post_read_request_body);
 }
 
 
@@ -91,17 +92,6 @@ ngx_http_echo_request_body_variable(ngx_http_request_t *r,
     size_t        len;
     ngx_buf_t    *buf, *next;
     ngx_chain_t  *cl;
-
-#if 0
-
-    dd("rrr request_body null ? %d", r->request_body == NULL);
-    if (r->request_body) {
-        dd("rrr request_body bufs null ? %d", r->request_body->bufs == NULL);
-        dd("rrr request_body temp file ? %d", r->request_body->temp_file != NULL);
-    }
-    dd("rrr request_body content length ? %ld", (long) r->headers_in.content_length_n);
-
-#endif
 
     if (r->request_body == NULL
         || r->request_body->bufs == NULL

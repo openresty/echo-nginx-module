@@ -40,9 +40,6 @@ ngx_http_echo_exec_echo_location_async(ngx_http_request_t *r,
         url_args = NULL;
     }
 
-    dd("location: %s", location.data);
-    dd("location args: %s", (char*) (url_args ? url_args->data : (u_char*)"NULL"));
-
     args.data = NULL;
     args.len = 0;
 

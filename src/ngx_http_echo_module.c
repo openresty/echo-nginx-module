@@ -13,7 +13,8 @@
 static void * ngx_http_echo_create_conf(ngx_conf_t *cf);
 
 /* config directive handlers */
-static char * ngx_http_echo_echo(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
+static char * ngx_http_echo_echo(ngx_conf_t *cf, ngx_command_t *cmd,
+        void *conf);
 
 static char * ngx_http_echo_echo_request_body(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
@@ -21,7 +22,8 @@ static char * ngx_http_echo_echo_request_body(ngx_conf_t *cf,
 static char * ngx_http_echo_echo_sleep(ngx_conf_t *cf, ngx_command_t *cmd,
         void *conf);
 
-static char * ngx_http_echo_echo_flush(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
+static char * ngx_http_echo_echo_flush(ngx_conf_t *cf, ngx_command_t *cmd,
+        void *conf);
 
 static char * ngx_http_echo_echo_blocking_sleep(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
@@ -59,8 +61,8 @@ static char * ngx_http_echo_echo_foreach_split(ngx_conf_t *cf,
 static char * ngx_http_echo_echo_end(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
 
-static char * ngx_http_echo_echo_abort_parent(ngx_conf_t *cf, ngx_command_t *cmd,
-        void *conf);
+static char * ngx_http_echo_echo_abort_parent(ngx_conf_t *cf,
+        ngx_command_t *cmd, void *conf);
 
 static char * ngx_http_echo_echo_exec(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
@@ -389,7 +391,8 @@ ngx_http_echo_echo_flush(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
 
 static char *
-ngx_http_echo_echo_blocking_sleep(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
+ngx_http_echo_echo_blocking_sleep(ngx_conf_t *cf, ngx_command_t *cmd,
+        void *conf)
 {
     dd("in echo_blocking_sleep...");
     return ngx_http_echo_helper(echo_opcode_echo_blocking_sleep,

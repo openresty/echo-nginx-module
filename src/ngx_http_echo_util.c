@@ -12,7 +12,7 @@ ngx_http_echo_init_ctx(ngx_http_request_t *r, ngx_http_echo_ctx_t **ctx_ptr)
 
     *ctx_ptr = ngx_pcalloc(r->pool, sizeof(ngx_http_echo_ctx_t));
     if (*ctx_ptr == NULL) {
-        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        return NGX_ERROR;
     }
 
     ctx = *ctx_ptr;
@@ -24,6 +24,7 @@ ngx_http_echo_init_ctx(ngx_http_request_t *r, ngx_http_echo_ctx_t **ctx_ptr)
     return NGX_OK;
 }
 
+
 ngx_int_t
 ngx_http_echo_eval_cmd_args(ngx_http_request_t *r,
         ngx_http_echo_cmd_t *cmd, ngx_array_t *computed_args,
@@ -34,7 +35,6 @@ ngx_http_echo_eval_cmd_args(ngx_http_request_t *r,
     ngx_str_t                       *arg, *raw, *opt;
     ngx_http_echo_arg_template_t    *value;
     ngx_flag_t                       expecting_opts = 1;
-
 
     value = args->elts;
 
@@ -147,9 +147,11 @@ ngx_http_echo_send_chain_link(ngx_http_request_t* r,
     return ngx_http_output_filter(r, in);
 }
 
+
 ngx_int_t
 ngx_http_echo_send_header_if_needed(ngx_http_request_t* r,
-        ngx_http_echo_ctx_t *ctx) {
+        ngx_http_echo_ctx_t *ctx)
+{
     /* ngx_int_t   rc; */
 
     if ( ! ctx->headers_sent ) {
@@ -171,8 +173,10 @@ ngx_http_echo_send_header_if_needed(ngx_http_request_t* r,
     return NGX_OK;
 }
 
+
 ssize_t
-ngx_http_echo_atosz(u_char *line, size_t n) {
+ngx_http_echo_atosz(u_char *line, size_t n)
+{
     ssize_t  value;
 
     if (n == 0) {
@@ -197,6 +201,7 @@ ngx_http_echo_atosz(u_char *line, size_t n) {
         return value;
     }
 }
+
 
 /* Modified from the ngx_strlcasestrn function in ngx_string.h
  * Copyright (C) by Igor Sysoev */

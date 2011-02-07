@@ -22,8 +22,10 @@ ngx_str_t  ngx_http_echo_trace_method = ngx_http_echo_method_name("TRACE");
 ngx_str_t  ngx_http_echo_delete_method = ngx_http_echo_method_name("DELETE");
 ngx_str_t  ngx_http_echo_unlock_method = ngx_http_echo_method_name("UNLOCK");
 ngx_str_t  ngx_http_echo_options_method = ngx_http_echo_method_name("OPTIONS");
-ngx_str_t  ngx_http_echo_propfind_method = ngx_http_echo_method_name("PROPFIND");
-ngx_str_t  ngx_http_echo_proppatch_method = ngx_http_echo_method_name("PROPPATCH");
+ngx_str_t  ngx_http_echo_propfind_method =
+        ngx_http_echo_method_name("PROPFIND");
+ngx_str_t  ngx_http_echo_proppatch_method =
+        ngx_http_echo_method_name("PROPPATCH");
 
 
 typedef struct ngx_http_echo_subrequest_s {

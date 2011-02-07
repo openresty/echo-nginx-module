@@ -93,8 +93,10 @@ ngx_http_echo_exec_echo_foreach_split(ngx_http_request_t *r,
 
     pos = compound->data;
     end = compound->data + compound->len;
-    while ((last = ngx_http_echo_strlstrn(pos, end, delimiter->data, delimiter->len - 1))
-                != NULL) {
+
+    while ((last = ngx_http_echo_strlstrn(pos, end, delimiter->data,
+                   delimiter->len - 1)) != NULL)
+    {
         dd("entered the loop");
 
         if (last == pos) {
@@ -163,7 +165,9 @@ ngx_http_echo_exec_echo_end(ngx_http_request_t *r,
         return NGX_OK;
     }
 
-    dd("echo_end: ++ next_choice (total: %u): %u", ctx->foreach->choices->nelts, ctx->foreach->next_choice);
+    dd("echo_end: ++ next_choice (total: %u): %u",
+            (unsigned) ctx->foreach->choices->nelts,
+            (unsigned) ctx->foreach->next_choice);
 
     /* the main handler dispatcher loop will increment
      *   ctx->next_handler_cmd for us anyway. */

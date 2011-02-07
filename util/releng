@@ -1,6 +1,7 @@
 #!/bin/bash
 
 ./update-readme
+ack '.{81}' src/ngx_http_*.[ch]
 ack '(?<=\#define)\s*DDEBUG\s*[12]' src
 echo =======================================
 ack '(?<=This document describes echo-nginx-module v)\d+\.\d+' README

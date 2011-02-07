@@ -85,7 +85,8 @@ ngx_http_echo_wev_handler(ngx_http_request_t *r)
 
         dd("finalizing with rc %d", (int) rc);
 
-        dd("finalize request %.*s with %d", (int) r->uri.len, r->uri.data, (int) rc);
+        dd("finalize request %.*s with %d", (int) r->uri.len, r->uri.data,
+                (int) rc);
 
         ngx_http_finalize_request(r, rc);
     }
