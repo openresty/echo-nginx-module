@@ -121,6 +121,8 @@ typedef struct {
     unsigned         waiting:1;
     unsigned         done:1;
 
+    unsigned         run_post_subrequest:1;
+
 } ngx_http_echo_ctx_t;
 
 

@@ -109,17 +109,18 @@ ngx_int_t
 ngx_http_echo_exec_echo_subrequest(ngx_http_request_t *r,
         ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args)
 {
-    ngx_int_t                           rc;
+    ngx_int_t                            rc;
     ngx_http_request_t                  *sr; /* subrequest object */
     ngx_http_post_subrequest_t          *psr;
     ngx_http_echo_subrequest_t          *parsed_sr;
-    ngx_str_t                           args;
-    ngx_uint_t                          flags = 0;
-
+    ngx_str_t                            args;
+    ngx_uint_t                           flags = 0;
+    ngx_http_echo_ctx_t                 *sr_ctx;
 
     dd_enter();
 
     rc = ngx_http_echo_parse_subrequest_spec(r, computed_args, &parsed_sr);
+
     if (rc != NGX_OK) {
         return rc;
     }
@@ -128,8 +129,10 @@ ngx_http_echo_exec_echo_subrequest(ngx_http_request_t *r,
     args.len = 0;
 
     if (ngx_http_parse_unsafe_uri(r, parsed_sr->location, &args, &flags)
-            != NGX_OK) {
+            != NGX_OK)
+    {
         ctx->headers_sent = 1;
+
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
 
@@ -143,6 +146,12 @@ ngx_http_echo_exec_echo_subrequest(ngx_http_request_t *r,
         return rc;
     }
 
+    sr_ctx = ngx_http_echo_create_ctx(r);
+
+    /* set by ngx_http_echo_create_ctx
+     *  sr_ctx->run_post_subrequest = 0
+     */
+
     psr = ngx_palloc(r->pool, sizeof(ngx_http_post_subrequest_t));
 
     if (psr == NULL) {
@@ -150,7 +159,7 @@ ngx_http_echo_exec_echo_subrequest(ngx_http_request_t *r,
     }
 
     psr->handler = ngx_http_echo_post_subrequest;
-    psr->data = ctx;
+    psr->data = sr_ctx;
 
     rc = ngx_http_subrequest(r, parsed_sr->location, parsed_sr->query_string,
             &sr, psr, 0);

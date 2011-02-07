@@ -315,10 +315,17 @@ ngx_int_t
 ngx_http_echo_post_subrequest(ngx_http_request_t *r,
         void *data, ngx_int_t rc)
 {
+    ngx_http_echo_ctx_t         *ctx = data;
     ngx_http_request_t          *pr;
     ngx_http_echo_ctx_t         *pr_ctx;
 
     dd_enter();
+
+    if (ctx->run_post_subrequest) {
+        return rc;
+    }
+
+    ctx->run_post_subrequest = 1;
 
     pr = r->parent;
 
