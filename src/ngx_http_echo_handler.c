@@ -157,9 +157,9 @@ ngx_http_echo_run_cmds(ngx_http_request_t *r)
 
     ctx = ngx_http_get_module_ctx(r, ngx_http_echo_module);
     if (ctx == NULL) {
-        rc = ngx_http_echo_init_ctx(r, &ctx);
-        if (rc != NGX_OK) {
-            return rc;
+        ctx = ngx_http_echo_create_ctx(r);
+        if (ctx == NULL) {
+            return NGX_HTTP_INTERNAL_SERVER_ERROR;
         }
 
         ngx_http_set_ctx(r, ctx, ngx_http_echo_module);

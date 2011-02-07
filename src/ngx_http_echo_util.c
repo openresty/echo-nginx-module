@@ -5,23 +5,21 @@
 #include "ngx_http_echo_sleep.h"
 
 
-ngx_int_t
-ngx_http_echo_init_ctx(ngx_http_request_t *r, ngx_http_echo_ctx_t **ctx_ptr)
+ngx_http_echo_ctx_t *
+ngx_http_echo_create_ctx(ngx_http_request_t *r)
 {
     ngx_http_echo_ctx_t         *ctx;
 
-    *ctx_ptr = ngx_pcalloc(r->pool, sizeof(ngx_http_echo_ctx_t));
-    if (*ctx_ptr == NULL) {
-        return NGX_ERROR;
+    ctx = ngx_pcalloc(r->pool, sizeof(ngx_http_echo_ctx_t));
+    if (ctx == NULL) {
+        return NULL;
     }
-
-    ctx = *ctx_ptr;
 
     ctx->sleep.handler   = ngx_http_echo_sleep_event_handler;
     ctx->sleep.data      = r;
     ctx->sleep.log       = r->connection->log;
 
-    return NGX_OK;
+    return ctx;
 }
 
 

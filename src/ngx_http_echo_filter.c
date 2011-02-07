@@ -49,7 +49,6 @@ ngx_http_echo_header_filter(ngx_http_request_t *r)
 {
     ngx_http_echo_loc_conf_t    *conf;
     ngx_http_echo_ctx_t         *ctx;
-    ngx_int_t                   rc;
 
     dd("We're in the header filter...");
 
@@ -75,8 +74,8 @@ ngx_http_echo_header_filter(ngx_http_request_t *r)
     }
 
     if (ctx == NULL) {
-        rc = ngx_http_echo_init_ctx(r, &ctx);
-        if (rc != NGX_OK) {
+        ctx = ngx_http_echo_create_ctx(r);
+        if (ctx == NULL) {
             return NGX_ERROR;
         }
 
