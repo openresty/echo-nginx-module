@@ -6,7 +6,7 @@
 
 = Version =
 
-This document describes echo-nginx-module [http://github.com/agentzh/echo-nginx-module/tarball/v0.34 v0.34] released on September 14, 2010.
+This document describes echo-nginx-module [https://github.com/agentzh/echo-nginx-module/downloads v0.35] released on February 7, 2011.
 
 = Synopsis =
 
@@ -737,13 +737,13 @@ This directive was first introduced in the [[#v0.12|release v0.12]].
 See also [[#echo_location_async|echo_location_async]] for more details about the meaning of the arguments.
 
 == echo_subrequest_async ==
-'''syntax:''' ''echo_subrequest_async <HTTP_method> <location> [-q <url_args>] [-b <request_body>]''
+'''syntax:''' ''echo_subrequest_async <HTTP_method> <location> [-q <url_args>] [-b <request_body>] [-f <request_body_path>]''
 
 '''default:''' ''no''
 
 '''context:''' ''location''
 
-Initiate an asynchronous subrequest using HTTP method, an optional url arguments (or querystring), and an option request body.
+Initiate an asynchronous subrequest using HTTP method, an optional url arguments (or querystring) and an optional request body which can be defined as a string or as a path to a file which contains the body.
 
 This directive is very much like a generalized version of the [[#echo_location_async|echo_location_async]] directive.
 
@@ -751,8 +751,10 @@ Here's a small example demonstrating its usage:
 
 <geshi lang="nginx">
     location /multi {
+        # body defined as string
         echo_subrequest_async POST '/sub' -q 'foo=Foo' -b 'hi';
-        echo_subrequest_async PUT '/sub' -q 'bar=Bar' -b 'hello';
+        # body defined as path to a file, relative to nginx prefix path if not absolute
+        echo_subrequest_async PUT '/sub' -q 'bar=Bar' -f '/tmp/hello.txt';
     }
     location /sub {
         echo "querystring: $query_string";
@@ -766,6 +768,7 @@ Here's a small example demonstrating its usage:
 Then on the client side:
 
 <geshi lang="bash">
+  $ echo -n hello > /tmp/hello.txt
   $ curl 'http://localhost/multi'
   querystring: foo=Foo
   method: POST
@@ -811,10 +814,12 @@ Nginx named locations like <code>@foo</code> is ''not'' supported here.
 
 This directive was first introduced in the [[#v0.15|release v0.15]].
 
+The <code>-f</code> option to define a file path for the body was introduced in the [[#v0.35|release v0.35]].
+
 See also the [[#echo_subrequest|echo_subrequest]] and [[#echo_location_async|echo_location_async]] directives.
 
 == echo_subrequest ==
-'''syntax:''' ''echo_subrequest_async <HTTP_method> <location> [-q <url_args>] [-b <request_body>]''
+'''syntax:''' ''echo_subrequest_async <HTTP_method> <location> [-q <url_args>] [-b <request_body>] [-f <request_body_path>]''
 
 '''default:''' ''no''
 
@@ -1282,11 +1287,14 @@ Available on github at [http://github.com/agentzh/echo-nginx-module agentzh/echo
 
 = ChangeLog =
 
+== v0.35 ==
+* added the <code>-f /path/to/file</code> option to the [[#echo_subrequest|echo_subrequest]] and [[#echo_subrequest_async|echo_subrequest_async]] directives to allow POST/PUT a disk file in the subrequest. thanks [https://github.com/dobe Bernd Dorn].
+
 == v0.34 ==
 * we no longer use the problematic <code>ngx_strXcmp</code> macros in our source because it may cause invalid reads and thus segmentation faults. thanks Piotr Sikora.
 
 == v0.33 ==
-* fixed compatibility with nginx 0.7.66+ because the ngx_time_update macro's parameter list has changed. Thanks Guang Feng (蔡镜明).
+* fixed compatibility with nginx 0.7.66+ because the ngx_time_update macro's parameter list has changed. thanks Guang Feng (蔡镜明).
 
 == v0.32 ==
 * we should have used <code>ngx_calloc_buf</code> instead of <code>ngx_alloc_buf</code> for the last chunk generated for [[#echo_after_body|echo_after_body]]. thanks valgrind's memcheck tool.
@@ -1538,7 +1546,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 = See Also =
 
-* The original [http://agentzh.spaces.live.com/blog/cns!FF3A735632E41548!478.entry blog post] about this module's initial development.
+* The original [http://agentzh.blogspot.com/2009/10/hacking-on-nginx-echo-module.html blog post] about this module's initial development.
 * The standard [[NginxHttpAdditionModule|addition filter module]].
 * The standard [[NginxHttpProxyModule|proxy module]].
 

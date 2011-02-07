@@ -6,9 +6,9 @@ Name
     installation instructions.
 
 Version
-    This document describes echo-nginx-module v0.34
-    (<http://github.com/agentzh/echo-nginx-module/tarball/v0.34 >) released
-    on September 14, 2010.
+    This document describes echo-nginx-module v0.35
+    (<https://github.com/agentzh/echo-nginx-module/downloads >) released on
+    February 7, 2011.
 
 Synopsis
       location /hello {
@@ -796,14 +796,15 @@ Content Handler Directives
 
   echo_subrequest_async
     syntax: *echo_subrequest_async <HTTP_method> <location> [-q <url_args>]
-    [-b <request_body>]*
+    [-b <request_body>] [-f <request_body_path>]*
 
     default: *no*
 
     context: *location*
 
     Initiate an asynchronous subrequest using HTTP method, an optional url
-    arguments (or querystring), and an option request body.
+    arguments (or querystring) and an optional request body which can be
+    defined as a string or as a path to a file which contains the body.
 
     This directive is very much like a generalized version of the
     echo_location_async directive.
@@ -811,8 +812,10 @@ Content Handler Directives
     Here's a small example demonstrating its usage:
 
         location /multi {
+            # body defined as string
             echo_subrequest_async POST '/sub' -q 'foo=Foo' -b 'hi';
-            echo_subrequest_async PUT '/sub' -q 'bar=Bar' -b 'hello';
+            # body defined as path to a file, relative to nginx prefix path if not absolute
+            echo_subrequest_async PUT '/sub' -q 'bar=Bar' -f '/tmp/hello.txt';
         }
         location /sub {
             echo "querystring: $query_string";
@@ -824,6 +827,7 @@ Content Handler Directives
 
     Then on the client side:
 
+      $ echo -n hello > /tmp/hello.txt
       $ curl 'http://localhost/multi'
       querystring: foo=Foo
       method: POST
@@ -865,11 +869,14 @@ Content Handler Directives
 
     This directive was first introduced in the release v0.15.
 
+    The "-f" option to define a file path for the body was introduced in the
+    release v0.35.
+
     See also the echo_subrequest and echo_location_async directives.
 
   echo_subrequest
     syntax: *echo_subrequest_async <HTTP_method> <location> [-q <url_args>]
-    [-b <request_body>]*
+    [-b <request_body>] [-f <request_body_path>]*
 
     default: *no*
 
@@ -1369,6 +1376,11 @@ Source Repository
     (<http://github.com/agentzh/echo-nginx-module >).
 
 ChangeLog
+  v0.35
+    *   added the "-f /path/to/file" option to the echo_subrequest and
+        echo_subrequest_async directives to allow POST/PUT a disk file in
+        the subrequest. thanks Bernd Dorn (<https://github.com/dobe >).
+
   v0.34
     *   we no longer use the problematic "ngx_strXcmp" macros in our source
         because it may cause invalid reads and thus segmentation faults.
@@ -1376,7 +1388,7 @@ ChangeLog
 
   v0.33
     *   fixed compatibility with nginx 0.7.66+ because the ngx_time_update
-        macro's parameter list has changed. Thanks Guang Feng (蔡镜明).
+        macro's parameter list has changed. thanks Guang Feng (蔡镜明).
 
   v0.32
     *   we should have used "ngx_calloc_buf" instead of "ngx_alloc_buf" for
@@ -1729,8 +1741,8 @@ Copyright & License
 
 See Also
     *   The original blog post
-        (<http://agentzh.spaces.live.com/blog/cns!FF3A735632E41548!478.entry
-        >) about this module's initial development.
+        (<http://agentzh.blogspot.com/2009/10/hacking-on-nginx-echo-module.html>)
+        about this module's initial development.
 
     *   The standard addition filter module.
 
