@@ -418,11 +418,11 @@ GET /main
     }
 
     location /group {
-        echo_location /bar;
-        echo_location_async /bar;
+        echo_location /baz;
+        echo_location_async /bah;
     }
 
-    location /bar {
+    location ~ '^/ba[rzh]' {
         echo_sleep 0.001;
         echo $echo_incr;
     }

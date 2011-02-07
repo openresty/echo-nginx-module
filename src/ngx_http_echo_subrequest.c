@@ -168,6 +168,10 @@ ngx_http_echo_exec_echo_subrequest(ngx_http_request_t *r,
         return NGX_ERROR;
     }
 
+    sr_ctx->sleep.data = sr;
+
+    ngx_http_set_ctx(sr, sr_ctx, ngx_http_echo_module);
+
     rc = ngx_http_echo_adjust_subrequest(sr, parsed_sr);
 
     if (rc != NGX_OK) {
@@ -311,7 +315,10 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
         clcf = ngx_http_get_module_loc_conf(r, ngx_http_core_module);
         ngx_memzero(&of, sizeof(ngx_open_file_info_t));
 
+#if defined(nginx_version) && nginx_version >= 8018
         of.read_ahead = clcf->read_ahead;
+#endif
+
         of.directio = clcf->directio;
         of.valid = clcf->open_file_cache_valid;
         of.min_uses = clcf->open_file_cache_min_uses;

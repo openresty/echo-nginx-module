@@ -280,3 +280,16 @@ ngx_http_echo_rebase_path(ngx_pool_t *pool, u_char *src, size_t osize,
     return dst;
 }
 
+
+ngx_int_t
+ngx_http_echo_flush_postponed_outputs(ngx_http_request_t *r)
+{
+    if (r == r->connection->data && r->postponed) {
+        /* notify the downstream postpone filter to flush the postponed
+         * outputs of the current request */
+        return ngx_http_output_filter(r, NULL);
+    }
+
+    /* do nothing */
+    return NGX_OK;
+}

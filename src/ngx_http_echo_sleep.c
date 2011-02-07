@@ -38,7 +38,9 @@ ngx_http_echo_exec_echo_sleep(
         return NGX_HTTP_BAD_REQUEST;
     }
 
-    dd("DELAY = %.02lf sec", delay);
+    dd("adding timer with delay %.02lf sec, r:%.*s", delay,
+            (int) r->uri.len,
+            r->uri.data);
 
     ngx_add_timer(&ctx->sleep, (ngx_msec_t) (1000 * delay));
 
@@ -67,9 +69,7 @@ ngx_http_echo_post_sleep(ngx_http_request_t *r)
     ngx_http_echo_ctx_t         *ctx;
     /* ngx_int_t                    rc; */
 
-    dd("entered echo post sleep...(r->done: %d)", r->done);
-
-    dd("sleep: before get module ctx");
+    dd("post sleep, r:%.*s", (int) r->uri.len, r->uri.data);
 
     ctx = ngx_http_get_module_ctx(r, ngx_http_echo_module);
 
@@ -118,6 +118,11 @@ ngx_http_echo_sleep_event_handler(ngx_event_t *ev)
         return;
     }
 
+    if (c->error) {
+        ngx_http_finalize_request(r, NGX_ERROR);
+        return;
+    }
+
     ctx = c->log->data;
     ctx->current_request = r;
 
@@ -144,7 +149,6 @@ ngx_http_echo_sleep_event_handler(ngx_event_t *ev)
     dd("after run posted requests");
 
 #endif
-
 }
 
 
