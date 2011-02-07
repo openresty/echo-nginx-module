@@ -3,11 +3,14 @@
 #ifndef NGX_HTTP_ECHO_MODULE_H
 #define NGX_HTTP_ECHO_MODULE_H
 
+
 #include <ngx_core.h>
 #include <ngx_http.h>
 #include <nginx.h>
 
-extern ngx_module_t ngx_http_echo_module;
+
+extern ngx_module_t  ngx_http_echo_module;
+
 
 /* config directive's opcode */
 typedef enum {
@@ -31,6 +34,7 @@ typedef enum {
     echo_opcode_echo_exec
 } ngx_http_echo_opcode_t;
 
+
 /* all the various config directives (or commands) are
  * divided into two categories: "handler commands",
  * and "filter commands". For instance, the "echo"
@@ -41,6 +45,7 @@ typedef enum {
     echo_filter_cmd
 
 } ngx_http_echo_cmd_category_t;
+
 
 /* compiled form of a config directive argument's value */
 typedef struct {
@@ -56,6 +61,7 @@ typedef struct {
 
 } ngx_http_echo_arg_template_t;
 
+
 /* represent a config directive (or command) like "echo". */
 typedef struct {
     ngx_http_echo_opcode_t      opcode;
@@ -63,6 +69,7 @@ typedef struct {
     /* each argument is of type echo_arg_template_t: */
     ngx_array_t                 *args;
 } ngx_http_echo_cmd_t;
+
 
 /* location config struct */
 typedef struct {
@@ -74,11 +81,13 @@ typedef struct {
 
 } ngx_http_echo_loc_conf_t;
 
+
 typedef struct {
     ngx_array_t     *choices; /* items after splitting */
     ngx_uint_t      next_choice;  /* current item index */
     ngx_uint_t      cmd_index; /* cmd index for the echo_foreach direcitve */
 } ngx_http_echo_foreach_ctx_t;
+
 
 /* context struct in the request handling cycle, holding
  * the current states of the command evaluator */
@@ -97,22 +106,22 @@ typedef struct {
 
     ngx_http_echo_foreach_ctx_t   *foreach;
 
-    ngx_flag_t       headers_sent;
-    ngx_flag_t       before_body_sent;
-    ngx_flag_t       skip_filter;
-
     ngx_time_t       timer_begin;
 
     ngx_event_t      sleep;
 
     ngx_uint_t       counter;
 
-    ngx_flag_t       wait_read_request_body;
+    unsigned         headers_sent:1;
+    unsigned         before_body_sent:1;
+    unsigned         skip_filter:1;
 
-    ngx_flag_t       waiting;
-    ngx_flag_t       done;
+    unsigned         wait_read_request_body:1;
+
+    unsigned         waiting:1;
+    unsigned         done:1;
+
 } ngx_http_echo_ctx_t;
 
 
 #endif /* NGX_HTTP_ECHO_MODULE_H */
-

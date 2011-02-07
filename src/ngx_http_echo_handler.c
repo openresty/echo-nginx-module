@@ -317,7 +317,6 @@ ngx_http_echo_post_subrequest(ngx_http_request_t *r,
     ngx_http_request_t          *pr;
     ngx_http_echo_ctx_t         *pr_ctx;
 
-
     dd_enter();
 
     pr = r->parent;
