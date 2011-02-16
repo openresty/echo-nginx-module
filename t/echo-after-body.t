@@ -7,6 +7,8 @@ plan tests => repeat_each() * 2 * blocks();
 
 no_long_string();
 
+#master_on();
+
 run_tests();
 
 __DATA__

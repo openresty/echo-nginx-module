@@ -3,7 +3,7 @@
 
 #include "ngx_http_echo_module.h"
 
-extern ngx_flag_t ngx_http_echo_filter_used;
+extern unsigned ngx_http_echo_filter_used;
 
 extern ngx_http_output_header_filter_pt ngx_http_echo_next_header_filter;
 

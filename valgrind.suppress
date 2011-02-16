@@ -220,4 +220,21 @@
    fun:ngx_single_process_cycle
    fun:main
 }
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   fun:malloc
+   fun:ngx_alloc
+   fun:ngx_event_process_init
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Param
+   socketcall.sendmsg(msg.msg_iov[i])
+   fun:__sendmsg_nocancel
+   fun:ngx_write_channel
+   fun:ngx_signal_worker_processes
+   fun:ngx_master_process_cycle
+   fun:main
+}
 

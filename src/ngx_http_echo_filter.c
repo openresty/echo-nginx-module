@@ -8,7 +8,7 @@
 #include <ngx_log.h>
 
 
-ngx_flag_t ngx_http_echo_filter_used = 0;
+unsigned ngx_http_echo_filter_used;
 
 ngx_http_output_header_filter_pt ngx_http_echo_next_header_filter;
 
