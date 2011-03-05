@@ -218,8 +218,10 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
     }
 
     expecting_opt = 1;
+
     for (i = 2; i < computed_args->nelts; i++) {
         arg = &computed_arg_elts[i];
+
         if (!expecting_opt) {
             if (to_write == NULL) {
                 ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,

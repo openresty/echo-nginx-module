@@ -195,9 +195,9 @@ ngx_http_echo_atosz(u_char *line, size_t n)
 
     if (value < 0) {
         return NGX_ERROR;
-    } else {
-        return value;
     }
+
+    return value;
 }
 
 
@@ -259,9 +259,19 @@ ngx_http_echo_rebase_path(ngx_pool_t *pool, u_char *src, size_t osize,
     }
 
     if (src[0] == '/') {
-        /* being an absolute path already */
+        /* being an absolute path already, just add a trailing '\0' */
         *nsize = osize;
-        return src;
+
+        dst = ngx_palloc(pool, *nsize + 1);
+        if (dst == NULL) {
+            *nsize = 0;
+            return NULL;
+        }
+
+        p = ngx_copy(dst, src, osize);
+        *p = '\0';
+
+        return dst;
     }
 
     *nsize = ngx_cycle->prefix.len + osize;
