@@ -56,3 +56,4 @@ nginx
 ctags
 t/servroot
 all.sh
+buildroot/
