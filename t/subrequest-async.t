@@ -480,3 +480,27 @@ Hello, world
 --- response_body_like: 500 Internal Server Error
 --- error_code: 500
 
+
+
+=== TEST 25: POST subrequest with file body (absolute paths in vars)
+--- config
+    location /main {
+        set $path $TEST_NGINX_HTML_DIR/blah.txt;
+        echo_subrequest POST /sub -f $path;
+    }
+    location /sub {
+        echo "sub method: $echo_request_method";
+        # we don't need to call echo_read_client_body explicitly here
+        echo_request_body;
+    }
+--- user_files
+>>> blah.txt
+Hello, world!
+Haha
+--- request
+    GET /main
+--- response_body
+sub method: POST
+Hello, world!
+Haha
+
