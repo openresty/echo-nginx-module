@@ -1360,6 +1360,19 @@ Modules that use this module for testing
     Please mail me other modules that use "echo" in any form and I'll add
     them to the list above :)
 
+Limitations
+    By design, all of this module's directives do not inherit between nested
+    locations. So nginx's "if" may not be used this way:
+
+        ? location /foo {
+        ?    set $a 32;
+        ?    if ($a = 32) {
+        ?        set $a 56;
+        ?    }
+        ?
+        ?    echo $a;
+        ? }
+
 Report Bugs
     Although a lot of effort has been put into testing and code tuning,
     there must be some serious bugs lurking somewhere in this module. So
@@ -1741,8 +1754,8 @@ Copyright & License
 
 See Also
     *   The original blog post
-        (<http://agentzh.blogspot.com/2009/10/hacking-on-nginx-echo-module.html>)
-        about this module's initial development.
+        (<http://agentzh.blogspot.com/2009/10/hacking-on-nginx-echo-module.h
+        tml>) about this module's initial development.
 
     *   The standard addition filter module.
 

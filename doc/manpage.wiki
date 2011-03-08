@@ -1274,6 +1274,21 @@ The following modules take advantage of this <code>echo</code> module in their t
 
 Please mail me other modules that use <code>echo</code> in any form and I'll add them to the list above :)
 
+= Limitations =
+
+By design, all of this module's directives do not inherit between nested locations. So nginx's <code>if</code> may not be used this way:
+
+<geshi lang="nginx">
+    ? location /foo {
+    ?    set $a 32;
+    ?    if ($a = 32) {
+    ?        set $a 56;
+    ?    }
+    ?
+    ?    echo $a;
+    ? }
+</geshi>
+
 = Report Bugs =
 
 Although a lot of effort has been put into testing and code tuning, there must be some serious bugs lurking somewhere in this module. So whenever you are bitten by any quirks, please don't hesitate to
