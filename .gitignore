@@ -55,5 +55,7 @@ nginx
 *.html
 ctags
 t/servroot
-all.sh
+all
 buildroot/
+go
+build10
