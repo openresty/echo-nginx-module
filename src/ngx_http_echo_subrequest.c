@@ -419,7 +419,8 @@ ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr,
         sr->request_body = parsed_sr->request_body;
 
         if (ngx_list_init(&sr->headers_in.headers, sr->pool, 20,
-                    sizeof(ngx_table_elt_t)) != NGX_OK) {
+                    sizeof(ngx_table_elt_t)) != NGX_OK)
+        {
             return NGX_HTTP_INTERNAL_SERVER_ERROR;
         }
 
@@ -434,7 +435,7 @@ ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr,
             return NGX_HTTP_INTERNAL_SERVER_ERROR;
         }
 
-        h->value.len = ngx_sprintf(h->value.data, "%O",
+        h->value.len = ngx_sprintf(h->value.data, "%z",
                 parsed_sr->content_length_n) - h->value.data;
 
         sr->headers_in.content_length = h;
