@@ -42,6 +42,31 @@ ngx_http_echo_echo_init(ngx_conf_t *cf)
 
 
 ngx_int_t
+ngx_http_echo_exec_echo_sync(ngx_http_request_t *r,
+        ngx_http_echo_ctx_t *ctx)
+{
+    ngx_buf_t                   *buf;
+    ngx_chain_t                 *cl  = NULL; /* the head of the chain link */
+
+    buf = ngx_calloc_buf(r->pool);
+    if (buf == NULL) {
+        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+    }
+
+    buf->sync = 1;
+
+    cl = ngx_alloc_chain_link(r->pool);
+    if (cl == NULL) {
+        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+    }
+    cl->buf  = buf;
+    cl->next = NULL;
+
+    return ngx_http_echo_send_chain_link(r, ctx, cl);
+}
+
+
+ngx_int_t
 ngx_http_echo_exec_echo(ngx_http_request_t *r,
         ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args,
         ngx_flag_t in_filter, ngx_array_t *opts)

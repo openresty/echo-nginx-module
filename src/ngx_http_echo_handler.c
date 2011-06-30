@@ -214,6 +214,10 @@ ngx_http_echo_run_cmds(ngx_http_request_t *r)
 
         /* do command dispatch based on the opcode */
         switch (cmd->opcode) {
+        case echo_opcode_echo_sync:
+            rc = ngx_http_echo_exec_echo_sync(r, ctx);
+            break;
+
         case echo_opcode_echo:
             /* XXX moved the following code to a separate
              * function */

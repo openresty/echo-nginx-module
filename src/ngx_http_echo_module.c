@@ -239,11 +239,20 @@ ngx_module_t ngx_http_echo_module = {
 static void *
 ngx_http_echo_create_conf(ngx_conf_t *cf)
 {
-    ngx_http_echo_loc_conf_t *conf;
+    ngx_http_echo_loc_conf_t        *conf;
+
     conf = ngx_pcalloc(cf->pool, sizeof(ngx_http_echo_loc_conf_t));
     if (conf == NULL) {
         return NGX_CONF_ERROR;
     }
+
+    /* set by ngx_pcalloc
+     *  conf->handler_cmds = NULL
+     *  conf->before_body_cmds = NULL
+     *  conf->after_body_cmds = NULL
+     *  conf->seen_leading_output = 0
+     *  conf->seen_trailing_output = 0
+     */
 
     return conf;
 }
@@ -255,7 +264,7 @@ ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
         ngx_conf_t *cf, ngx_command_t *cmd, void* conf)
 {
     ngx_http_core_loc_conf_t        *clcf;
-    /* ngx_http_echo_loc_conf_t        *ulcf = conf; */
+    /* ngx_http_echo_loc_conf_t        *elcf = conf; */
     ngx_array_t                    **args_ptr;
     ngx_http_script_compile_t        sc;
     ngx_str_t                       *raw_args;
@@ -352,9 +361,14 @@ ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
 static char *
 ngx_http_echo_echo(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 {
+    ngx_http_echo_loc_conf_t        *elcf = conf;
+
+    if (! elcf->seen_leading_output) {
+        elcf->seen_leading_output = 1;
+    }
+
     dd("in echo_echo...");
-    return ngx_http_echo_helper(echo_opcode_echo,
-            echo_handler_cmd,
+    return ngx_http_echo_helper(echo_opcode_echo, echo_handler_cmd,
             cf, cmd, conf);
 }
 
@@ -363,9 +377,14 @@ static char *
 ngx_http_echo_echo_request_body(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf)
 {
+    ngx_http_echo_loc_conf_t        *elcf = conf;
+
+    if (! elcf->seen_leading_output) {
+        elcf->seen_leading_output = 1;
+    }
+
     dd("in echo_echo_request_body...");
-    return ngx_http_echo_helper(echo_opcode_echo_request_body,
-            echo_handler_cmd,
+    return ngx_http_echo_helper(echo_opcode_echo_request_body, echo_handler_cmd,
             cf, cmd, conf);
 }
 
@@ -374,8 +393,7 @@ static char *
 ngx_http_echo_echo_sleep(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 {
     dd("in echo_sleep...");
-    return ngx_http_echo_helper(echo_opcode_echo_sleep,
-            echo_handler_cmd,
+    return ngx_http_echo_helper(echo_opcode_echo_sleep, echo_handler_cmd,
             cf, cmd, conf);
 }
 
@@ -383,9 +401,14 @@ ngx_http_echo_echo_sleep(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 static char *
 ngx_http_echo_echo_flush(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 {
+    ngx_http_echo_loc_conf_t        *elcf = conf;
+
+    if (! elcf->seen_leading_output) {
+        elcf->seen_leading_output = 1;
+    }
+
     dd("in echo_flush...");
-    return ngx_http_echo_helper(echo_opcode_echo_flush,
-            echo_handler_cmd,
+    return ngx_http_echo_helper(echo_opcode_echo_flush, echo_handler_cmd,
             cf, cmd, conf);
 }
 
@@ -396,8 +419,7 @@ ngx_http_echo_echo_blocking_sleep(ngx_conf_t *cf, ngx_command_t *cmd,
 {
     dd("in echo_blocking_sleep...");
     return ngx_http_echo_helper(echo_opcode_echo_blocking_sleep,
-            echo_handler_cmd,
-            cf, cmd, conf);
+            echo_handler_cmd, cf, cmd, conf);
 }
 
 
@@ -405,8 +427,7 @@ static char *
 ngx_http_echo_echo_reset_timer(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf)
 {
-    return ngx_http_echo_helper(echo_opcode_echo_reset_timer,
-            echo_handler_cmd,
+    return ngx_http_echo_helper(echo_opcode_echo_reset_timer, echo_handler_cmd,
             cf, cmd, conf);
 }
 
@@ -426,8 +447,7 @@ static char *
 ngx_http_echo_echo_after_body(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf)
 {
-    return ngx_http_echo_helper(echo_opcode_echo_after_body,
-            echo_filter_cmd,
+    return ngx_http_echo_helper(echo_opcode_echo_after_body, echo_filter_cmd,
             cf, cmd, conf);
 }
 
@@ -436,23 +456,20 @@ static char *
  ngx_http_echo_echo_location_async(ngx_conf_t *cf, ngx_command_t *cmd,
          void *conf)
 {
+    ngx_http_echo_loc_conf_t        *elcf = conf;
 
-#if ! defined(nginx_version)
+    if (! elcf->seen_leading_output) {
+        elcf->seen_leading_output = 1;
 
-    ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
-            "Directive echo_location_async does not work with nginx "
-            "versions ealier than 0.7.46.");
-
-    return NGX_CONF_ERROR;
-
-#else
+        if (ngx_http_echo_helper(echo_opcode_echo_sync, echo_handler_cmd,
+                cf, cmd, conf) == NGX_CONF_ERROR)
+        {
+            return NGX_CONF_ERROR;
+        }
+    }
 
     return ngx_http_echo_helper(echo_opcode_echo_location_async,
-            echo_handler_cmd,
-            cf, cmd, conf);
-
-#endif
-
+            echo_handler_cmd, cf, cmd, conf);
 }
 
 
@@ -460,23 +477,20 @@ static char *
  ngx_http_echo_echo_location(ngx_conf_t *cf, ngx_command_t *cmd,
          void *conf)
 {
+    ngx_http_echo_loc_conf_t        *elcf = conf;
 
-#if ! defined(nginx_version)
+    if (! elcf->seen_leading_output) {
+        elcf->seen_leading_output = 1;
 
-    ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
-            "Directive echo_location does not work with nginx "
-            "versions ealier than 0.7.46.");
+        if (ngx_http_echo_helper(echo_opcode_echo_sync, echo_handler_cmd,
+                cf, cmd, conf) == NGX_CONF_ERROR)
+        {
+            return NGX_CONF_ERROR;
+        }
+    }
 
-    return NGX_CONF_ERROR;
-
-#else
-
-    return ngx_http_echo_helper(echo_opcode_echo_location,
-            echo_handler_cmd,
+    return ngx_http_echo_helper(echo_opcode_echo_location, echo_handler_cmd,
             cf, cmd, conf);
-
-#endif
-
 }
 
 
@@ -484,23 +498,20 @@ static char *
  ngx_http_echo_echo_subrequest_async(ngx_conf_t *cf, ngx_command_t *cmd,
          void *conf)
 {
+    ngx_http_echo_loc_conf_t        *elcf = conf;
 
-#if ! defined(nginx_version)
+    if (! elcf->seen_leading_output) {
+        elcf->seen_leading_output = 1;
 
-    ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
-            "Directive echo_subrequest_async does not work with nginx "
-            "versions ealier than 0.7.46.");
-
-    return NGX_CONF_ERROR;
-
-#else
+        if (ngx_http_echo_helper(echo_opcode_echo_sync, echo_handler_cmd,
+                cf, cmd, conf) == NGX_CONF_ERROR)
+        {
+            return NGX_CONF_ERROR;
+        }
+    }
 
     return ngx_http_echo_helper(echo_opcode_echo_subrequest_async,
-            echo_handler_cmd,
-            cf, cmd, conf);
-
-#endif
-
+            echo_handler_cmd, cf, cmd, conf);
 }
 
 
@@ -508,23 +519,20 @@ static char *
  ngx_http_echo_echo_subrequest(ngx_conf_t *cf, ngx_command_t *cmd,
          void *conf)
 {
+    ngx_http_echo_loc_conf_t        *elcf = conf;
 
-#if ! defined(nginx_version)
+    if (! elcf->seen_leading_output) {
+        elcf->seen_leading_output = 1;
 
-    ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
-            "Directive echo_subrequest does not work with nginx "
-            "versions ealier than 0.7.46.");
+        if (ngx_http_echo_helper(echo_opcode_echo_sync, echo_handler_cmd,
+                cf, cmd, conf) == NGX_CONF_ERROR)
+        {
+            return NGX_CONF_ERROR;
+        }
+    }
 
-    return NGX_CONF_ERROR;
-
-#else
-
-    return ngx_http_echo_helper(echo_opcode_echo_subrequest,
-            echo_handler_cmd,
+    return ngx_http_echo_helper(echo_opcode_echo_subrequest, echo_handler_cmd,
             cf, cmd, conf);
-
-#endif
-
 }
 
 
@@ -532,8 +540,13 @@ static char *
 ngx_http_echo_echo_duplicate(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf)
 {
-    return ngx_http_echo_helper(echo_opcode_echo_duplicate,
-            echo_handler_cmd,
+    ngx_http_echo_loc_conf_t        *elcf = conf;
+
+    if (! elcf->seen_leading_output) {
+        elcf->seen_leading_output = 1;
+    }
+
+    return ngx_http_echo_helper(echo_opcode_echo_duplicate, echo_handler_cmd,
             cf, cmd, conf);
 }
 
@@ -542,39 +555,31 @@ static char *
 ngx_http_echo_echo_read_request_body(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf)
 {
-    return ngx_http_echo_helper(
-            echo_opcode_echo_read_request_body,
-            echo_handler_cmd,
-            cf, cmd, conf);
+    return ngx_http_echo_helper(echo_opcode_echo_read_request_body,
+            echo_handler_cmd, cf, cmd, conf);
 }
 
 
 static char *
 ngx_http_echo_echo_foreach_split(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 {
-    return ngx_http_echo_helper(
-            echo_opcode_echo_foreach_split,
-            echo_handler_cmd,
-            cf, cmd, conf);
+    return ngx_http_echo_helper(echo_opcode_echo_foreach_split,
+            echo_handler_cmd, cf, cmd, conf);
 }
 
 
 static char *
 ngx_http_echo_echo_end(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 {
-    return ngx_http_echo_helper(
-            echo_opcode_echo_end,
-            echo_handler_cmd,
-            cf, cmd, conf);
+    return ngx_http_echo_helper(echo_opcode_echo_end, echo_handler_cmd, cf,
+            cmd, conf);
 }
 
 
 static char *
 ngx_http_echo_echo_abort_parent(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 {
-    return ngx_http_echo_helper(
-            echo_opcode_echo_abort_parent,
-            echo_handler_cmd,
+    return ngx_http_echo_helper(echo_opcode_echo_abort_parent, echo_handler_cmd,
             cf, cmd, conf);
 }
 
@@ -582,9 +587,7 @@ ngx_http_echo_echo_abort_parent(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 static char *
 ngx_http_echo_echo_exec(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 {
-    return ngx_http_echo_helper(
-            echo_opcode_echo_exec,
-            echo_handler_cmd,
+    return ngx_http_echo_helper(echo_opcode_echo_exec, echo_handler_cmd,
             cf, cmd, conf);
 }
 

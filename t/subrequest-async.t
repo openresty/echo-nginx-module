@@ -3,7 +3,7 @@
 use lib 'lib';
 use Test::Nginx::Socket;
 
-plan tests => 2 * blocks() - 1;
+plan tests => 2 * blocks();
 
 #$Test::Nginx::LWP::LogLevel = 'debug';
 
@@ -397,7 +397,7 @@ content length: 5
     }
 --- request
     GET /unsafe
---- error_code: 500
+--- response_body_like: 500 Internal Server Error
 
 
 
@@ -421,7 +421,7 @@ hello, body!
 === TEST 22: POST subrequest with file body (relative paths)
 --- config
     location /main {
-        echo_subrequest POST /sub -f html/blah.txt;
+        echo_subrequest_async POST /sub -f html/blah.txt;
     }
     location /sub {
         echo "sub method: $echo_request_method";
@@ -442,7 +442,7 @@ Hello, world
 === TEST 23: POST subrequest with file body (absolute paths)
 --- config
     location /main {
-        echo_subrequest POST /sub -f $TEST_NGINX_HTML_DIR/blah.txt;
+        echo_subrequest_async POST /sub -f $TEST_NGINX_HTML_DIR/blah.txt;
     }
     location /sub {
         echo "sub method: $echo_request_method";
@@ -465,7 +465,7 @@ Haha
 === TEST 24: POST subrequest with file body (file not found)
 --- config
     location /main {
-        echo_subrequest POST /sub -f html/blah/blah.txt;
+        echo_subrequest_async POST /sub -f html/blah/blah.txt;
     }
     location /sub {
         echo "sub method: $echo_request_method";
@@ -478,7 +478,6 @@ Hello, world
 --- request
     GET /main
 --- response_body_like: 500 Internal Server Error
---- error_code: 500
 
 
 
@@ -486,7 +485,7 @@ Hello, world
 --- config
     location /main {
         set $path $TEST_NGINX_HTML_DIR/blah.txt;
-        echo_subrequest POST /sub -f $path;
+        echo_subrequest_async POST /sub -f $path;
     }
     location /sub {
         echo "sub method: $echo_request_method";
@@ -503,4 +502,61 @@ Haha
 sub method: POST
 Hello, world!
 Haha
+
+
+
+=== TEST 26: leading subrequest & echo_before_body
+--- config
+    location /main {
+        echo_before_body hello;
+        echo_subrequest_async GET /foo;
+    }
+    location /foo {
+        echo world;
+    }
+--- request
+    GET /main
+--- response_body
+hello
+world
+
+
+
+=== TEST 27: leading subrequest & xss
+--- config
+    location /main {
+        default_type 'application/json';
+        xss_get on;
+        xss_callback_arg c;
+        echo_subrequest_async GET /foo;
+    }
+    location /foo {
+        echo -n world;
+    }
+--- request
+    GET /main?c=hi
+--- response_body chop
+hi(world);
+
+
+
+=== TEST 28: multiple leading subrequest & xss
+--- config
+    location /main {
+        default_type 'application/json';
+        xss_get on;
+        xss_callback_arg c;
+        echo_subrequest_async GET /foo;
+        echo_subrequest_async GET /bar;
+    }
+    location /foo {
+        echo -n world;
+    }
+    location /bar {
+        echo -n ' people';
+    }
+--- request
+    GET /main?c=hi
+--- response_body chop
+hi(world people);
 

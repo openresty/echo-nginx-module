@@ -14,6 +14,7 @@ extern ngx_module_t  ngx_http_echo_module;
 
 /* config directive's opcode */
 typedef enum {
+    echo_opcode_echo_sync,
     echo_opcode_echo,
     echo_opcode_echo_request_body,
     echo_opcode_echo_sleep,
@@ -78,6 +79,8 @@ typedef struct {
     ngx_array_t     *handler_cmds;
     ngx_array_t     *before_body_cmds;
     ngx_array_t     *after_body_cmds;
+
+    unsigned         seen_leading_output;
 
 } ngx_http_echo_loc_conf_t;
 

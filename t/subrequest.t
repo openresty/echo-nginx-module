@@ -4,7 +4,7 @@ use lib 'lib';
 
 use Test::Nginx::Socket;
 
-plan tests => 2 * blocks() - 1;
+plan tests => 2 * blocks();
 
 $ENV{TEST_NGINX_HTML_DIR} = html_dir;
 
@@ -411,7 +411,7 @@ content length: 5
     }
 --- request
     GET /unsafe
---- error_code: 500
+--- response_body_like: 500 Internal Server Error
 
 
 
@@ -578,5 +578,61 @@ Hello, world
 --- request
     GET /main
 --- response_body_like: 500 Internal Server Error
---- error_code: 500
+
+
+
+=== TEST 28: leading subrequest & echo_before_body
+--- config
+    location /main {
+        echo_before_body hello;
+        echo_subrequest GET /foo;
+    }
+    location /foo {
+        echo world;
+    }
+--- request
+    GET /main
+--- response_body
+hello
+world
+
+
+
+=== TEST 29: leading subrequest & xss
+--- config
+    location /main {
+        default_type 'application/json';
+        xss_get on;
+        xss_callback_arg c;
+        echo_subrequest GET /foo;
+    }
+    location /foo {
+        echo -n world;
+    }
+--- request
+    GET /main?c=hi
+--- response_body chop
+hi(world);
+
+
+
+=== TEST 30: multiple leading subrequest & xss
+--- config
+    location /main {
+        default_type 'application/json';
+        xss_get on;
+        xss_callback_arg c;
+        echo_subrequest GET /foo;
+        echo_subrequest GET /bar;
+    }
+    location /foo {
+        echo -n world;
+    }
+    location /bar {
+        echo -n ' people';
+    }
+--- request
+    GET /main?c=hi
+--- response_body chop
+hi(world people);
 

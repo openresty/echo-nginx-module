@@ -4,7 +4,7 @@ use lib 'lib';
 
 use Test::Nginx::Socket;
 
-plan tests => 2 * blocks() - 1;
+plan tests => 2 * blocks();
 
 #$Test::Nginx::LWP::LogLevel = 'debug';
 
@@ -303,7 +303,7 @@ post main
     }
 --- request
     GET /unsafe
---- error_code: 500
+--- response_body_like: 500 Internal Server Error
 
 
 
@@ -475,4 +475,61 @@ GET /main
 1
 1
 --- timeout: 2
+
+
+
+=== TEST 22: leading subrequest & echo_before_body
+--- config
+    location /main {
+        echo_before_body hello;
+        echo_location /foo;
+    }
+    location /foo {
+        echo world;
+    }
+--- request
+    GET /main
+--- response_body
+hello
+world
+
+
+
+=== TEST 23: leading subrequest & xss
+--- config
+    location /main {
+        default_type 'application/json';
+        xss_get on;
+        xss_callback_arg c;
+        echo_location /foo;
+    }
+    location /foo {
+        echo -n world;
+    }
+--- request
+    GET /main?c=hi
+--- response_body chop
+hi(world);
+
+
+
+=== TEST 24: multiple leading subrequest & xss
+--- config
+    location /main {
+        default_type 'application/json';
+        xss_get on;
+        xss_callback_arg c;
+        echo_location /foo;
+        echo_location /bar;
+    }
+    location /foo {
+        echo -n world;
+    }
+    location /bar {
+        echo -n ' people';
+    }
+--- request
+    GET /main?c=hi
+--- response_body chop
+hi(world people);
 
