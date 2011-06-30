@@ -457,14 +457,16 @@ static char *
          void *conf)
 {
     ngx_http_echo_loc_conf_t        *elcf = conf;
+    char                            *ret;
 
     if (! elcf->seen_leading_output) {
         elcf->seen_leading_output = 1;
 
-        if (ngx_http_echo_helper(echo_opcode_echo_sync, echo_handler_cmd,
-                cf, cmd, conf) == NGX_CONF_ERROR)
-        {
-            return NGX_CONF_ERROR;
+        ret = ngx_http_echo_helper(echo_opcode_echo_sync, echo_handler_cmd,
+                cf, cmd, conf);
+
+        if (ret != NGX_CONF_OK) {
+            return ret;
         }
     }
 
@@ -478,14 +480,16 @@ static char *
          void *conf)
 {
     ngx_http_echo_loc_conf_t        *elcf = conf;
+    char                            *ret;
 
     if (! elcf->seen_leading_output) {
         elcf->seen_leading_output = 1;
 
-        if (ngx_http_echo_helper(echo_opcode_echo_sync, echo_handler_cmd,
-                cf, cmd, conf) == NGX_CONF_ERROR)
-        {
-            return NGX_CONF_ERROR;
+        ret = ngx_http_echo_helper(echo_opcode_echo_sync, echo_handler_cmd,
+                cf, cmd, conf);
+
+        if (ret != NGX_CONF_OK) {
+            return ret;
         }
     }
 
@@ -499,14 +503,16 @@ static char *
          void *conf)
 {
     ngx_http_echo_loc_conf_t        *elcf = conf;
+    char                            *ret;
 
     if (! elcf->seen_leading_output) {
         elcf->seen_leading_output = 1;
 
-        if (ngx_http_echo_helper(echo_opcode_echo_sync, echo_handler_cmd,
-                cf, cmd, conf) == NGX_CONF_ERROR)
-        {
-            return NGX_CONF_ERROR;
+        ret = ngx_http_echo_helper(echo_opcode_echo_sync, echo_handler_cmd,
+                cf, cmd, conf);
+
+        if (ret != NGX_CONF_OK) {
+            return ret;
         }
     }
 
@@ -520,14 +526,16 @@ static char *
          void *conf)
 {
     ngx_http_echo_loc_conf_t        *elcf = conf;
+    char                            *ret;
 
     if (! elcf->seen_leading_output) {
         elcf->seen_leading_output = 1;
 
-        if (ngx_http_echo_helper(echo_opcode_echo_sync, echo_handler_cmd,
-                cf, cmd, conf) == NGX_CONF_ERROR)
-        {
-            return NGX_CONF_ERROR;
+        ret = ngx_http_echo_helper(echo_opcode_echo_sync, echo_handler_cmd,
+                cf, cmd, conf);
+
+        if (ret != NGX_CONF_OK) {
+            return ret;
         }
     }
 
