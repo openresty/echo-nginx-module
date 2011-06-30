@@ -418,20 +418,9 @@ ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr,
         sr->headers_in.content_length_n = parsed_sr->content_length_n;
         sr->request_body = parsed_sr->request_body;
 
-        sr->headers_in.content_length = ngx_pcalloc(sr->pool,
-                sizeof(ngx_table_elt_t));
-        sr->headers_in.content_length->value.data =
-            ngx_palloc(sr->pool, NGX_OFF_T_LEN);
-        if (sr->headers_in.content_length->value.data == NULL) {
-            return NGX_HTTP_INTERNAL_SERVER_ERROR;
-        }
-        sr->headers_in.content_length->value.len = ngx_sprintf(
-                sr->headers_in.content_length->value.data, "%O",
-                sr->headers_in.content_length_n) -
-                sr->headers_in.content_length->value.data;
-
         if (ngx_list_init(&sr->headers_in.headers, sr->pool, 20,
-                    sizeof(ngx_table_elt_t)) != NGX_OK) {
+                    sizeof(ngx_table_elt_t)) != NGX_OK)
+        {
             return NGX_HTTP_INTERNAL_SERVER_ERROR;
         }
 
@@ -439,6 +428,17 @@ ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr,
         if (h == NULL) {
             return NGX_HTTP_INTERNAL_SERVER_ERROR;
         }
+
+        h->value.data = ngx_palloc(sr->pool, NGX_OFF_T_LEN);
+
+        if (h->value.data == NULL) {
+            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        }
+
+        h->value.len = ngx_sprintf(h->value.data, "%z",
+                parsed_sr->content_length_n) - h->value.data;
+
+        sr->headers_in.content_length = h;
 
         h->hash = sr->header_hash;
 
