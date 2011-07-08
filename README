@@ -6,9 +6,9 @@ Name
     installation instructions.
 
 Version
-    This document describes echo-nginx-module v0.35
-    (<https://github.com/agentzh/echo-nginx-module/downloads >) released on
-    February 7, 2011.
+    This document describes echo-nginx-module v0.36
+    (<https://github.com/agentzh/echo-nginx-module/downloads >) released on 8
+    July 2011.
 
 Synopsis
       location /hello {
@@ -1391,6 +1391,26 @@ Source Repository
     (<http://github.com/agentzh/echo-nginx-module >).
 
 ChangeLog
+  v0.36
+    *   now we back-ported the subrequest mechanism of ngx_lua to ngx_echo.
+        this also helps some crazy test cases of mixing echo_location and
+        echo_location_async pass now.
+
+    *   now echo_location and its friends can work with ngx_xss (as well as
+        other output filter modules) completely. thanks wd for reporting
+        this issue.
+
+    *   done some minor optimization when modifying subrequest's
+        content-length header.
+
+    *   now we always pad a trailing \0 to filepath in
+        "echo_subrequest(_async) METHOD /path -f filepath" because
+        ngx_open_cached_file requires a C string file name. thanks dr-dr xp.
+
+    *   made our filter optimization works with nginx HUP by clearing the
+        ngx_http_echo_filter_used flag at nginx pre-config callback. thanks
+        Marcus Clyne.
+
   v0.35
     *   added the "-f /path/to/file" option to the echo_subrequest and
         echo_subrequest_async directives to allow POST/PUT a disk file in
