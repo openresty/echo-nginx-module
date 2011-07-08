@@ -50,6 +50,8 @@ ngx_http_echo_wev_handler(ngx_http_request_t *r)
         return;
     }
 
+    dd("waiting: %d, done: %d", (int) ctx->waiting, (int) ctx->done);
+
     if (ctx->waiting && ! ctx->done) {
         if (r == r->connection->data && r->postponed) {
             if (r->postponed->request) {
@@ -337,13 +339,17 @@ ngx_http_echo_post_subrequest(ngx_http_request_t *r,
     ngx_http_request_t          *pr;
     ngx_http_echo_ctx_t         *pr_ctx;
 
-    dd_enter();
+    dd("echo post_subrequest: %.*s", (int) r->uri.len, r->uri.data);
 
-#if 0
     if (ctx->run_post_subrequest) {
+        dd("already run post_subrequest: %p: %.*s", ctx,
+                (int) r->uri.len, r->uri.data);
+
         return rc;
     }
-#endif
+
+    dd("setting run_post_subrequest to 1 for %p for %.*s", ctx,
+            (int) r->uri.len, r->uri.data);
 
     ctx->run_post_subrequest = 1;
 
@@ -361,16 +367,17 @@ ngx_http_echo_post_subrequest(ngx_http_request_t *r,
 
     pr->write_event_handler = ngx_http_echo_wev_handler;
 
-    /* ensure that the parent request is (or will be)
-     *  posted out the head of the r->posted_requests chain */
+    /* work-around issues in nginx's event module */
 
-    if (r->main->posted_requests
-            && r->main->posted_requests->request != pr)
+    if (r != r->connection->data && r->postponed &&
+            (r->main->posted_requests == NULL ||
+            r->main->posted_requests->request != pr))
     {
-        rc = ngx_http_echo_post_request_at_head(pr, NULL);
-        if (rc != NGX_OK) {
-            return NGX_ERROR;
-        }
+#if defined(nginx_version) && nginx_version >= 8012
+        ngx_http_post_request(pr, NULL);
+#else
+        ngx_http_post_request(pr);
+#endif
     }
 
     return rc;

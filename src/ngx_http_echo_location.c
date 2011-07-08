@@ -88,9 +88,7 @@ ngx_http_echo_exec_echo_location(ngx_http_request_t *r,
     ngx_http_post_subrequest_t          *psr;
     ngx_str_t                            args;
     ngx_uint_t                           flags = 0;
-
-
-    dd_enter();
+    ngx_http_echo_ctx_t                 *sr_ctx;
 
     computed_arg_elts = computed_args->elts;
 
@@ -124,6 +122,8 @@ ngx_http_echo_exec_echo_location(ngx_http_request_t *r,
         return rc;
     }
 
+    sr_ctx = ngx_http_echo_create_ctx(r);
+
     psr = ngx_palloc(r->pool, sizeof(ngx_http_post_subrequest_t));
 
     if (psr == NULL) {
@@ -131,7 +131,7 @@ ngx_http_echo_exec_echo_location(ngx_http_request_t *r,
     }
 
     psr->handler = ngx_http_echo_post_subrequest;
-    psr->data = ctx;
+    psr->data = sr_ctx;
 
     rc = ngx_http_subrequest(r, &location, url_args, &sr, psr, 0);
 

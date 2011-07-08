@@ -11,6 +11,7 @@ static ngx_buf_t ngx_http_echo_space_buf;
 
 static ngx_buf_t ngx_http_echo_newline_buf;
 
+
 ngx_int_t
 ngx_http_echo_echo_init(ngx_conf_t *cf)
 {
@@ -20,19 +21,25 @@ ngx_http_echo_echo_init(ngx_conf_t *cf)
     dd("global init...");
 
     ngx_memzero(&ngx_http_echo_space_buf, sizeof(ngx_buf_t));
+
     ngx_http_echo_space_buf.memory = 1;
+
     ngx_http_echo_space_buf.start =
         ngx_http_echo_space_buf.pos =
             space_str;
+
     ngx_http_echo_space_buf.end =
         ngx_http_echo_space_buf.last =
             space_str + sizeof(space_str) - 1;
 
     ngx_memzero(&ngx_http_echo_newline_buf, sizeof(ngx_buf_t));
+
     ngx_http_echo_newline_buf.memory = 1;
+
     ngx_http_echo_newline_buf.start =
         ngx_http_echo_newline_buf.pos =
             newline_str;
+
     ngx_http_echo_newline_buf.end =
         ngx_http_echo_newline_buf.last =
             newline_str + sizeof(newline_str) - 1;
@@ -119,6 +126,7 @@ ngx_http_echo_exec_echo(ngx_http_request_t *r,
             cl->buf  = buf;
             cl->next = NULL;
             ll = &cl->next;
+
         } else {
             /* append a space first */
             *ll = ngx_alloc_chain_link(r->pool);

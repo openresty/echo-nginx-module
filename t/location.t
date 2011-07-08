@@ -437,7 +437,6 @@ GET /main
 6
 7
 --- timeout: 2
---- SKIP
 
 
 
@@ -521,6 +520,14 @@ hi(world);
         xss_callback_arg c;
         echo_location /foo;
         echo_location /bar;
+    }
+    location /main2 {
+        content_by_lua '
+            local res = ngx.location.capture("/foo")
+            local res2 = ngx.location.capture("/bar")
+            ngx.say(res.body)
+            ngx.say(res2.body)
+        ';
     }
     location /foo {
         echo -n world;

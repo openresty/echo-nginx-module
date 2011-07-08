@@ -304,7 +304,7 @@ post main
 
 
 
-=== TEST 17: access/deny
+=== TEST 17: access/deny (access phase handlers skipped in subrequests)
 --- config
     location /main {
         echo_location_async /denied;
@@ -315,9 +315,9 @@ post main
     }
 --- request
     GET /main
---- error_code: 403
+--- error_code: 200
 --- response_body
---- SKIP
+No no no
 
 
 

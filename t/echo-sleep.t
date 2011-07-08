@@ -161,13 +161,12 @@ done
     location /quit {
         echo before;
         echo_flush;
-        echo_sleep 5;
+        echo_sleep 1;
         echo after;
     }
 --- request
     GET /quit
 --- response_body
 before
---- timeout: 1
---- SKIP
+after
 

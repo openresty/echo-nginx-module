@@ -57,7 +57,6 @@ ngx_http_echo_exec_echo_subrequest_async(ngx_http_request_t *r,
     ngx_str_t                       args;
     ngx_uint_t                      flags = 0;
 
-
     dd_enter();
 
     rc = ngx_http_echo_parse_subrequest_spec(r, computed_args, &parsed_sr);
@@ -151,6 +150,9 @@ ngx_http_echo_exec_echo_subrequest(ngx_http_request_t *r,
     /* set by ngx_http_echo_create_ctx
      *  sr_ctx->run_post_subrequest = 0
      */
+
+    dd("creating sr ctx for %.*s: %p", (int) parsed_sr->location->len,
+            parsed_sr->location->data, sr_ctx);
 
     psr = ngx_palloc(r->pool, sizeof(ngx_http_post_subrequest_t));
 
