@@ -178,7 +178,7 @@ status: 404$
 
 
 
-=== TEST 11: in subrequests
+=== TEST 11: in subrequests (echo_after_body does not work)
 --- config
     location /main {
         echo_location_async /hello;
@@ -191,6 +191,4 @@ status: 404$
     GET /main
 --- response_body
 hello
-world!
---- skip_nginx: 2: < 0.8.7
 

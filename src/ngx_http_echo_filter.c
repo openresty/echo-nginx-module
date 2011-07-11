@@ -138,9 +138,6 @@ ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
             cl->buf->last_buf = 0;
             cl->buf->sync = 1;
             last = 1;
-        } else if (r != r->main && cl->buf->sync) {
-            dd("Found sync buf");
-            last = 1;
         }
     }
 
@@ -155,9 +152,9 @@ ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
     rc = ngx_http_echo_exec_filter_cmds(r, ctx, conf->after_body_cmds,
             &ctx->next_after_body_cmd);
 
-    if (rc != NGX_OK) {
+    if (rc == NGX_ERROR || rc >= NGX_HTTP_SPECIAL_RESPONSE) {
         dd("FAILED: exec filter cmds for after body cmds");
-        return NGX_ERROR;
+        return rc;
     }
 
     ctx->skip_filter = 1;
