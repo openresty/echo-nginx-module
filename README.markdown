@@ -290,7 +290,7 @@ Variables may appear in the arguments. An example is
        echo The current request uri is $request_uri;
 
 
-where `$request_uri` is a variable exposed by the [[NginxHttpCoreModule]].
+where `$request_uri` is a variable exposed by the `NginxHttpCoreModule`.
 
 This command can be used multiple times in a single location configuration, as in
 
@@ -1218,7 +1218,7 @@ $echo_request_uri
 
 Evaluates to the parsed form of the URI (usually led by `/`) of the current (sub-)request. Unlike the `$echo_cacheable_request_uri` variable, it is *not* cacheable.
 
-This is quite different from the `$request_uri` variable exported by the [[NginxHttpCoreModule]], because `$request_uri` is the *unparsed* form of the current request's URI.
+This is quite different from the `$request_uri` variable exported by the `NginxHttpCoreModule`, because `$request_uri` is the *unparsed* form of the current request's URI.
 
 This variable was first introduced in `version 0.17`.
 
