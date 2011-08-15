@@ -204,7 +204,7 @@ Basically it provides various utilities that help testing and debugging of other
 People will also find it useful in real-world applications that need to
 
 1. serve static contents directly from memory (loading from the Nginx config file).
-1. wrap the upstream response with custom header and footer (kinda like the `addition module` but with contents read directly from the config file and Nginx variables).
+1. wrap the upstream response with custom header and footer (kinda like the [addition module](http://wiki.nginx.org/NginxHttpAdditionModule) but with contents read directly from the config file and Nginx variables).
 1. merge contents of various "Nginx locations" (i.e., subrequests) together in a single main request (using `echo_location` and its friends).
 
 This is a special dual-role module that can *lazily* serve as a content handler or register itself as an output filter only upon demand. By default, this module does not do anything at all.
@@ -226,13 +226,13 @@ Technially, this module has also demonstrated the following techniques that migh
 Content Handler Directives
 ==========================
 
-Use of the following directives register this module to the current Nginx location as a content handler. If you want to use another module, like the `standard proxy module`, as the content handler, use the `filter directives` provided by this module.
+Use of the following directives register this module to the current Nginx location as a content handler. If you want to use another module, like the [standard proxy module](http://wiki.nginx.org/NginxHttpProxyModule), as the content handler, use the `filter directives` provided by this module.
 
 All the content handler directives can be mixed together in a single Nginx location and they're supposed to run sequentially just as in the Bash scripting language.
 
 Every content handler directive supports variable interpolation in its arguments (if any).
 
-The MIME type set by the `standard default_type directive` is respected by this module, as in:
+The MIME type set by the [standard default_type directive](http://wiki.nginx.org/NginxHttpCoreModule#default_type) is respected by this module, as in:
 
 
       location /hello {
@@ -252,7 +252,7 @@ Then on the client side:
       Connection: keep-alive
 
 
-Since the `v0.22` release, all of the directives are allowed in the `rewrite module`'s `if` directive block, for instance:
+Since the `v0.22` release, all of the directives are allowed in the [rewrite module](http://wiki.nginx.org/NginxHttpRewriteModule)'s [if](http://wiki.nginx.org/NginxHttpRewriteModule#if) directive block, for instance:
 
 
     location ^~ /if {
@@ -290,7 +290,7 @@ Variables may appear in the arguments. An example is
        echo The current request uri is $request_uri;
 
 
-where `$request_uri` is a variable exposed by the `NginxHttpCoreModule`.
+where [$request_uri](http://wiki.nginx.org/NginxHttpCoreModule#.24request_uri) is a variable exposed by the [NginxHttpCoreModule](http://wiki.nginx.org/NginxHttpCoreModule).
 
 This command can be used multiple times in a single location configuration, as in
 
@@ -552,7 +552,7 @@ See also `echo_sleep` and `$echo_timer_elapsed`.
 echo_read_request_body
 ----------------------
 
-Explicitly reads request body so that the `$request_body` variable will always have non-empty values (unless the body is so big that it has been saved by Nginx to a local temporary file).
+Explicitly reads request body so that the [$request_body](http://wiki.nginx.org/NginxHttpCoreModule#.24request_body) variable will always have non-empty values (unless the body is so big that it has been saved by Nginx to a local temporary file).
 
 Note that this might not be the original client request body because the current request might be a subrequest with a "artificial" body specified by its parent.
 
@@ -585,9 +585,9 @@ The content of `/echoback` looks like this on my side (I was using Perl's LWP ut
       world
 
 
-Because `/echoback` is the main request, `$request_body` holds the original client request body.
+Because `/echoback` is the main request, [$request_body](http://wiki.nginx.org/NginxHttpCoreModule#.24request_body) holds the original client request body.
 
-Before Nginx 0.7.56, it makes no sense to use this directive because `$request_body` was first introduced in Nginx 0.7.58.
+Before Nginx 0.7.56, it makes no sense to use this directive because [$request_body](http://wiki.nginx.org/NginxHttpCoreModule#.24request_body) was first introduced in Nginx 0.7.58.
 
 This directive itself was first introduced in the echo module's `v0.14 release`.
 
@@ -678,7 +678,7 @@ Accessing `/main` yields
 
 Querystrings is *not* allowed to be concatenated onto the `location` argument with "?" directly, for example, `/sub?foo=Foo&bar=Bar` is an invalid location, and shouldn't be fed as the first argument to this directive.
 
-Due to an unknown bug in Nginx (it still exists in Nginx 0.8.20), the `standard SSI module` is required to ensure that the contents of the subrequests issued by this directive are correctly merged into the output chains of the main one. Fortunately, the SSI module is enabled by default during Nginx's `configure` process.
+Due to an unknown bug in Nginx (it still exists in Nginx 0.8.20), the [standard SSI module](http://wiki.nginx.org/NginxHttpSsiModule) is required to ensure that the contents of the subrequests issued by this directive are correctly merged into the output chains of the main one. Fortunately, the SSI module is enabled by default during Nginx's `configure` process.
 
 If calling this directive without SSI module enabled, you'll get truncated response without contents of any subrequests and get an alert message in your Nginx's `error.log`, like this:
 
@@ -978,7 +978,7 @@ It is a "no-op" if no request body has been read yet.
 
 This directive was first introduced in the `release v0.18`.
 
-See also `echo_read_request_body` and the `chunkin module`.
+See also `echo_read_request_body` and the [chunkin module](http://wiki.nginx.org/NginxHttpChunkinModule).
 
 echo_exec
 ---------
@@ -1069,7 +1069,7 @@ Accessing `/echo` from the client side yields
       world
 
 
-In the previous sample, we borrow the `standard proxy module` to serve as the underlying content handler that generates the "main contents".
+In the previous sample, we borrow the [standard proxy module](http://wiki.nginx.org/NginxHttpProxyModule) to serve as the underlying content handler that generates the "main contents".
 
 Multiple instances of this filter directive are also allowed, as in:
 
@@ -1182,7 +1182,7 @@ Behind the scene, it just takes the string data stored in `r->method_name`.
 
 Compare it to the `$echo_client_request_method` variable.
 
-At least for Nginx 0.8.20 and older, the `$request_method` variable provided by the `http core module` is actually doing what our `$echo_client_request_method` is doing.
+At least for Nginx 0.8.20 and older, the [$request_method](http://wiki.nginx.org/NginxHttpCoreModule#.24request_method) variable provided by the [http core module](http://wiki.nginx.org/NginxHttpCoreModule) is actually doing what our `$echo_client_request_method` is doing.
 
 This variable was first introduced in our `v0.15 release`.
 
@@ -1242,7 +1242,7 @@ $echo_request_uri
 
 Evaluates to the parsed form of the URI (usually led by `/`) of the current (sub-)request. Unlike the `$echo_cacheable_request_uri` variable, it is *not* cacheable.
 
-This is quite different from the `$request_uri` variable exported by the `NginxHttpCoreModule`, because `$request_uri` is the *unparsed* form of the current request's URI.
+This is quite different from the [$request_uri](http://wiki.nginx.org/NginxHttpCoreModule#.24request_uri) variable exported by the [NginxHttpCoreModule](http://wiki.nginx.org/NginxHttpCoreModule), because `$request_uri` is the *unparsed* form of the current request's URI.
 
 This variable was first introduced in `version 0.17`.
 
@@ -1329,9 +1329,9 @@ Modules that use this module for testing
 
 The following modules take advantage of this `echo` module in their test suite:
 
-* The `memc` module that supports almost the whole memcached TCP protocol.
-* The `chunkin` module that adds HTTP 1.1 chunked input support to Nginx.
-* The `headers_more` module that allows you to add, set, and clear input and output headers under the conditions that you specify.
+* The [memc](http://wiki.nginx.org/NginxHttpMemcModule) module that supports almost the whole memcached TCP protocol.
+* The [chunkin](http://wiki.nginx.org/NginxHttpChunkinModule) module that adds HTTP 1.1 chunked input support to Nginx.
+* The [headers_more](http://wiki.nginx.org/NginxHttpHeadersMoreModule) module that allows you to add, set, and clear input and output headers under the conditions that you specify.
 * The `echo` module itself.
 
 Please mail me other modules that use `echo` in any form and I'll add them to the list above :)
@@ -1444,13 +1444,13 @@ v0.23
 
 * now the subrequest can read the client request body directly (for the main request) because we made subrequests inherit its parent's `r->header_in` as well. This affects the `echo_read_request_body` directive.
 * fixed `echo_after_body` in subrequests by using a hack (checking `cl->buf->sync` for the last buf) for nginx 0.8.7+ only.
-* added new varaible `$echo_response_status` to help testing the status code of a subrequest. (The `memc` module makes use of it.)
+* added new varaible `$echo_response_status` to help testing the status code of a subrequest. (The [memc](http://wiki.nginx.org/NginxHttpMemcModule) module makes use of it.)
 * use the `ngx_calloc_buf` macro to allocate new bufs in the code rather than explicit `ngx_pcalloc` calls for safety.
 
 v0.22
 -----
 
-* Now we allowed all the directives appear in the `rewrite module`'s `if` block. But so far I've only tested the `echo` directive.
+* Now we allowed all the directives appear in the [rewrite module](http://wiki.nginx.org/NginxHttpRewriteModule)'s [if](http://wiki.nginx.org/NginxHttpRewriteModule#if) block. But so far I've only tested the `echo` directive.
 
 v0.21
 -----
@@ -1555,7 +1555,7 @@ At the moment, [LWP::UserAgent](http://search.cpan.org/perldoc?LWP::UserAgent) i
 
 Because a single nginx server (by default, `localhost:1984`) is used across all the test scripts (`.t` files), it's meaningless to run the test suite in parallel by specifying `-jN` when invoking the `prove` utility.
 
-Some parts of the test suite requires standard modules `proxy`, `rewrite` and `SSI` to be enabled as well when building Nginx.
+Some parts of the test suite requires standard modules [proxy](http://wiki.nginx.org/NginxHttpProxyModule), [rewrite](http://wiki.nginx.org/NginxHttpRewriteModule) and [SSI](http://wiki.nginx.org/NginxHttpSsiModule) to be enabled as well when building Nginx.
 
 TODO
 ====
@@ -1670,6 +1670,6 @@ See Also
 ========
 
 * The original [blog post](http://agentzh.blogspot.com/2009/10/hacking-on-nginx-echo-module.html) about this module's initial development.
-* The standard `addition filter module`.
-* The standard `proxy module`.
+* The standard [addition filter module](http://wiki.nginx.org/NginxHttpAdditionModule).
+* The standard [proxy module](http://wiki.nginx.org/NginxHttpProxyModule).
 
