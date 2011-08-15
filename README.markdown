@@ -403,7 +403,9 @@ Unlike the `echo` directive, no trailing newline is appended to the result. So i
 
 You get
 
-  ------ END ------
+
+      ------ END ------
+
 
 This directive was first introduced in `version 0.11`.
 
@@ -438,27 +440,31 @@ Then on the client side, using curl to access `/flush`, you'll see the "hello" l
 
 This directive will fail to flush the output buffer in case of subrequests get involved. Consider the following example:
 
-  location /main {
-      echo_location_async /sub;
-      echo hello;
-      echo_flush;
-  }
-  location /sub {
-      echo_sleep 1;
-  }
+
+      location /main {
+          echo_location_async /sub;
+          echo hello;
+          echo_flush;
+      }
+      location /sub {
+          echo_sleep 1;
+      }
+
 
 Then the client won't see "hello" appear even if `echo_flush` has been executed before the subrequest to `/sub` has actually started executing. The outputs of `/main` that are sent *after* `echo_location_async` will be postponed and buffered firmly.
 
 This does *not* apply to outputs sent before the subrequest initiated. For a modified version of the example given above:
 
-  location /main {
-      echo hello;
-      echo_flush;
-      echo_location_async /sub;
-  }
-  location /sub {
-      echo_sleep 1;
-  }
+
+      location /main {
+          echo hello;
+          echo_flush;
+          echo_location_async /sub;
+      }
+      location /sub {
+          echo_sleep 1;
+      }
+
 
 The client will immediately see "hello" before `/sub` enters sleeping.
 
@@ -611,8 +617,10 @@ A very simple example is
 
 Accessing `/main` gets
 
-  hello
-  world
+
+      hello
+      world
+
 
 Calling multiple locations in parallel is also possible:
 
@@ -674,7 +682,9 @@ Due to an unknown bug in Nginx (it still exists in Nginx 0.8.20), the `standard 
 
 If calling this directive without SSI module enabled, you'll get truncated response without contents of any subrequests and get an alert message in your Nginx's `error.log`, like this:
 
-  [alert] 24212#0: *1 the http output chain is empty, client: 127.0.0.1, ...
+
+      [alert] 24212#0: *1 the http output chain is empty, client: 127.0.0.1, ...
+
 
 Technically speaking, this directive is an example that Nginx content handler issues one or more subrequests directly. AFAIK, the [fancyindex module](https://connectical.com/projects/ngx-fancyindex/wiki) also does such kind of things ;)
 
@@ -682,11 +692,15 @@ Nginx named locations like `@foo` is *not* supported here.
 
 This directive is logically equivalent to the GET version of `echo_subrequest_async`. For example,
 
-  echo_location_async /foo 'bar=Bar';
+
+      echo_location_async /foo 'bar=Bar';
+
 
 is logically equivalent to
 
-  echo_subrequest_async GET /foo -q 'bar=Bar';
+
+      echo_subrequest_async GET /foo -q 'bar=Bar';
+
 
 But calling this directive is slightly faster than calling `echo_subrequest_async` using `GET` because we don't have to parse the HTTP method names like `GET` and options like `-q`.
 
@@ -706,6 +720,7 @@ The final response body is almost always equivalent to the case when `echo_locat
 
 Consider the following example:
 
+
     location /main {
         echo_reset_timer;
         echo_location /sub1;
@@ -721,24 +736,31 @@ Consider the following example:
         echo world;
     }
 
+
 The location `/main` above will take for total 3 sec to complete (compared to 2 sec if `echo_location_async` is used instead here). Here's the result in action on my machine:
 
-  $ curl 'http://localhost/main'
-  hello
-  world
-  took 3.003 sec for total.
-  
-  real	0m3.027s
-  user	0m0.020s
-  sys	0m0.004s
+
+      $ curl 'http://localhost/main'
+      hello
+      world
+      took 3.003 sec for total.
+      
+      real	0m3.027s
+      user	0m0.020s
+      sys	0m0.004s
+
 
 This directive is logically equivalent to the GET version of `echo_subrequest`. For example,
 
-  echo_location /foo 'bar=Bar';
+
+      echo_location /foo 'bar=Bar';
+
 
 is logically equivalent to
 
-  echo_subrequest GET /foo -q 'bar=Bar';
+
+      echo_subrequest GET /foo -q 'bar=Bar';
+
 
 But calling this directive is slightly faster than calling `echo_subrequest` using `GET` because we don't have to parse the HTTP method names like `GET` and options like `-q`.
 
@@ -1042,8 +1064,10 @@ An example is
 
 Accessing `/echo` from the client side yields
 
-  hello
-  world
+
+      hello
+      world
+
 
 In the previous sample, we borrow the `standard proxy module` to serve as the underlying content handler that generates the "main contents".
 

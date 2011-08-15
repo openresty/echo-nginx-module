@@ -396,7 +396,9 @@ Unlike the [[#echo|echo]] directive, no trailing newline is appended to the resu
 
 You get
 
+<geshi lang="bash">
   ------ END ------
+</geshi>
 
 This directive was first introduced in [[#v0.11|version 0.11]].
 
@@ -430,6 +432,7 @@ Then on the client side, using curl to access <code>/flush</code>, you'll see th
 
 This directive will fail to flush the output buffer in case of subrequests get involved. Consider the following example:
 
+<geshi lang="nginx">
   location /main {
       echo_location_async /sub;
       echo hello;
@@ -438,11 +441,13 @@ This directive will fail to flush the output buffer in case of subrequests get i
   location /sub {
       echo_sleep 1;
   }
+</geshi>
 
 Then the client won't see "hello" appear even if <code>echo_flush</code> has been executed before the subrequest to <code>/sub</code> has actually started executing. The outputs of <code>/main</code> that are sent ''after'' [[#echo_location_async|echo_location_async]] will be postponed and buffered firmly.
 
 This does ''not'' apply to outputs sent before the subrequest initiated. For a modified version of the example given above:
 
+<geshi lang="nginx">
   location /main {
       echo hello;
       echo_flush;
@@ -451,6 +456,7 @@ This does ''not'' apply to outputs sent before the subrequest initiated. For a m
   location /sub {
       echo_sleep 1;
   }
+</geshi>
 
 The client will immediately see "hello" before <code>/sub</code> enters sleeping.
 
@@ -598,8 +604,10 @@ A very simple example is
 
 Accessing <code>/main</code> gets
 
+<geshi lang="bash">
   hello
   world
+</geshi>
 
 Calling multiple locations in parallel is also possible:
 
@@ -661,7 +669,9 @@ Due to an unknown bug in Nginx (it still exists in Nginx 0.8.20), the [[NginxHtt
 
 If calling this directive without SSI module enabled, you'll get truncated response without contents of any subrequests and get an alert message in your Nginx's <code>error.log</code>, like this:
 
+<geshi lang="nginx">
   [alert] 24212#0: *1 the http output chain is empty, client: 127.0.0.1, ...
+</geshi>
 
 Technically speaking, this directive is an example that Nginx content handler issues one or more subrequests directly. AFAIK, the [https://connectical.com/projects/ngx-fancyindex/wiki fancyindex module] also does such kind of things ;)
 
@@ -669,11 +679,15 @@ Nginx named locations like <code>@foo</code> is ''not'' supported here.
 
 This directive is logically equivalent to the GET version of [[#echo_subrequest_async|echo_subrequest_async]]. For example,
 
+<geshi lang="nginx">
   echo_location_async /foo 'bar=Bar';
+</geshi>
 
 is logically equivalent to
 
+<geshi lang="nginx">
   echo_subrequest_async GET /foo -q 'bar=Bar';
+</geshi>
 
 But calling this directive is slightly faster than calling [[#echo_subrequest_async|echo_subrequest_async]] using <code>GET</code> because we don't have to parse the HTTP method names like <code>GET</code> and options like <code>-q</code>.
 
@@ -692,6 +706,7 @@ The final response body is almost always equivalent to the case when [[#echo_loc
 
 Consider the following example:
 
+<geshi lang="nginx">
     location /main {
         echo_reset_timer;
         echo_location /sub1;
@@ -706,9 +721,11 @@ Consider the following example:
         echo_sleep 1;
         echo world;
     }
+</geshi>
 
 The location <code>/main</code> above will take for total 3 sec to complete (compared to 2 sec if [[#echo_location_async|echo_location_async]] is used instead here). Here's the result in action on my machine:
 
+<geshi lang="bash">
   $ curl 'http://localhost/main'
   hello
   world
@@ -717,14 +734,19 @@ The location <code>/main</code> above will take for total 3 sec to complete (com
   real	0m3.027s
   user	0m0.020s
   sys	0m0.004s
+</geshi>
 
 This directive is logically equivalent to the GET version of [[#echo_subrequest|echo_subrequest]]. For example,
 
+<geshi lang="nginx">
   echo_location /foo 'bar=Bar';
+</geshi>
 
 is logically equivalent to
 
+<geshi lang="nginx">
   echo_subrequest GET /foo -q 'bar=Bar';
+</geshi>
 
 But calling this directive is slightly faster than calling [[#echo_subrequest|echo_subrequest]] using <code>GET</code> because we don't have to parse the HTTP method names like <code>GET</code> and options like <code>-q</code>.
 
@@ -1020,8 +1042,10 @@ An example is
 
 Accessing <code>/echo</code> from the client side yields
 
+<geshi lang="bash">
   hello
   world
+</geshi>
 
 In the previous sample, we borrow the [[NginxHttpProxyModule|standard proxy module]] to serve as the underlying content handler that generates the "main contents".
 
