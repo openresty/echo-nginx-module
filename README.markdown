@@ -209,7 +209,7 @@ People will also find it useful in real-world applications that need to
 
 This is a special dual-role module that can *lazily* serve as a content handler or register itself as an output filter only upon demand. By default, this module does not do anything at all.
 
-Use of any of this module's directives (no matter [[#Content Handler Directives|content handler directives]] or [[#Filter Directives|filter directives]]) will force the chunked encoding to be used for the HTTP response due to the streaming nature of this module (unless HTTP 1.0 is enforced by the client and the Content-Length header will be set to the size of the first handler directive that generates contents).
+Use of any of this module's directives (no matter `content handler directives` or `filter directives`) will force the chunked encoding to be used for the HTTP response due to the streaming nature of this module (unless HTTP 1.0 is enforced by the client and the Content-Length header will be set to the size of the first handler directive that generates contents).
 
 Technially, this module has also demonstrated the following techniques that might be helpful for module writers:
 
@@ -221,12 +221,12 @@ Technially, this module has also demonstrated the following techniques that migh
 1. Nginx config file variable creation and interpolation.
 1. Streaming output control using output_chain, flush and its friends.
 1. Read client request body from the content handler, and returns back (asynchronously) to the content handler after completion.
-1. Use Perl-based declarative [[#Test Suite|test suite]] to drive the development of Nginx C modules.
+1. Use Perl-based declarative `test suite` to drive the development of Nginx C modules.
 
 Content Handler Directives
 ==========================
 
-Use of the following directives register this module to the current Nginx location as a content handler. If you want to use another module, like the `standard proxy module`, as the content handler, use the [[#Filter Directives|filter directives]] provided by this module.
+Use of the following directives register this module to the current Nginx location as a content handler. If you want to use another module, like the `standard proxy module`, as the content handler, use the `filter directives` provided by this module.
 
 All the content handler directives can be mixed together in a single Nginx location and they're supposed to run sequentially just as in the Bash scripting language.
 
@@ -1066,7 +1066,7 @@ On the client side, the output is like
       !
 
 
-In this example, we also use the [[#Content Handler Directives|content handler directives]] provided by this module as the underlying content handler.
+In this example, we also use the `content handler directives` provided by this module as the underlying content handler.
 
 This directive also supports the `-n` and `--` options like the `echo` directive.
 
@@ -1298,7 +1298,7 @@ In particular,
 
 Earlier versions of Nginx like 0.6.x and 0.5.x will *not* work at all.
 
-If you find that any particular version of Nginx above 0.7.21 does not work with this module, please consider [[#Report Bugs|reporting a bug]].
+If you find that any particular version of Nginx above 0.7.21 does not work with this module, please consider `reporting a bug`.
 
 Modules that use this module for testing
 ========================================
@@ -1603,7 +1603,7 @@ Thanks Marcus Clyne for providing this idea.
 Getting involved
 ================
 
-You'll be very welcomed to submit patches to the `author` or just ask for a commit bit to the [[#Source Repository|source repository]] on GitHub.
+You'll be very welcomed to submit patches to the `author` or just ask for a commit bit to the `source repository` on GitHub.
 
 
 
