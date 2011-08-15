@@ -7,7 +7,7 @@ Name
 
 Version
     This document describes echo-nginx-module v0.36
-    (<https://github.com/agentzh/echo-nginx-module/downloads >) released on 8
+    (<https://github.com/agentzh/echo-nginx-module/downloads>) released on 8
     July 2011.
 
 Synopsis
@@ -700,7 +700,7 @@ Content Handler Directives
 
     Technically speaking, this directive is an example that Nginx content
     handler issues one or more subrequests directly. AFAIK, the fancyindex
-    module (<https://connectical.com/projects/ngx-fancyindex/wiki >) also
+    module (<https://connectical.com/projects/ngx-fancyindex/wiki>) also
     does such kind of things ;)
 
     Nginx named locations like @foo is *not* supported here.
@@ -1298,7 +1298,7 @@ Variables
     This directive was first introduced in the v0.23 release.
 
 Installation
-    Grab the nginx source code from nginx.net (<http://nginx.net/ >), for
+    Grab the nginx source code from nginx.net (<http://nginx.net/>), for
     example, the version 0.8.54 (see nginx compatibility), and then build
     the source with this module:
 
@@ -1315,7 +1315,7 @@ Installation
 
     Download the latest version of the release tarball of this module from
     echo-nginx-module file list
-    (<http://github.com/agentzh/echo-nginx-module/downloads >).
+    (<http://github.com/agentzh/echo-nginx-module/downloads>).
 
 Compatibility
     The following versions of Nginx should work with this module:
@@ -1383,12 +1383,12 @@ Report Bugs
     1.  send a bug report or even patches to <agentzh@gmail.com>,
 
     2.  or create a ticket on the issue tracking interface
-        (<http://github.com/agentzh/echo-nginx-module/issues >) provided by
+        (<http://github.com/agentzh/echo-nginx-module/issues>) provided by
         GitHub.
 
 Source Repository
     Available on github at agentzh/echo-nginx-module
-    (<http://github.com/agentzh/echo-nginx-module >).
+    (<http://github.com/agentzh/echo-nginx-module>).
 
 ChangeLog
   v0.36
@@ -1414,7 +1414,7 @@ ChangeLog
   v0.35
     *   added the "-f /path/to/file" option to the echo_subrequest and
         echo_subrequest_async directives to allow POST/PUT a disk file in
-        the subrequest. thanks Bernd Dorn (<https://github.com/dobe >).
+        the subrequest. thanks Bernd Dorn (<https://github.com/dobe>).
 
   v0.34
     *   we no longer use the problematic "ngx_strXcmp" macros in our source
@@ -1621,7 +1621,7 @@ ChangeLog
         "post_sleep" handle.
 
     *   Added "doc/manpage.wiki" which tracks changes in the wiki page
-        (<http://wiki.nginx.org/NginxHttpEchoModule >).
+        (<http://wiki.nginx.org/NginxHttpEchoModule>).
 
     *   Added the "util/wiki2pod.pl" script to convert "doc/manpage.wiki" to
         "README".
@@ -1630,11 +1630,11 @@ ChangeLog
 
 Test Suite
     This module comes with a Perl-driven test suite. The test cases
-    (<http://github.com/agentzh/echo-nginx-module/tree/master/t/ >) are
+    (<http://github.com/agentzh/echo-nginx-module/tree/master/t/>) are
     declarative
-    (<http://github.com/agentzh/echo-nginx-module/blob/master/t/echo.t >)
+    (<http://github.com/agentzh/echo-nginx-module/blob/master/t/echo.t>)
     too. Thanks to the Test::Base
-    (<http://search.cpan.org/perldoc?Test::Base >) module in the Perl world.
+    (<http://search.cpan.org/perldoc?Test::Base>) module in the Perl world.
 
     To run it on your side:
 
@@ -1644,15 +1644,15 @@ Test Suite
     if you have changed the Nginx server binary.
 
     At the moment, LWP::UserAgent
-    (<http://search.cpan.org/perldoc?LWP::UserAgent >) is used by the test
+    (<http://search.cpan.org/perldoc?LWP::UserAgent>) is used by the test
     scaffold
     (<http://github.com/agentzh/echo-nginx-module/blob/master/test/lib/Test/
     Nginx/Echo.pm>) for simplicity and it's rather weak in testing
     *streaming* behavior of Nginx (I'm using "curl" to test these aspects
     manually for now). I'm considering coding up my own Perl HTTP client
     library based on IO::Select
-    (<http://search.cpan.org/perldoc?IO::Select >) and IO::Socket
-    (<http://search.cpan.org/perldoc?IO::Socket >) (there might be already
+    (<http://search.cpan.org/perldoc?IO::Select>) and IO::Socket
+    (<http://search.cpan.org/perldoc?IO::Socket>) (there might be already
     one around?).
 
     Because a single nginx server (by default, "localhost:1984") is used
