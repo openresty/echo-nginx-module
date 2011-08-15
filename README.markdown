@@ -13,15 +13,18 @@ This document describes echo-nginx-module [v0.36](https://github.com/agentzh/ech
 Synopsis
 ========
 
+
       location /hello {
         echo "hello, world!";
       }
+
 
 
       location /hello {
         echo -n "hello, "
         echo "world!";
       }
+
 
 
       location /timed_hello {
@@ -33,12 +36,14 @@ Synopsis
       }
 
 
+
       location /echo_with_sleep {
         echo hello;
         echo_flush;  # ensure the client can see previous output immediately
         echo_sleep   2.5;  # in sec
         echo world;
       }
+
 
 
       # in the following example, accessing /echo yields
@@ -57,6 +62,7 @@ Synopsis
       location /echo/more {
           echo blah;
       }
+
 
 
       # the output of /main might be
@@ -83,6 +89,7 @@ Synopsis
       }
 
 
+
       # the output of /main might be
       #   hello
       #   world
@@ -107,6 +114,7 @@ Synopsis
       }
 
 
+
       # Accessing /dup gives
       #   ------ END ------
       location /dup {
@@ -117,10 +125,12 @@ Synopsis
       }   
 
 
+
       # /bighello will generate 1000,000,000 hello's.
       location /bighello {
         echo_duplicate 1000_000_000 'hello';
       }
+
 
 
       # echo back the client request
@@ -132,6 +142,7 @@ Synopsis
         
         echo_request_body;
       }
+
 
 
       # GET /multi will yields
@@ -158,6 +169,7 @@ Synopsis
       }
 
 
+
       # GET /merge?/foo.js&/bar/blah.js&/yui/baz.js will merge the .js resources together
       location /merge {
           default_type 'text/javascript';
@@ -167,6 +179,7 @@ Synopsis
               echo;
           echo_end;
       }
+
 
 
       # accessing /if?val=abc yields the "hit" output
@@ -221,6 +234,7 @@ Every content handler directive supports variable interpolation in its arguments
 
 The MIME type set by the `standard default_type directive` is respected by this module, as in:
 
+
       location /hello {
         default_type text/plain;
         echo hello;
@@ -228,6 +242,7 @@ The MIME type set by the `standard default_type directive` is respected by this 
 
 
 Then on the client side:
+
 
       $ curl -I 'http://localhost/echo'
       HTTP/1.1 200 OK
@@ -238,6 +253,7 @@ Then on the client side:
 
 
 Since the `v0.22` release, all of the directives are allowed in the `rewrite module`'s `if` directive block, for instance:
+
 
     location ^~ /if {
         set $res miss;
@@ -261,6 +277,7 @@ Sends arguments joined by spaces, along with a trailing newline, out to the clie
 
 Note that the data might be buffered by Nginx's underlying buffer. To force the output data flushed immediately, use the `echo_flush` command just after `echo`, as in
 
+
        echo hello world;
        echo_flush;
 
@@ -269,12 +286,14 @@ When no argument is specified, *echo* emits the trailing newline alone, just lik
 
 Variables may appear in the arguments. An example is
 
+
        echo The current request uri is $request_uri;
 
 
 where `$request_uri` is a variable exposed by the [[NginxHttpCoreModule]].
 
 This command can be used multiple times in a single location configuration, as in
+
 
     location /echo {
         echo hello;
@@ -283,6 +302,7 @@ This command can be used multiple times in a single location configuration, as i
 
 
 The output on the client side looks like this
+
 
     $ curl 'http://localhost/echo'
     hello
@@ -293,6 +313,7 @@ Special characters like newlines (`\n`) and tabs (`\t`) can be escaped using C-s
 
 As of the echo `v0.28` release, one can suppress the trailing newline character in the output by using the `-n` option, as in
 
+
     location /echo {
         echo -n "hello, ";
         echo "world";
@@ -301,11 +322,13 @@ As of the echo `v0.28` release, one can suppress the trailing newline character 
 
 Accessing `/echo` gives
 
+
     $ curl 'http://localhost/echo'
     hello, world
 
 
 Leading `-n` in variable values won't take effect and will be emitted literally, as in
+
 
     location /echo {
         set $opt -n;
@@ -316,6 +339,7 @@ Leading `-n` in variable values won't take effect and will be emitted literally,
 
 This gives the following output
 
+
     $ curl 'http://localhost/echo'
     -n hello,
     world
@@ -323,12 +347,14 @@ This gives the following output
 
 One can output leading `-n` literals and other options using the special `--` option like this
 
+
     location /echo {
         echo -- -n is an option;
     }
 
 
 which yields
+
 
     $ curl 'http://localhost/echo'
     -n is an option
@@ -346,6 +372,7 @@ Outputs duplication of a string indicated by the second argument, using the time
 
 For instance,
 
+
       location /dup {
           echo_duplicate 3 "abc";
       }
@@ -355,6 +382,7 @@ will lead to an output of `"abcabcabc"`.
 
 Underscores are allowed in the count number, just like in Perl. For example, to emit 1000,000,000 instances of `"hello, world"`:
 
+
       location /many_hellos {
           echo_duplicate 1000_000_000 "hello, world";
       }
@@ -363,6 +391,7 @@ Underscores are allowed in the count number, just like in Perl. For example, to 
 The `count` argument could be zero, but not negative. The second `string` argument could be an empty string ("") likewise.
 
 Unlike the `echo` directive, no trailing newline is appended to the result. So it's possible to "abuse" this directive as a no-trailing-newline version of `echo` by using "count" 1, as in
+
 
       location /echo_art {
           echo_duplicate 2 '---';
@@ -393,6 +422,7 @@ Note that techically the command just emits a ngx_buf_t object with `flush` slot
 This directive does not take any argument.
 
 Consider the following example:
+
 
       location /flush {
          echo hello;
@@ -450,6 +480,7 @@ The period might takes three digits after the decimal point and must be greater 
 
 An example is
 
+
        location /echo_after_sleep {
            echo_sleep 1.234;
            echo resumed!;
@@ -486,6 +517,7 @@ Reset the timer begin time to *now*, i.e., the time when this command is execute
 
 The timer begin time is default to the starting time of the current request and can be overridden by this directive, potentially multiple times in a single location. For example:
 
+
       location /timed_sleep {
           echo_sleep 0.03;
           echo "$echo_timer_elapsed sec elapsed.";
@@ -498,6 +530,7 @@ The timer begin time is default to the starting time of the current request and 
 
 
 The output on the client side might be
+
 
     $ curl 'http://localhost/timed_sleep'
     0.032 sec elapsed.
@@ -521,6 +554,7 @@ This directive does not generate any output itself, just like `echo_sleep`.
 
 Here's an example for echo'ing back the original HTTP client request (both headers and body are included):
 
+
       location /echoback {
         echo_duplicate 1 $echo_client_request_headers;
         echo "\r";
@@ -530,6 +564,7 @@ Here's an example for echo'ing back the original HTTP client request (both heade
 
 
 The content of `/echoback` looks like this on my side (I was using Perl's LWP utility to access this location on the server):
+
 
       $ (echo hello; echo world) | lwp-request -m POST 'http://localhost/echoback'
       POST /echoback HTTP/1.1
@@ -564,6 +599,7 @@ As of Nginx 0.8.20, the `location` argument does *not* support named location, d
 
 A very simple example is
 
+
     location /main {
         echo_location_async /sub;
         echo world;
@@ -579,6 +615,7 @@ Accessing `/main` gets
   world
 
 Calling multiple locations in parallel is also possible:
+
 
     location /main {
         echo_reset_timer;
@@ -598,6 +635,7 @@ Calling multiple locations in parallel is also possible:
 
 Accessing `/main` yields
 
+
       $ time curl 'http://localhost/main'
       hello
       world
@@ -614,6 +652,7 @@ If you use `echo_blocking_sleep` in the previous example instead, then you'll ge
 
 Locations can also take an optional querystring argument, for instance
 
+
     location /main {
         echo_location_async /sub 'foo=Foo&bar=Bar';
     }
@@ -623,6 +662,7 @@ Locations can also take an optional querystring argument, for instance
 
 
 Accessing `/main` yields
+
 
       $ curl 'http://localhost/main'
       Foo Bar
@@ -724,6 +764,7 @@ This directive is very much like a generalized version of the `echo_location_asy
 
 Here's a small example demonstrating its usage:
 
+
     location /multi {
         # body defined as string
         echo_subrequest_async POST '/sub' -q 'foo=Foo' -b 'hi';
@@ -741,6 +782,7 @@ Here's a small example demonstrating its usage:
 
 Then on the client side:
 
+
       $ echo -n hello > /tmp/hello.txt
       $ curl 'http://localhost/multi'
       querystring: foo=Foo
@@ -756,6 +798,7 @@ Then on the client side:
 
 
 Here's more funny example using the standard `proxy module` to handle the subrequest:
+
 
     location /main {
         echo_subrequest_async POST /sub -b 'hello, world';
@@ -775,6 +818,7 @@ Here's more funny example using the standard `proxy module` to handle the subreq
 
 
 Then on the client side, we can see that
+
 
       $ curl 'http://localhost/main'
       method: POST.
@@ -815,6 +859,7 @@ echo_foreach_split
 
 Split the second argument `string` using the delimiter specified in the first argument, and then iterate through the resulting items. For instance:
 
+
       location /loop {
         echo_foreach_split ',' $arg_list;
           echo "item: $echo_it";
@@ -823,6 +868,7 @@ Split the second argument `string` using the delimiter specified in the first ar
 
 
 Accessing /main yields
+
 
       $ curl 'http://localhost/loop?list=cat,dog,mouse'
       item: cat
@@ -836,6 +882,7 @@ Parallel `echo_foreach_split` loops are allowed, but nested ones are currently f
 
 The `delimiter` argument could contain *multiple* arbitrary characters, like
 
+
       echo_foreach_split '-a-' 'cat-a-dog-a-mouse';
         echo $echo_it;
       echo_end;
@@ -843,12 +890,14 @@ The `delimiter` argument could contain *multiple* arbitrary characters, like
 
 Logically speaking, this looping structure is just the `foreach` loop combined with a `split` function call in Perl (using the previous example):
 
+
        foreach (split ',', $arg_list) {
            print "item $_\n";
        }
 
 
 People will also find it useful in merging multiple `.js` or `.css` resources into a whole. Here's an example:
+
 
       location /merge {
           default_type 'text/javascript';
@@ -862,6 +911,7 @@ People will also find it useful in merging multiple `.js` or `.css` resources in
 
 
 Then accessing /merge to merge the `.js` resources specified in the query string:
+
 
       $ curl 'http://localhost/merge?/foo/bar.js&/yui/blah.js&/baz.js'
 
@@ -894,6 +944,7 @@ Outputs the contents of the request body previous read.
 
 Behind the scene, it's implemented roughly like this:
 
+
       if (r->request_body && r->request_body->bufs) {
           return ngx_http_output_filter(r, r->request_body->bufs);
       }
@@ -919,6 +970,7 @@ echo_exec
 
 Does an internal redirect to the location specified. An optional query string can be specified for normal locations, as in
 
+
       location /foo {
           echo_exec /bar weight=5;
       }
@@ -929,6 +981,7 @@ Does an internal redirect to the location specified. An optional query string ca
 
 Or equivalently
 
+
       location /foo {
           echo_exec /bar?weight=5;
       }
@@ -938,6 +991,7 @@ Or equivalently
 
 
 Named locations are also supported. Here's an example:
+
 
       location /foo {
           echo_exec @bar;
@@ -976,6 +1030,7 @@ It's the filter version of the `echo` directive, and prepends its output to the 
 
 An example is
 
+
     location /echo {
         echo_before_body hello;
         proxy_pass $scheme://127.0.0.1:$server_port$request_uri/more;
@@ -994,6 +1049,7 @@ In the previous sample, we borrow the `standard proxy module` to serve as the un
 
 Multiple instances of this filter directive are also allowed, as in:
 
+
     location /echo {
         echo_before_body hello;
         echo_before_body world;
@@ -1002,6 +1058,7 @@ Multiple instances of this filter directive are also allowed, as in:
 
 
 On the client side, the output is like
+
 
       $ curl 'http://localhost/echo'
       hello
@@ -1029,6 +1086,7 @@ It's very much like the `echo_before_body` directive, but *appends* its output t
 
 Here's a simple example:
 
+
     location /echo {
         echo_after_body hello;
         proxy_pass http://127.0.0.1:$server_port$request_uri/more;
@@ -1045,6 +1103,7 @@ Accessing `/echo` from the client side yields
 
 Multiple instances are allowed, as in:
 
+
     location /echo {
         echo_after_body hello;
         echo_after_body world;
@@ -1054,6 +1113,7 @@ Multiple instances are allowed, as in:
 
 
 The output on the client side while accessing the `/echo` location looks like
+
 
       i
       say
@@ -1122,6 +1182,7 @@ Just as the name suggests, it will always take the main request (or the client r
 
 A simple example is below:
 
+
       location /echoback {
          echo "headers are:"
          echo $echo_client_request_headers;
@@ -1129,6 +1190,7 @@ A simple example is below:
 
 
 Accessing `/echoback` yields
+
 
       $ curl 'http://localhost/echoback'
       headers are
@@ -1167,6 +1229,7 @@ It is a counter that always generate the current counting number, starting from 
 
 Consider the following example
 
+
     location /main {
         echo "main pre: $echo_incr";
         echo_location_async /sub;
@@ -1201,6 +1264,7 @@ Installation
 
 Grab the nginx source code from [nginx.net](http://nginx.net/), for example,
 the version 0.8.54 (see `nginx compatibility`), and then build the source with this module:
+
 
     $ wget 'http://sysoev.ru/nginx/nginx-0.8.54.tar.gz'
     $ tar -xzvf nginx-0.8.54.tar.gz
@@ -1252,6 +1316,7 @@ Limitations
 ===========
 
 By design, all of this module's directives do not inherit between nested locations. So nginx's `if` may not be used this way:
+
 
     ? location /foo {
     ?    set $a 32;
@@ -1456,6 +1521,7 @@ This module comes with a Perl-driven test suite. The [test cases](http://github.
 
 To run it on your side:
 
+
     $ PATH=/path/to/your/nginx-with-echo-module:$PATH prove -r t
 
 
@@ -1474,10 +1540,12 @@ TODO
 * Add directives *echo_read_client_request_body* and *echo_request_headers*.
 * Add new directive *echo_log* to use Nginx's logging facility directly from the config file and specific loglevel can be specified, as in
 
+
       echo_log debug "I am being called.";
 
 
 * Add support for options `-h` and `-t` to `echo_subrequest_async` and `echo_subrequest`. For example
+
 
       echo_subrequest POST /sub -q 'foo=Foo&bar=Bar' -b 'hello' -t 'text/plan' -h 'X-My-Header: blah blah'
 
@@ -1488,12 +1556,14 @@ TODO
 * Add new varaible *$echo_request_headers* to accompany the existing `$echo_client_request_headers` variable.
 * Add new directive *echo_foreach*, as in
 
+
       echo_foreach 'cat' 'dog' 'mouse';
         echo_location_async "/animals/$echo_it";
       echo_end;
 
 
 * Add new directive *echo_foreach_range*, as in
+
 
       echo_foreach_range '[1..100]' '[a-zA-z0-9]';
         echo_location_async "/item/$echo_it";
@@ -1502,6 +1572,7 @@ TODO
 
 * Add new directive *echo_repeat*, as in
 
+
       echo_repeat 10 $i {
           echo "Page $i";
           echo_location "/path/to/page/$i";
@@ -1509,6 +1580,7 @@ TODO
 
 
 This is just another way of saying
+
 
       echo_foreach_range $i [1..10];
           echo "Page $i";
@@ -1519,6 +1591,7 @@ This is just another way of saying
 Thanks Marcus Clyne for providing this idea.
 
 * Add new variable $echo_random which always returns a random non-negative integer with the lower/upper limit specified by the new directives `echo_random_min` and `echo_random_max`. For example,
+
 
       echo_random_min  10
       echo_random_max  200
