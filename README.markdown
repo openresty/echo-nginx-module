@@ -3,7 +3,12 @@ Name
 
 **ngx_echo** - Brings "echo", "sleep", "time", "exec" and more shell-style goodies to Nginx config file.
 
-*This module is not distributed with the Nginx source.* See [the installation instructions](http://wiki.nginx.org/NginxHttpEchoModule#Installation).
+*This module is not distributed with the Nginx source.* See [the installation instructions](http://wiki.nginx.org/HttpEchoModule#Installation).
+
+Status
+======
+
+This module is production ready.
 
 Version
 =======
@@ -122,7 +127,7 @@ Synopsis
         echo_duplicate 1 " END ";
         echo_duplicate 3 "--";
         echo;
-      }   
+      }
 
 
 
@@ -204,12 +209,12 @@ Basically it provides various utilities that help testing and debugging of other
 People will also find it useful in real-world applications that need to
 
 1. serve static contents directly from memory (loading from the Nginx config file).
-1. wrap the upstream response with custom header and footer (kinda like the [addition module](http://wiki.nginx.org/NginxHttpAdditionModule) but with contents read directly from the config file and Nginx variables).
-1. merge contents of various "Nginx locations" (i.e., subrequests) together in a single main request (using [echo_location](http://wiki.nginx.org/NginxHttpEchoModule#echo_location) and its friends).
+1. wrap the upstream response with custom header and footer (kinda like the [addition module](http://wiki.nginx.org/HttpAdditionModule) but with contents read directly from the config file and Nginx variables).
+1. merge contents of various "Nginx locations" (i.e., subrequests) together in a single main request (using [echo_location](http://wiki.nginx.org/HttpEchoModule#echo_location) and its friends).
 
 This is a special dual-role module that can *lazily* serve as a content handler or register itself as an output filter only upon demand. By default, this module does not do anything at all.
 
-Use of any of this module's directives (no matter [content handler directives](http://wiki.nginx.org/NginxHttpEchoModule#Content_Handler_Directives) or [filter directives](http://wiki.nginx.org/NginxHttpEchoModule#Filter_Directives)) will force the chunked encoding to be used for the HTTP response due to the streaming nature of this module (unless HTTP 1.0 is enforced by the client and the Content-Length header will be set to the size of the first handler directive that generates contents).
+Use of any of this module's directives (no matter [content handler directives](http://wiki.nginx.org/HttpEchoModule#Content_Handler_Directives) or [filter directives](http://wiki.nginx.org/HttpEchoModule#Filter_Directives)) will force the chunked encoding to be used for the HTTP response due to the streaming nature of this module (unless HTTP 1.0 is enforced by the client and the Content-Length header will be set to the size of the first handler directive that generates contents).
 
 Technially, this module has also demonstrated the following techniques that might be helpful for module writers:
 
@@ -221,18 +226,18 @@ Technially, this module has also demonstrated the following techniques that migh
 1. Nginx config file variable creation and interpolation.
 1. Streaming output control using output_chain, flush and its friends.
 1. Read client request body from the content handler, and returns back (asynchronously) to the content handler after completion.
-1. Use Perl-based declarative [test suite](http://wiki.nginx.org/NginxHttpEchoModule#Test_Suite) to drive the development of Nginx C modules.
+1. Use Perl-based declarative [test suite](http://wiki.nginx.org/HttpEchoModule#Test_Suite) to drive the development of Nginx C modules.
 
 Content Handler Directives
 ==========================
 
-Use of the following directives register this module to the current Nginx location as a content handler. If you want to use another module, like the [standard proxy module](http://wiki.nginx.org/NginxHttpProxyModule), as the content handler, use the [filter directives](http://wiki.nginx.org/NginxHttpEchoModule#Filter_Directives) provided by this module.
+Use of the following directives register this module to the current Nginx location as a content handler. If you want to use another module, like the [standard proxy module](http://wiki.nginx.org/HttpProxyModule), as the content handler, use the [filter directives](http://wiki.nginx.org/HttpEchoModule#Filter_Directives) provided by this module.
 
 All the content handler directives can be mixed together in a single Nginx location and they're supposed to run sequentially just as in the Bash scripting language.
 
 Every content handler directive supports variable interpolation in its arguments (if any).
 
-The MIME type set by the [standard default_type directive](http://wiki.nginx.org/NginxHttpCoreModule#default_type) is respected by this module, as in:
+The MIME type set by the [standard default_type directive](http://wiki.nginx.org/HttpCoreModule#default_type) is respected by this module, as in:
 
 
       location /hello {
@@ -252,7 +257,7 @@ Then on the client side:
       Connection: keep-alive
 
 
-Since the [v0.22](http://wiki.nginx.org/NginxHttpEchoModule#v0.22) release, all of the directives are allowed in the [rewrite module](http://wiki.nginx.org/NginxHttpRewriteModule)'s [if](http://wiki.nginx.org/NginxHttpRewriteModule#if) directive block, for instance:
+Since the [v0.22](http://wiki.nginx.org/HttpEchoModule#v0.22) release, all of the directives are allowed in the [rewrite module](http://wiki.nginx.org/HttpRewriteModule)'s [if](http://wiki.nginx.org/HttpRewriteModule#if) directive block, for instance:
 
 
     location ^~ /if {
@@ -273,9 +278,11 @@ echo
 
 **context:** *location*
 
+**phase:** *content*
+
 Sends arguments joined by spaces, along with a trailing newline, out to the client.
 
-Note that the data might be buffered by Nginx's underlying buffer. To force the output data flushed immediately, use the [echo_flush](http://wiki.nginx.org/NginxHttpEchoModule#echo_flush) command just after `echo`, as in
+Note that the data might be buffered by Nginx's underlying buffer. To force the output data flushed immediately, use the [echo_flush](http://wiki.nginx.org/HttpEchoModule#echo_flush) command just after `echo`, as in
 
 
        echo hello world;
@@ -290,7 +297,7 @@ Variables may appear in the arguments. An example is
        echo The current request uri is $request_uri;
 
 
-where [$request_uri](http://wiki.nginx.org/NginxHttpCoreModule#.24request_uri) is a variable exposed by the [NginxHttpCoreModule](http://wiki.nginx.org/NginxHttpCoreModule).
+where [$request_uri](http://wiki.nginx.org/HttpCoreModule#.24request_uri) is a variable exposed by the [HttpCoreModule](http://wiki.nginx.org/HttpCoreModule).
 
 This command can be used multiple times in a single location configuration, as in
 
@@ -311,7 +318,7 @@ The output on the client side looks like this
 
 Special characters like newlines (`\n`) and tabs (`\t`) can be escaped using C-style escaping sequences. But a notable exception is the dollar sign (`$`). As of Nginx 0.8.20, there's still no clean way to esacpe this characters. (A work-around might be to use a `$echo_dollor` variable that is always evaluated to the constant `$` character. This feature will possibly be introduced in a future version of this module.)
 
-As of the echo [v0.28](http://wiki.nginx.org/NginxHttpEchoModule#v0.28) release, one can suppress the trailing newline character in the output by using the `-n` option, as in
+As of the echo [v0.28](http://wiki.nginx.org/HttpEchoModule#v0.28) release, one can suppress the trailing newline character in the output by using the `-n` option, as in
 
 
     location /echo {
@@ -368,6 +375,8 @@ echo_duplicate
 
 **context:** *location*
 
+**phase:** *content*
+
 Outputs duplication of a string indicated by the second argument, using the times specified in the first argument.
 
 For instance,
@@ -390,7 +399,7 @@ Underscores are allowed in the count number, just like in Perl. For example, to 
 
 The `count` argument could be zero, but not negative. The second `string` argument could be an empty string ("") likewise.
 
-Unlike the [echo](http://wiki.nginx.org/NginxHttpEchoModule#echo) directive, no trailing newline is appended to the result. So it's possible to "abuse" this directive as a no-trailing-newline version of [echo](http://wiki.nginx.org/NginxHttpEchoModule#echo) by using "count" 1, as in
+Unlike the [echo](http://wiki.nginx.org/HttpEchoModule#echo) directive, no trailing newline is appended to the result. So it's possible to "abuse" this directive as a no-trailing-newline version of [echo](http://wiki.nginx.org/HttpEchoModule#echo) by using "count" 1, as in
 
 
       location /echo_art {
@@ -407,7 +416,7 @@ You get
       ------ END ------
 
 
-This directive was first introduced in [version 0.11](http://wiki.nginx.org/NginxHttpEchoModule#v0.11).
+This directive was first introduced in [version 0.11](http://wiki.nginx.org/HttpEchoModule#v0.11).
 
 echo_flush
 ----------
@@ -416,6 +425,8 @@ echo_flush
 **default:** *no*
 
 **context:** *location*
+
+**phase:** *content*
 
 Forces the data potentially buffered by underlying Nginx output filters to send immediately to the client side via socket.
 
@@ -451,7 +462,7 @@ This directive will fail to flush the output buffer in case of subrequests get i
       }
 
 
-Then the client won't see "hello" appear even if `echo_flush` has been executed before the subrequest to `/sub` has actually started executing. The outputs of `/main` that are sent *after* [echo_location_async](http://wiki.nginx.org/NginxHttpEchoModule#echo_location_async) will be postponed and buffered firmly.
+Then the client won't see "hello" appear even if `echo_flush` has been executed before the subrequest to `/sub` has actually started executing. The outputs of `/main` that are sent *after* [echo_location_async](http://wiki.nginx.org/HttpEchoModule#echo_location_async) will be postponed and buffered firmly.
 
 This does *not* apply to outputs sent before the subrequest initiated. For a modified version of the example given above:
 
@@ -468,7 +479,7 @@ This does *not* apply to outputs sent before the subrequest initiated. For a mod
 
 The client will immediately see "hello" before `/sub` enters sleeping.
 
-See also [echo](http://wiki.nginx.org/NginxHttpEchoModule#echo), [echo_sleep](http://wiki.nginx.org/NginxHttpEchoModule#echo_sleep), and [echo_location_async](http://wiki.nginx.org/NginxHttpEchoModule#echo_location_async).
+See also [echo](http://wiki.nginx.org/HttpEchoModule#echo), [echo_sleep](http://wiki.nginx.org/HttpEchoModule#echo_sleep), and [echo_location_async](http://wiki.nginx.org/HttpEchoModule#echo_location_async).
 
 echo_sleep
 ----------
@@ -478,9 +489,11 @@ echo_sleep
 
 **context:** *location*
 
+**phase:** *content*
+
 Sleeps for the time period specified by the argument, which is in seconds.
 
-This operation is non-blocking on server side, so unlike the [echo_blocking_sleep](http://wiki.nginx.org/NginxHttpEchoModule#echo_blocking_sleep) directive, it won't block the whole Nginx worker process.
+This operation is non-blocking on server side, so unlike the [echo_blocking_sleep](http://wiki.nginx.org/HttpEchoModule#echo_blocking_sleep) directive, it won't block the whole Nginx worker process.
 
 The period might takes three digits after the decimal point and must be greater than 0.001.
 
@@ -503,9 +516,11 @@ echo_blocking_sleep
 
 **context:** *location*
 
-This is a blocking version of the [echo_sleep](http://wiki.nginx.org/NginxHttpEchoModule#echo_sleep) directive.
+**phase:** *content*
 
-See the documentation of [echo_sleep](http://wiki.nginx.org/NginxHttpEchoModule#echo_sleep) for more detail.
+This is a blocking version of the [echo_sleep](http://wiki.nginx.org/HttpEchoModule#echo_sleep) directive.
+
+See the documentation of [echo_sleep](http://wiki.nginx.org/HttpEchoModule#echo_sleep) for more detail.
 
 Behind the curtain, it calls the ngx_msleep macro provided by the Nginx core which maps to usleep on POSIX-compliant systems.
 
@@ -518,6 +533,8 @@ echo_reset_timer
 **default:** *no*
 
 **context:** *location*
+
+**phase:** *content*
 
 Reset the timer begin time to *now*, i.e., the time when this command is executed during request.
 
@@ -545,18 +562,18 @@ The output on the client side might be
 
 The actual figures you get on your side may vary a bit due to your system's current activities.
 
-Invocation of this directive will force the underlying Nginx timer to get updated to the current system time (regardless the timer resolution specified elsewhere in the config file). Furthermore, references of the [$echo_timer_elapsed](http://wiki.nginx.org/NginxHttpEchoModule#.24echo_timer_elapsed) variable will also trigger timer update forcibly.
+Invocation of this directive will force the underlying Nginx timer to get updated to the current system time (regardless the timer resolution specified elsewhere in the config file). Furthermore, references of the [$echo_timer_elapsed](http://wiki.nginx.org/HttpEchoModule#.24echo_timer_elapsed) variable will also trigger timer update forcibly.
 
-See also [echo_sleep](http://wiki.nginx.org/NginxHttpEchoModule#echo_sleep) and [$echo_timer_elapsed](http://wiki.nginx.org/NginxHttpEchoModule#.24echo_timer_elapsed).
+See also [echo_sleep](http://wiki.nginx.org/HttpEchoModule#echo_sleep) and [$echo_timer_elapsed](http://wiki.nginx.org/HttpEchoModule#.24echo_timer_elapsed).
 
 echo_read_request_body
 ----------------------
 
-Explicitly reads request body so that the [$request_body](http://wiki.nginx.org/NginxHttpCoreModule#.24request_body) variable will always have non-empty values (unless the body is so big that it has been saved by Nginx to a local temporary file).
+Explicitly reads request body so that the [$request_body](http://wiki.nginx.org/HttpCoreModule#.24request_body) variable will always have non-empty values (unless the body is so big that it has been saved by Nginx to a local temporary file).
 
 Note that this might not be the original client request body because the current request might be a subrequest with a "artificial" body specified by its parent.
 
-This directive does not generate any output itself, just like [echo_sleep](http://wiki.nginx.org/NginxHttpEchoModule#echo_sleep).
+This directive does not generate any output itself, just like [echo_sleep](http://wiki.nginx.org/HttpEchoModule#echo_sleep).
 
 Here's an example for echo'ing back the original HTTP client request (both headers and body are included):
 
@@ -585,11 +602,11 @@ The content of `/echoback` looks like this on my side (I was using Perl's LWP ut
       world
 
 
-Because `/echoback` is the main request, [$request_body](http://wiki.nginx.org/NginxHttpCoreModule#.24request_body) holds the original client request body.
+Because `/echoback` is the main request, [$request_body](http://wiki.nginx.org/HttpCoreModule#.24request_body) holds the original client request body.
 
-Before Nginx 0.7.56, it makes no sense to use this directive because [$request_body](http://wiki.nginx.org/NginxHttpCoreModule#.24request_body) was first introduced in Nginx 0.7.58.
+Before Nginx 0.7.56, it makes no sense to use this directive because [$request_body](http://wiki.nginx.org/HttpCoreModule#.24request_body) was first introduced in Nginx 0.7.58.
 
-This directive itself was first introduced in the echo module's [v0.14 release](http://wiki.nginx.org/NginxHttpEchoModule#v0.14).
+This directive itself was first introduced in the echo module's [v0.14 release](http://wiki.nginx.org/HttpEchoModule#v0.14).
 
 echo_location_async
 -------------------
@@ -599,9 +616,11 @@ echo_location_async
 
 **context:** *location*
 
+**phase:** *content*
+
 Issue GET subrequest to the location specified (first argument) with optional url arguments specified in the second argument.
 
-As of Nginx 0.8.20, the `location` argument does *not* support named location, due to a limitation in the `ngx_http_subrequest` function. The same is true for its brother, the [echo_location](http://wiki.nginx.org/NginxHttpEchoModule#echo_location) directive.
+As of Nginx 0.8.20, the `location` argument does *not* support named location, due to a limitation in the `ngx_http_subrequest` function. The same is true for its brother, the [echo_location](http://wiki.nginx.org/HttpEchoModule#echo_location) directive.
 
 A very simple example is
 
@@ -649,14 +668,14 @@ Accessing `/main` yields
       world
       took 0.000 sec for total.
       
-      real	0m2.006s
-      user	0m0.000s
-      sys	0m0.004s
+      real  0m2.006s
+      user  0m0.000s
+      sys   0m0.004s
 
 
 You can see that the main handler `/main` does *not* wait the subrequests `/sub1` and `/sub2` to complete and quickly goes on, hence the "0.000 sec" timing result. The whole request, however takes approximately 2 sec in total to complete because `/sub1` and `/sub2` run in parallel (or "concurrently" to be more accurate).
 
-If you use [echo_blocking_sleep](http://wiki.nginx.org/NginxHttpEchoModule#echo_blocking_sleep) in the previous example instead, then you'll get the same output, but with 3 sec total response time, because "blocking sleep" blocks the whole Nginx worker process.
+If you use [echo_blocking_sleep](http://wiki.nginx.org/HttpEchoModule#echo_blocking_sleep) in the previous example instead, then you'll get the same output, but with 3 sec total response time, because "blocking sleep" blocks the whole Nginx worker process.
 
 Locations can also take an optional querystring argument, for instance
 
@@ -678,7 +697,7 @@ Accessing `/main` yields
 
 Querystrings is *not* allowed to be concatenated onto the `location` argument with "?" directly, for example, `/sub?foo=Foo&bar=Bar` is an invalid location, and shouldn't be fed as the first argument to this directive.
 
-Due to an unknown bug in Nginx (it still exists in Nginx 0.8.20), the [standard SSI module](http://wiki.nginx.org/NginxHttpSsiModule) is required to ensure that the contents of the subrequests issued by this directive are correctly merged into the output chains of the main one. Fortunately, the SSI module is enabled by default during Nginx's `configure` process.
+Due to an unknown bug in Nginx (it still exists in Nginx 0.8.20), the [standard SSI module](http://wiki.nginx.org/HttpSsiModule) is required to ensure that the contents of the subrequests issued by this directive are correctly merged into the output chains of the main one. Fortunately, the SSI module is enabled by default during Nginx's `configure` process.
 
 If calling this directive without SSI module enabled, you'll get truncated response without contents of any subrequests and get an alert message in your Nginx's `error.log`, like this:
 
@@ -690,7 +709,7 @@ Technically speaking, this directive is an example that Nginx content handler is
 
 Nginx named locations like `@foo` is *not* supported here.
 
-This directive is logically equivalent to the GET version of [echo_subrequest_async](http://wiki.nginx.org/NginxHttpEchoModule#echo_subrequest_async). For example,
+This directive is logically equivalent to the GET version of [echo_subrequest_async](http://wiki.nginx.org/HttpEchoModule#echo_subrequest_async). For example,
 
 
       echo_location_async /foo 'bar=Bar';
@@ -702,9 +721,9 @@ is logically equivalent to
       echo_subrequest_async GET /foo -q 'bar=Bar';
 
 
-But calling this directive is slightly faster than calling [echo_subrequest_async](http://wiki.nginx.org/NginxHttpEchoModule#echo_subrequest_async) using `GET` because we don't have to parse the HTTP method names like `GET` and options like `-q`.
+But calling this directive is slightly faster than calling [echo_subrequest_async](http://wiki.nginx.org/HttpEchoModule#echo_subrequest_async) using `GET` because we don't have to parse the HTTP method names like `GET` and options like `-q`.
 
-This directive is first introduced in [version 0.09](http://wiki.nginx.org/NginxHttpEchoModule#v0.09) of this module and requires at least Nginx 0.7.46.
+This directive is first introduced in [version 0.09](http://wiki.nginx.org/HttpEchoModule#v0.09) of this module and requires at least Nginx 0.7.46.
 
 echo_location
 -------------
@@ -714,9 +733,11 @@ echo_location
 
 **context:** *location*
 
-Just like the [echo_location_async](http://wiki.nginx.org/NginxHttpEchoModule#echo_location_async) directive, but `echo_location` issues subrequests *in series* rather than in parallel. That is, the content handler directives following this directive won't be executed until the subrequest issued by this directive completes.
+**phase:** *content*
 
-The final response body is almost always equivalent to the case when [echo_location_async](http://wiki.nginx.org/NginxHttpEchoModule#echo_location_async) is used instead, only if timing variables is used in the outputs.
+Just like the [echo_location_async](http://wiki.nginx.org/HttpEchoModule#echo_location_async) directive, but `echo_location` issues subrequests *in series* rather than in parallel. That is, the content handler directives following this directive won't be executed until the subrequest issued by this directive completes.
+
+The final response body is almost always equivalent to the case when [echo_location_async](http://wiki.nginx.org/HttpEchoModule#echo_location_async) is used instead, only if timing variables is used in the outputs.
 
 Consider the following example:
 
@@ -737,7 +758,7 @@ Consider the following example:
     }
 
 
-The location `/main` above will take for total 3 sec to complete (compared to 2 sec if [echo_location_async](http://wiki.nginx.org/NginxHttpEchoModule#echo_location_async) is used instead here). Here's the result in action on my machine:
+The location `/main` above will take for total 3 sec to complete (compared to 2 sec if [echo_location_async](http://wiki.nginx.org/HttpEchoModule#echo_location_async) is used instead here). Here's the result in action on my machine:
 
 
       $ curl 'http://localhost/main'
@@ -745,12 +766,12 @@ The location `/main` above will take for total 3 sec to complete (compared to 2 
       world
       took 3.003 sec for total.
       
-      real	0m3.027s
-      user	0m0.020s
-      sys	0m0.004s
+      real  0m3.027s
+      user  0m0.020s
+      sys   0m0.004s
 
 
-This directive is logically equivalent to the GET version of [echo_subrequest](http://wiki.nginx.org/NginxHttpEchoModule#echo_subrequest). For example,
+This directive is logically equivalent to the GET version of [echo_subrequest](http://wiki.nginx.org/HttpEchoModule#echo_subrequest). For example,
 
 
       echo_location /foo 'bar=Bar';
@@ -762,15 +783,15 @@ is logically equivalent to
       echo_subrequest GET /foo -q 'bar=Bar';
 
 
-But calling this directive is slightly faster than calling [echo_subrequest](http://wiki.nginx.org/NginxHttpEchoModule#echo_subrequest) using `GET` because we don't have to parse the HTTP method names like `GET` and options like `-q`.
+But calling this directive is slightly faster than calling [echo_subrequest](http://wiki.nginx.org/HttpEchoModule#echo_subrequest) using `GET` because we don't have to parse the HTTP method names like `GET` and options like `-q`.
 
 Behind the scene, it creates an `ngx_http_post_subrequest_t` object as a *continuation* and passes it into the `ngx_http_subrequest` function call. Nginx will later reopen this "continuation" in the subrequest's `ngx_http_finalize_request` function call. We resumes the execution of the parent-request's content handler and starts to run the next directive (command) if any.
 
 Nginx named locations like `@foo` is *not* supported here.
 
-This directive was first introduced in the [release v0.12](http://wiki.nginx.org/NginxHttpEchoModule#v0.12).
+This directive was first introduced in the [release v0.12](http://wiki.nginx.org/HttpEchoModule#v0.12).
 
-See also [echo_location_async](http://wiki.nginx.org/NginxHttpEchoModule#echo_location_async) for more details about the meaning of the arguments.
+See also [echo_location_async](http://wiki.nginx.org/HttpEchoModule#echo_location_async) for more details about the meaning of the arguments.
 
 echo_subrequest_async
 ---------------------
@@ -780,9 +801,11 @@ echo_subrequest_async
 
 **context:** *location*
 
+**phase:** *content*
+
 Initiate an asynchronous subrequest using HTTP method, an optional url arguments (or querystring) and an optional request body which can be defined as a string or as a path to a file which contains the body.
 
-This directive is very much like a generalized version of the [echo_location_async](http://wiki.nginx.org/NginxHttpEchoModule#echo_location_async) directive.
+This directive is very much like a generalized version of the [echo_location_async](http://wiki.nginx.org/HttpEchoModule#echo_location_async) directive.
 
 Here's a small example demonstrating its usage:
 
@@ -819,7 +842,7 @@ Then on the client side:
       ///
 
 
-Here's more funny example using the standard [proxy module](http://wiki.nginx.org/NginxHttpEchoModule#NginxHttpProxyModule) to handle the subrequest:
+Here's more funny example using the standard [proxy module](http://wiki.nginx.org/HttpEchoModule#HttpProxyModule) to handle the subrequest:
 
 
     location /main {
@@ -849,11 +872,11 @@ Then on the client side, we can see that
 
 Nginx named locations like `@foo` is *not* supported here.
 
-This directive was first introduced in the [release v0.15](http://wiki.nginx.org/NginxHttpEchoModule#v0.15).
+This directive was first introduced in the [release v0.15](http://wiki.nginx.org/HttpEchoModule#v0.15).
 
-The `-f` option to define a file path for the body was introduced in the [release v0.35](http://wiki.nginx.org/NginxHttpEchoModule#v0.35).
+The `-f` option to define a file path for the body was introduced in the [release v0.35](http://wiki.nginx.org/HttpEchoModule#v0.35).
 
-See also the [echo_subrequest](http://wiki.nginx.org/NginxHttpEchoModule#echo_subrequest) and [echo_location_async](http://wiki.nginx.org/NginxHttpEchoModule#echo_location_async) directives.
+See also the [echo_subrequest](http://wiki.nginx.org/HttpEchoModule#echo_subrequest) and [echo_location_async](http://wiki.nginx.org/HttpEchoModule#echo_location_async) directives.
 
 echo_subrequest
 ---------------
@@ -863,13 +886,15 @@ echo_subrequest
 
 **context:** *location*
 
-This is the synchronous version of the [echo_subrequest_async](http://wiki.nginx.org/NginxHttpEchoModule#echo_subrequest_async) directive. And just like [echo_location](http://wiki.nginx.org/NginxHttpEchoModule#echo_location), it does not block the Nginx worker process (while [echo_blocking_sleep](http://wiki.nginx.org/NginxHttpEchoModule#echo_blocking_sleep) does), rather, it uses continuation to pass control along the subrequest chain.
+**phase:** *content*
 
-See [echo_subrequest_async](http://wiki.nginx.org/NginxHttpEchoModule#echo_subrequest_async) for more details.
+This is the synchronous version of the [echo_subrequest_async](http://wiki.nginx.org/HttpEchoModule#echo_subrequest_async) directive. And just like [echo_location](http://wiki.nginx.org/HttpEchoModule#echo_location), it does not block the Nginx worker process (while [echo_blocking_sleep](http://wiki.nginx.org/HttpEchoModule#echo_blocking_sleep) does), rather, it uses continuation to pass control along the subrequest chain.
+
+See [echo_subrequest_async](http://wiki.nginx.org/HttpEchoModule#echo_subrequest_async) for more details.
 
 Nginx named locations like `@foo` is *not* supported here.
 
-This directive was first introduced in the [release v0.15](http://wiki.nginx.org/NginxHttpEchoModule#v0.15).
+This directive was first introduced in the [release v0.15](http://wiki.nginx.org/HttpEchoModule#v0.15).
 
 echo_foreach_split
 ------------------
@@ -878,6 +903,8 @@ echo_foreach_split
 **default:** *no*
 
 **context:** *location*
+
+**phase:** *content*
 
 Split the second argument `string` using the delimiter specified in the first argument, and then iterate through the resulting items. For instance:
 
@@ -898,7 +925,7 @@ Accessing /main yields
       item: mouse
 
 
-As seen in the previous example, this directive should always be accompanied by an [echo_end](http://wiki.nginx.org/NginxHttpEchoModule#echo_end) directive.
+As seen in the previous example, this directive should always be accompanied by an [echo_end](http://wiki.nginx.org/HttpEchoModule#echo_end) directive.
 
 Parallel `echo_foreach_split` loops are allowed, but nested ones are currently forbidden.
 
@@ -940,7 +967,7 @@ Then accessing /merge to merge the `.js` resources specified in the query string
 
 One can also use third-party Nginx cache module to cache the merged response generated by the `/merge` location in the previous example.
 
-This directive was first introduced in the [release v0.17](http://wiki.nginx.org/NginxHttpEchoModule#v0.17).
+This directive was first introduced in the [release v0.17](http://wiki.nginx.org/HttpEchoModule#v0.17).
 
 echo_end
 --------
@@ -950,9 +977,11 @@ echo_end
 
 **context:** *location*
 
-This directive is used to terminate the body of looping and conditional control structures like [echo_foreach_split](http://wiki.nginx.org/NginxHttpEchoModule#echo_foreach_split).
+**phase:** *content*
 
-This directive was first introduced in the [release v0.17](http://wiki.nginx.org/NginxHttpEchoModule#v0.17).
+This directive is used to terminate the body of looping and conditional control structures like [echo_foreach_split](http://wiki.nginx.org/HttpEchoModule#echo_foreach_split).
+
+This directive was first introduced in the [release v0.17](http://wiki.nginx.org/HttpEchoModule#v0.17).
 
 echo_request_body
 -----------------
@@ -961,6 +990,8 @@ echo_request_body
 **default:** *no*
 
 **context:** *location*
+
+**phase:** *content*
 
 Outputs the contents of the request body previous read.
 
@@ -972,13 +1003,13 @@ Behind the scene, it's implemented roughly like this:
       }
 
 
-Unlike the [$echo_request_body](http://wiki.nginx.org/NginxHttpEchoModule#.24echo_request_body) and $request_body variables, this directive will show the whole request body even if some parts or all parts of it are saved in temporary files on the disk.
+Unlike the [$echo_request_body](http://wiki.nginx.org/HttpEchoModule#.24echo_request_body) and $request_body variables, this directive will show the whole request body even if some parts or all parts of it are saved in temporary files on the disk.
 
 It is a "no-op" if no request body has been read yet.
 
-This directive was first introduced in the [release v0.18](http://wiki.nginx.org/NginxHttpEchoModule#v0.18).
+This directive was first introduced in the [release v0.18](http://wiki.nginx.org/HttpEchoModule#v0.18).
 
-See also [echo_read_request_body](http://wiki.nginx.org/NginxHttpEchoModule#echo_read_request_body) and the [chunkin module](http://wiki.nginx.org/NginxHttpChunkinModule).
+See also [echo_read_request_body](http://wiki.nginx.org/HttpEchoModule#echo_read_request_body) and the [chunkin module](http://wiki.nginx.org/HttpChunkinModule).
 
 echo_exec
 ---------
@@ -989,6 +1020,8 @@ echo_exec
 **default:** *no*
 
 **context:** *location*
+
+**phase:** *content*
 
 Does an internal redirect to the location specified. An optional query string can be specified for normal locations, as in
 
@@ -1031,7 +1064,7 @@ Never try to echo things before the `echo_exec` directive or you won't see the p
 
 Technically speaking, this directive exposes the Nginx internal API functions `ngx_http_internal_redirect` and `ngx_http_named_location`.
 
-This directive was first introduced in the [v0.21 release](http://wiki.nginx.org/NginxHttpEchoModule#v0.21).
+This directive was first introduced in the [v0.21 release](http://wiki.nginx.org/HttpEchoModule#v0.21).
 
 Filter Directives
 =================
@@ -1048,7 +1081,9 @@ echo_before_body
 
 **context:** *location*
 
-It's the filter version of the [echo](http://wiki.nginx.org/NginxHttpEchoModule#echo) directive, and prepends its output to the beginning of the original outputs generated by the underlying content handler.
+**phase:** *output filter*
+
+It's the filter version of the [echo](http://wiki.nginx.org/HttpEchoModule#echo) directive, and prepends its output to the beginning of the original outputs generated by the underlying content handler.
 
 An example is
 
@@ -1069,7 +1104,7 @@ Accessing `/echo` from the client side yields
       world
 
 
-In the previous sample, we borrow the [standard proxy module](http://wiki.nginx.org/NginxHttpProxyModule) to serve as the underlying content handler that generates the "main contents".
+In the previous sample, we borrow the [standard proxy module](http://wiki.nginx.org/HttpProxyModule) to serve as the underlying content handler that generates the "main contents".
 
 Multiple instances of this filter directive are also allowed, as in:
 
@@ -1090,11 +1125,11 @@ On the client side, the output is like
       !
 
 
-In this example, we also use the [content handler directives](http://wiki.nginx.org/NginxHttpEchoModule#Content_Handler_Directives) provided by this module as the underlying content handler.
+In this example, we also use the [content handler directives](http://wiki.nginx.org/HttpEchoModule#Content_Handler_Directives) provided by this module as the underlying content handler.
 
-This directive also supports the `-n` and `--` options like the [echo](http://wiki.nginx.org/NginxHttpEchoModule#echo) directive.
+This directive also supports the `-n` and `--` options like the [echo](http://wiki.nginx.org/HttpEchoModule#echo) directive.
 
-This directive can be mixed with its brother directive [echo_after_body](http://wiki.nginx.org/NginxHttpEchoModule#echo_after_body).
+This directive can be mixed with its brother directive [echo_after_body](http://wiki.nginx.org/HttpEchoModule#echo_after_body).
 
 echo_after_body
 ---------------
@@ -1104,9 +1139,11 @@ echo_after_body
 
 **context:** *location*
 
+**phase:** *output filter*
+
 **WARNING** this directive does not work for nginx >= 0.7.65.
 
-It's very much like the [echo_before_body](http://wiki.nginx.org/NginxHttpEchoModule#echo_before_body) directive, but *appends* its output to the end of the original outputs generated by the underlying content handler.
+It's very much like the [echo_before_body](http://wiki.nginx.org/HttpEchoModule#echo_before_body) directive, but *appends* its output to the end of the original outputs generated by the underlying content handler.
 
 Here's a simple example:
 
@@ -1122,8 +1159,10 @@ Here's a simple example:
 
 Accessing `/echo` from the client side yields
 
-  world
-  hello
+
+      world
+      hello
+
 
 Multiple instances are allowed, as in:
 
@@ -1145,11 +1184,11 @@ The output on the client side while accessing the `/echo` location looks like
       world
 
 
-This directive also supports the `-n` and `--` options like the [echo](http://wiki.nginx.org/NginxHttpEchoModule#echo) directive.
+This directive also supports the `-n` and `--` options like the [echo](http://wiki.nginx.org/HttpEchoModule#echo) directive.
 
 When this directive is used in a location accessed by a subrequest, it replies on the `sync` flag set in a chain buffer to indicate the end of the output for nginx >= 0.8.7. This is a hack because Nginx does not provide a reliable way to determine the end of the output chain in a subrequest's output filter. Use it in subrequests with care.
 
-This directive can be mixed with its brother directive [echo_before_body](http://wiki.nginx.org/NginxHttpEchoModule#echo_before_body).
+This directive can be mixed with its brother directive [echo_before_body](http://wiki.nginx.org/HttpEchoModule#echo_before_body).
 
 Variables
 =========
@@ -1157,21 +1196,21 @@ Variables
 $echo_it
 --------
 
-This is a "topic variable" used by [echo_foreach_split](http://wiki.nginx.org/NginxHttpEchoModule#echo_foreach_split), just like the `$_` variable in Perl.
+This is a "topic variable" used by [echo_foreach_split](http://wiki.nginx.org/HttpEchoModule#echo_foreach_split), just like the `$_` variable in Perl.
 
 $echo_timer_elapsed
 -------------------
 
-This variable holds the seconds elapsed since the start of the current request (might be a subrequest though) or the last invocation of the [echo_reset_timer](http://wiki.nginx.org/NginxHttpEchoModule#echo_reset_timer) command.
+This variable holds the seconds elapsed since the start of the current request (might be a subrequest though) or the last invocation of the [echo_reset_timer](http://wiki.nginx.org/HttpEchoModule#echo_reset_timer) command.
 
 The timing result takes three digits after the decimal point.
 
-References of this variable will force the underlying Nginx timer to update to the current system time, regardless the timer resolution settings elsewhere in the config file, just like the [echo_reset_timer](http://wiki.nginx.org/NginxHttpEchoModule#echo_reset_timer) directive.
+References of this variable will force the underlying Nginx timer to update to the current system time, regardless the timer resolution settings elsewhere in the config file, just like the [echo_reset_timer](http://wiki.nginx.org/HttpEchoModule#echo_reset_timer) directive.
 
 $echo_request_body
 ------------------
 
-Evaluates to the current (sub)request's request body previously read if no part of the body has been saved to a temporary file. To always show the request body even if it's very large, use the [echo_request_body](http://wiki.nginx.org/NginxHttpEchoModule#echo_request_body) directive.
+Evaluates to the current (sub)request's request body previously read if no part of the body has been saved to a temporary file. To always show the request body even if it's very large, use the [echo_request_body](http://wiki.nginx.org/HttpEchoModule#echo_request_body) directive.
 
 $echo_request_method
 --------------------
@@ -1180,11 +1219,11 @@ Evaluates to the HTTP request method of the current request (it can be a subrequ
 
 Behind the scene, it just takes the string data stored in `r->method_name`.
 
-Compare it to the [$echo_client_request_method](http://wiki.nginx.org/NginxHttpEchoModule#.24echo_client_request_method) variable.
+Compare it to the [$echo_client_request_method](http://wiki.nginx.org/HttpEchoModule#.24echo_client_request_method) variable.
 
-At least for Nginx 0.8.20 and older, the [$request_method](http://wiki.nginx.org/NginxHttpCoreModule#.24request_method) variable provided by the [http core module](http://wiki.nginx.org/NginxHttpCoreModule) is actually doing what our [$echo_client_request_method](http://wiki.nginx.org/NginxHttpEchoModule#.24echo_client_request_method) is doing.
+At least for Nginx 0.8.20 and older, the [$request_method](http://wiki.nginx.org/HttpCoreModule#.24request_method) variable provided by the [http core module](http://wiki.nginx.org/HttpCoreModule) is actually doing what our [$echo_client_request_method](http://wiki.nginx.org/HttpEchoModule#.24echo_client_request_method) is doing.
 
-This variable was first introduced in our [v0.15 release](http://wiki.nginx.org/NginxHttpEchoModule#v0.15).
+This variable was first introduced in our [v0.15 release](http://wiki.nginx.org/HttpEchoModule#v0.15).
 
 $echo_client_request_method
 ---------------------------
@@ -1193,9 +1232,9 @@ Always evaluates to the main request's HTTP method even if the current request i
 
 Behind the scene, it just takes the string data stored in `r->main->method_name`.
 
-Compare it to the [$echo_request_method](http://wiki.nginx.org/NginxHttpEchoModule#.24echo_request_method) variable.
+Compare it to the [$echo_request_method](http://wiki.nginx.org/HttpEchoModule#.24echo_request_method) variable.
 
-This variable was first introduced in our [v0.15 release](http://wiki.nginx.org/NginxHttpEchoModule#v0.15).
+This variable was first introduced in our [v0.15 release](http://wiki.nginx.org/HttpEchoModule#v0.15).
 
 $echo_client_request_headers
 ----------------------------
@@ -1226,25 +1265,25 @@ Accessing `/echoback` yields
 
 Behind the scene, it recovers `r->main->header_in` on the C level and does not construct the headers itself by traversing parsed results in the request object, and strips the last (trailing) CRLF.
 
-This variable was first introduced in [version 0.15](http://wiki.nginx.org/NginxHttpEchoModule#v0.15).
+This variable was first introduced in [version 0.15](http://wiki.nginx.org/HttpEchoModule#v0.15).
 
 $echo_cacheable_request_uri
 ---------------------------
 
-Evaluates to the parsed form of the URI (usually led by `/`) of the current (sub-)request. Unlike the [$echo_request_uri](http://wiki.nginx.org/NginxHttpEchoModule#.24echo_request_uri) variable, it is cacheable.
+Evaluates to the parsed form of the URI (usually led by `/`) of the current (sub-)request. Unlike the [$echo_request_uri](http://wiki.nginx.org/HttpEchoModule#.24echo_request_uri) variable, it is cacheable.
 
-See [$echo_request_uri](http://wiki.nginx.org/NginxHttpEchoModule#.24echo_request_uri) for more details.
+See [$echo_request_uri](http://wiki.nginx.org/HttpEchoModule#.24echo_request_uri) for more details.
 
-This variable was first introduced in [version 0.17](http://wiki.nginx.org/NginxHttpEchoModule#v0.17).
+This variable was first introduced in [version 0.17](http://wiki.nginx.org/HttpEchoModule#v0.17).
 
 $echo_request_uri
 -----------------
 
-Evaluates to the parsed form of the URI (usually led by `/`) of the current (sub-)request. Unlike the [$echo_cacheable_request_uri](http://wiki.nginx.org/NginxHttpEchoModule#.24echo_cacheable_request_uri) variable, it is *not* cacheable.
+Evaluates to the parsed form of the URI (usually led by `/`) of the current (sub-)request. Unlike the [$echo_cacheable_request_uri](http://wiki.nginx.org/HttpEchoModule#.24echo_cacheable_request_uri) variable, it is *not* cacheable.
 
-This is quite different from the [$request_uri](http://wiki.nginx.org/NginxHttpCoreModule#.24request_uri) variable exported by the [NginxHttpCoreModule](http://wiki.nginx.org/NginxHttpCoreModule), because `$request_uri` is the *unparsed* form of the current request's URI.
+This is quite different from the [$request_uri](http://wiki.nginx.org/HttpCoreModule#.24request_uri) variable exported by the [HttpCoreModule](http://wiki.nginx.org/HttpCoreModule), because `$request_uri` is the *unparsed* form of the current request's URI.
 
-This variable was first introduced in [version 0.17](http://wiki.nginx.org/NginxHttpEchoModule#v0.17).
+This variable was first introduced in [version 0.17](http://wiki.nginx.org/HttpEchoModule#v0.17).
 
 $echo_incr
 ----------
@@ -1272,7 +1311,7 @@ Accessing `/main` yields
     sub: 4
     main post: 2
 
-This directive was first introduced in the [v0.18 release](http://wiki.nginx.org/NginxHttpEchoModule#v0.18).
+This directive was first introduced in the [v0.18 release](http://wiki.nginx.org/HttpEchoModule#v0.18).
 
 $echo_response_status
 ---------------------
@@ -1281,18 +1320,22 @@ Evaluates to the status code of the current (sub)request, null if not any.
 
 Behind the scene, it's just the textual representation of `r->headers_out->status`.
 
-This directive was first introduced in the [v0.23 release](http://wiki.nginx.org/NginxHttpEchoModule#v0.23).
+This directive was first introduced in the [v0.23 release](http://wiki.nginx.org/HttpEchoModule#v0.23).
 
 Installation
 ============
 
-Grab the nginx source code from [nginx.net](http://nginx.net/), for example,
-the version 0.8.54 (see [nginx compatibility](http://wiki.nginx.org/NginxHttpEchoModule#Compatibility)), and then build the source with this module:
+You're recommended to install this module (as well as the Nginx core and many other goodies) via the [ngx_openresty bundle](http://openresty.org). See [the detailed instructions](http://openresty.org/#Installation) for downloading and installing ngx_openresty into your system. This is the easiest and most safe way to set things up.
+
+Alternatively, you can install this module manually with the Nginx source:
+
+Grab the nginx source code from [nginx.org](http://nginx.org/), for example,
+the version 1.0.5 (see [nginx compatibility](http://wiki.nginx.org/HttpEchoModule#Compatibility)), and then build the source with this module:
 
 
-    $ wget 'http://sysoev.ru/nginx/nginx-0.8.54.tar.gz'
-    $ tar -xzvf nginx-0.8.54.tar.gz
-    $ cd nginx-0.8.54/
+    $ wget 'http://sysoev.ru/nginx/nginx-1.0.5.tar.gz'
+    $ tar -xzvf nginx-1.0.5.tar.gz
+    $ cd nginx-1.0.5/
     
     # Here we assume you would install you nginx under /opt/nginx/.
     $ ./configure --prefix=/opt/nginx \
@@ -1303,6 +1346,8 @@ the version 0.8.54 (see [nginx compatibility](http://wiki.nginx.org/NginxHttpEch
 
 
 Download the latest version of the release tarball of this module from [echo-nginx-module file list](http://github.com/agentzh/echo-nginx-module/downloads).
+
+Also, this module is included and enabled by default in the [ngx_openresty bundle](http://openresty.org).
 
 Compatibility
 =============
@@ -1316,22 +1361,22 @@ The following versions of Nginx should work with this module:
 
 In particular,
 
-* the directive [echo_location_async](http://wiki.nginx.org/NginxHttpEchoModule#echo_location_async) and its brother [echo_subrequest_async](http://wiki.nginx.org/NginxHttpEchoModule#echo_subrequest_async) do *not* work with **0.7.x < 0.7.46**.
-* the [echo_after_body](http://wiki.nginx.org/NginxHttpEchoModule#echo_after_body) directive does *not* work at all with nginx **< 0.8.7**.
-* the [echo_sleep](http://wiki.nginx.org/NginxHttpEchoModule#echo_sleep) directive cannot be used after [echo_location](http://wiki.nginx.org/NginxHttpEchoModule#echo_location) or [echo_subrequest](http://wiki.nginx.org/NginxHttpEchoModule#echo_subrequest) for nginx **< 0.8.11**.
+* the directive [echo_location_async](http://wiki.nginx.org/HttpEchoModule#echo_location_async) and its brother [echo_subrequest_async](http://wiki.nginx.org/HttpEchoModule#echo_subrequest_async) do *not* work with **0.7.x < 0.7.46**.
+* the [echo_after_body](http://wiki.nginx.org/HttpEchoModule#echo_after_body) directive does *not* work at all with nginx **< 0.8.7**.
+* the [echo_sleep](http://wiki.nginx.org/HttpEchoModule#echo_sleep) directive cannot be used after [echo_location](http://wiki.nginx.org/HttpEchoModule#echo_location) or [echo_subrequest](http://wiki.nginx.org/HttpEchoModule#echo_subrequest) for nginx **< 0.8.11**.
 
 Earlier versions of Nginx like 0.6.x and 0.5.x will *not* work at all.
 
-If you find that any particular version of Nginx above 0.7.21 does not work with this module, please consider [reporting a bug](http://wiki.nginx.org/NginxHttpEchoModule#Report_Bugs).
+If you find that any particular version of Nginx above 0.7.21 does not work with this module, please consider [reporting a bug](http://wiki.nginx.org/HttpEchoModule#Report_Bugs).
 
 Modules that use this module for testing
 ========================================
 
 The following modules take advantage of this `echo` module in their test suite:
 
-* The [memc](http://wiki.nginx.org/NginxHttpMemcModule) module that supports almost the whole memcached TCP protocol.
-* The [chunkin](http://wiki.nginx.org/NginxHttpChunkinModule) module that adds HTTP 1.1 chunked input support to Nginx.
-* The [headers_more](http://wiki.nginx.org/NginxHttpHeadersMoreModule) module that allows you to add, set, and clear input and output headers under the conditions that you specify.
+* The [memc](http://wiki.nginx.org/HttpMemcModule) module that supports almost the whole memcached TCP protocol.
+* The [chunkin](http://wiki.nginx.org/HttpChunkinModule) module that adds HTTP 1.1 chunked input support to Nginx.
+* The [headers_more](http://wiki.nginx.org/HttpHeadersMoreModule) module that allows you to add, set, and clear input and output headers under the conditions that you specify.
 * The `echo` module itself.
 
 Please mail me other modules that use `echo` in any form and I'll add them to the list above :)
@@ -1357,8 +1402,8 @@ Report Bugs
 
 Although a lot of effort has been put into testing and code tuning, there must be some serious bugs lurking somewhere in this module. So whenever you are bitten by any quirks, please don't hesitate to
 
-1. send a bug report or even patches to <agentzh@gmail.com>,
-1. or create a ticket on the [issue tracking interface](http://github.com/agentzh/echo-nginx-module/issues) provided by GitHub.
+1. create a ticket on the [issue tracking interface](http://github.com/agentzh/echo-nginx-module/issues) provided by GitHub,
+1. or send a bug report, questions, or even patches to the [nginx mailing list](http://mailman.nginx.org/mailman/listinfo/nginx).
 
 Source Repository
 =================
@@ -1378,7 +1423,7 @@ v0.36
 
 v0.35
 -----
-* added the `-f /path/to/file` option to the [echo_subrequest](http://wiki.nginx.org/NginxHttpEchoModule#echo_subrequest) and [echo_subrequest_async](http://wiki.nginx.org/NginxHttpEchoModule#echo_subrequest_async) directives to allow POST/PUT a disk file in the subrequest. thanks [Bernd Dorn](https://github.com/dobe).
+* added the `-f /path/to/file` option to the [echo_subrequest](http://wiki.nginx.org/HttpEchoModule#echo_subrequest) and [echo_subrequest_async](http://wiki.nginx.org/HttpEchoModule#echo_subrequest_async) directives to allow POST/PUT a disk file in the subrequest. thanks [Bernd Dorn](https://github.com/dobe).
 
 v0.34
 -----
@@ -1390,9 +1435,9 @@ v0.33
 
 v0.32
 -----
-* we should have used `ngx_calloc_buf` instead of `ngx_alloc_buf` for the last chunk generated for [echo_after_body](http://wiki.nginx.org/NginxHttpEchoModule#echo_after_body). thanks valgrind's memcheck tool.
+* we should have used `ngx_calloc_buf` instead of `ngx_alloc_buf` for the last chunk generated for [echo_after_body](http://wiki.nginx.org/HttpEchoModule#echo_after_body). thanks valgrind's memcheck tool.
 * we should initialize flags before feeding it into `ngx_http_parse_unsafe_uri`. thanks valgrind's memcheck tool.
-* fixed a minor issue in the [echo_location](http://wiki.nginx.org/NginxHttpEchoModule#echo_location)/[echo_subrequest](http://wiki.nginx.org/NginxHttpEchoModule#echo_subrequest) implementation, which used to have race conditions.
+* fixed a minor issue in the [echo_location](http://wiki.nginx.org/HttpEchoModule#echo_location)/[echo_subrequest](http://wiki.nginx.org/HttpEchoModule#echo_subrequest) implementation, which used to have race conditions.
 
 v0.31
 -----
@@ -1405,17 +1450,17 @@ v0.31
 v0.30
 -----
 
-* fixed the [echo_exec](http://wiki.nginx.org/NginxHttpEchoModule#echo_exec) directive for nginx >= 0.8.11. we didn't get the `r->main->count` right in the previous version.
+* fixed the [echo_exec](http://wiki.nginx.org/HttpEchoModule#echo_exec) directive for nginx >= 0.8.11. we didn't get the `r->main->count` right in the previous version.
 
 v0.29
 -----
 
-* refactored the core of this module. now the implementation of [echo_location](http://wiki.nginx.org/NginxHttpEchoModule#echo_location), [echo_subrequest](http://wiki.nginx.org/NginxHttpEchoModule#echo_subrequest), [echo_sleep](http://wiki.nginx.org/NginxHttpEchoModule#echo_sleep), and [echo_read_request_body](http://wiki.nginx.org/NginxHttpEchoModule#echo_read_request_body) finally fit well with the nginx event model and Igor Sysoev's way of thinking.
+* refactored the core of this module. now the implementation of [echo_location](http://wiki.nginx.org/HttpEchoModule#echo_location), [echo_subrequest](http://wiki.nginx.org/HttpEchoModule#echo_subrequest), [echo_sleep](http://wiki.nginx.org/HttpEchoModule#echo_sleep), and [echo_read_request_body](http://wiki.nginx.org/HttpEchoModule#echo_read_request_body) finally fit well with the nginx event model and Igor Sysoev's way of thinking.
 
 v0.28
 -----
 
-* added support for the `-n` and `--` options to the [echo](http://wiki.nginx.org/NginxHttpEchoModule#echo), [echo_before_body](http://wiki.nginx.org/NginxHttpEchoModule#echo_before_body), and [echo_after_body](http://wiki.nginx.org/NginxHttpEchoModule#echo_after_body) directives.
+* added support for the `-n` and `--` options to the [echo](http://wiki.nginx.org/HttpEchoModule#echo), [echo_before_body](http://wiki.nginx.org/HttpEchoModule#echo_before_body), and [echo_after_body](http://wiki.nginx.org/HttpEchoModule#echo_after_body) directives.
 
 v0.27
 -----
@@ -1442,80 +1487,80 @@ v0.24
 v0.23
 -----
 
-* now the subrequest can read the client request body directly (for the main request) because we made subrequests inherit its parent's `r->header_in` as well. This affects the [echo_read_request_body](http://wiki.nginx.org/NginxHttpEchoModule#echo_read_request_body) directive.
-* fixed [echo_after_body](http://wiki.nginx.org/NginxHttpEchoModule#echo_after_body) in subrequests by using a hack (checking `cl->buf->sync` for the last buf) for nginx 0.8.7+ only.
-* added new varaible [$echo_response_status](http://wiki.nginx.org/NginxHttpEchoModule#.24echo_response_status) to help testing the status code of a subrequest. (The [memc](http://wiki.nginx.org/NginxHttpMemcModule) module makes use of it.)
+* now the subrequest can read the client request body directly (for the main request) because we made subrequests inherit its parent's `r->header_in` as well. This affects the [echo_read_request_body](http://wiki.nginx.org/HttpEchoModule#echo_read_request_body) directive.
+* fixed [echo_after_body](http://wiki.nginx.org/HttpEchoModule#echo_after_body) in subrequests by using a hack (checking `cl->buf->sync` for the last buf) for nginx 0.8.7+ only.
+* added new varaible [$echo_response_status](http://wiki.nginx.org/HttpEchoModule#.24echo_response_status) to help testing the status code of a subrequest. (The [memc](http://wiki.nginx.org/HttpMemcModule) module makes use of it.)
 * use the `ngx_calloc_buf` macro to allocate new bufs in the code rather than explicit `ngx_pcalloc` calls for safety.
 
 v0.22
 -----
 
-* Now we allowed all the directives appear in the [rewrite module](http://wiki.nginx.org/NginxHttpRewriteModule)'s [if](http://wiki.nginx.org/NginxHttpRewriteModule#if) block. But so far I've only tested the [echo](http://wiki.nginx.org/NginxHttpEchoModule#echo) directive.
+* Now we allowed all the directives appear in the [rewrite module](http://wiki.nginx.org/HttpRewriteModule)'s [if](http://wiki.nginx.org/HttpRewriteModule#if) block. But so far I've only tested the [echo](http://wiki.nginx.org/HttpEchoModule#echo) directive.
 
 v0.21
 -----
 
-* Added a new directive named [echo_exec](http://wiki.nginx.org/NginxHttpEchoModule#echo_exec) which does internal redirect to other (named) locations.
+* Added a new directive named [echo_exec](http://wiki.nginx.org/HttpEchoModule#echo_exec) which does internal redirect to other (named) locations.
 
 v0.20
 -----
 
-* Fixed a bug in [echo_sleep](http://wiki.nginx.org/NginxHttpEchoModule#echo_sleep)'s `r->main->count` handling for nginx 0.8.x. This bug will cause the server to hang when proxing a location with [echo_sleep](http://wiki.nginx.org/NginxHttpEchoModule#echo_sleep).
+* Fixed a bug in [echo_sleep](http://wiki.nginx.org/HttpEchoModule#echo_sleep)'s `r->main->count` handling for nginx 0.8.x. This bug will cause the server to hang when proxing a location with [echo_sleep](http://wiki.nginx.org/HttpEchoModule#echo_sleep).
 * Applied the `ngx_str3cmp`, `ngx_str4cmp`, and `ngx_str6cmp` optimizing macros to the `parse_method_name` function, as suggested by Marcus Clyne.
-* Added [TODO items](http://wiki.nginx.org/NginxHttpEchoModule#TODO) regarding `$echo_random` and `echo_repeat` suggested by Marcus Clyne.
+* Added [TODO items](http://wiki.nginx.org/HttpEchoModule#TODO) regarding `$echo_random` and `echo_repeat` suggested by Marcus Clyne.
 
 v0.19
 -----
-* Fixed the CPS-style chained subrequest model for the [echo_location](http://wiki.nginx.org/NginxHttpEchoModule#echo_location) and [echo_subrequest](http://wiki.nginx.org/NginxHttpEchoModule#echo_subrequest) directives. they are now working perfectly and will not hang the server with the recent nginx 0.8.21 ~ 0.8.27 releases. To be specifically, the chained subrequest should call `ngx_http_finalize_request` on its parent request if the content handler of the parent request does not return `NGX_DONE`.
-* Undeprecated the [echo_location](http://wiki.nginx.org/NginxHttpEchoModule#echo_location) and [echo_subrequest](http://wiki.nginx.org/NginxHttpEchoModule#echo_subrequest) directives.
+* Fixed the CPS-style chained subrequest model for the [echo_location](http://wiki.nginx.org/HttpEchoModule#echo_location) and [echo_subrequest](http://wiki.nginx.org/HttpEchoModule#echo_subrequest) directives. they are now working perfectly and will not hang the server with the recent nginx 0.8.21 ~ 0.8.27 releases. To be specifically, the chained subrequest should call `ngx_http_finalize_request` on its parent request if the content handler of the parent request does not return `NGX_DONE`.
+* Undeprecated the [echo_location](http://wiki.nginx.org/HttpEchoModule#echo_location) and [echo_subrequest](http://wiki.nginx.org/HttpEchoModule#echo_subrequest) directives.
 
 v0.18
 -----
 * Fixed the "zero size buf in output" alerts in error.log.
-* Added the new directive [echo_request_body](http://wiki.nginx.org/NginxHttpEchoModule#echo_request_body).
-* Now we use the `ngx_http_parse_unsafe_uri` function to check the locations to [echo_location_async](http://wiki.nginx.org/NginxHttpEchoModule#echo_location_async) and its friends. Thanks Arvind Jayaprakash for suggesting this fix.
-* Deprecated the [echo_location](http://wiki.nginx.org/NginxHttpEchoModule#echo_location) and [echo_subrequest](http://wiki.nginx.org/NginxHttpEchoModule#echo_subrequest) directives.
+* Added the new directive [echo_request_body](http://wiki.nginx.org/HttpEchoModule#echo_request_body).
+* Now we use the `ngx_http_parse_unsafe_uri` function to check the locations to [echo_location_async](http://wiki.nginx.org/HttpEchoModule#echo_location_async) and its friends. Thanks Arvind Jayaprakash for suggesting this fix.
+* Deprecated the [echo_location](http://wiki.nginx.org/HttpEchoModule#echo_location) and [echo_subrequest](http://wiki.nginx.org/HttpEchoModule#echo_subrequest) directives.
 * For HTTP 1.0 clients, use the buf length of the first chain link as the output header Content-Length.
-* Implemented new variable [$echo_incr](http://wiki.nginx.org/NginxHttpEchoModule#.24echo_incr).
+* Implemented new variable [$echo_incr](http://wiki.nginx.org/HttpEchoModule#.24echo_incr).
 
 v0.17
 -----
-* Added new directives [echo_foreach_split](http://wiki.nginx.org/NginxHttpEchoModule#echo_foreach_split) and [echo_end](http://wiki.nginx.org/NginxHttpEchoModule#echo_end). Also introduced a "topic variable" named [$echo_it](http://wiki.nginx.org/NginxHttpEchoModule#.24echo_it).
-* Added new variables [$echo_request_uri](http://wiki.nginx.org/NginxHttpEchoModule#.24echo_request_uri) and [$echo_cacheable_request_uri](http://wiki.nginx.org/NginxHttpEchoModule#.24echo_cacheable_request_uri).
+* Added new directives [echo_foreach_split](http://wiki.nginx.org/HttpEchoModule#echo_foreach_split) and [echo_end](http://wiki.nginx.org/HttpEchoModule#echo_end). Also introduced a "topic variable" named [$echo_it](http://wiki.nginx.org/HttpEchoModule#.24echo_it).
+* Added new variables [$echo_request_uri](http://wiki.nginx.org/HttpEchoModule#.24echo_request_uri) and [$echo_cacheable_request_uri](http://wiki.nginx.org/HttpEchoModule#.24echo_cacheable_request_uri).
 
 v0.16
 -----
-* Now the subrequests issued by the [echo_location_async](http://wiki.nginx.org/NginxHttpEchoModule#echo_location) and [echo_location](http://wiki.nginx.org/NginxHttpEchoModule#echo_location) directives no longer inherit cached variable values from its parent request. (The underlying `ngx_http_subrequest` function, however, does automatic cachable variable value inheritance.)
+* Now the subrequests issued by the [echo_location_async](http://wiki.nginx.org/HttpEchoModule#echo_location) and [echo_location](http://wiki.nginx.org/HttpEchoModule#echo_location) directives no longer inherit cached variable values from its parent request. (The underlying `ngx_http_subrequest` function, however, does automatic cachable variable value inheritance.)
 * Added an undocumented variable *echo_cached_request_uri* to help testing of this module.
 
 v0.15
 -----
 
-* Added new directives [echo_subrequest](http://wiki.nginx.org/NginxHttpEchoModule#echo_subrequest) and [echo_subrequest_async](http://wiki.nginx.org/NginxHttpEchoModule#echo_subrequest_async) for the full nginx subrequest API.
-* Removed the `echo_client_request_headers` directive, and provided the [$echo_client_request_headers](http://wiki.nginx.org/NginxHttpEchoModule#.24echo_client_request_headers) variable instead.
-* Added new variables [$echo_request_method](http://wiki.nginx.org/NginxHttpEchoModule#.24echo_request_method) and [$echo_client_request_method](http://wiki.nginx.org/NginxHttpEchoModule#.24echo_client_request_method).
+* Added new directives [echo_subrequest](http://wiki.nginx.org/HttpEchoModule#echo_subrequest) and [echo_subrequest_async](http://wiki.nginx.org/HttpEchoModule#echo_subrequest_async) for the full nginx subrequest API.
+* Removed the `echo_client_request_headers` directive, and provided the [$echo_client_request_headers](http://wiki.nginx.org/HttpEchoModule#.24echo_client_request_headers) variable instead.
+* Added new variables [$echo_request_method](http://wiki.nginx.org/HttpEchoModule#.24echo_request_method) and [$echo_client_request_method](http://wiki.nginx.org/HttpEchoModule#.24echo_client_request_method).
 
 v0.14
 -----
 
-* Added new directive [echo_read_request_body](http://wiki.nginx.org/NginxHttpEchoModule#echo_read_request_body) to explicitly read client request body so that the [[NginxHttpCoreModule#$request_body]] variable will always have non-empty values.
+* Added new directive [echo_read_request_body](http://wiki.nginx.org/HttpEchoModule#echo_read_request_body) to explicitly read client request body so that the [[HttpCoreModule#$request_body]] variable will always have non-empty values.
 * Now we shuffer test cases automatically in .t files and fixed bugs in the tests themselves which are hidden by config reload fallback in failure.
 
 v0.13
 -----
 
-* Fixed the special cases when the outputs of a [echo_duplicate](http://wiki.nginx.org/NginxHttpEchoModule#echo_duplicate) directive is empty.
+* Fixed the special cases when the outputs of a [echo_duplicate](http://wiki.nginx.org/HttpEchoModule#echo_duplicate) directive is empty.
 * Now we explicitly clear content length and accept ranges headers in the content handler.
 
 v0.12
 -----
 
-* Implemented the [echo_location](http://wiki.nginx.org/NginxHttpEchoModule#echo_location) directive, which can issue chained GET subrequests in the Continuation Passing Style (CPS), rather than the parallel subrequest issued by the [echo_location_async](http://wiki.nginx.org/NginxHttpEchoModule#echo_location_async) directive.
+* Implemented the [echo_location](http://wiki.nginx.org/HttpEchoModule#echo_location) directive, which can issue chained GET subrequests in the Continuation Passing Style (CPS), rather than the parallel subrequest issued by the [echo_location_async](http://wiki.nginx.org/HttpEchoModule#echo_location_async) directive.
 
 v0.11
 -----
 
-* Implemented the [echo_duplicate](http://wiki.nginx.org/NginxHttpEchoModule#echo_duplicate) directive to help generating large chunk of data for testing.
+* Implemented the [echo_duplicate](http://wiki.nginx.org/HttpEchoModule#echo_duplicate) directive to help generating large chunk of data for testing.
 
 v0.10
 -----
@@ -1526,14 +1571,14 @@ v0.10
 v0.09
 -----
 
-* Reimplement the [echo_sleep](http://wiki.nginx.org/NginxHttpEchoModule#echo_sleep) directive using per-request event and timer; the old implementation uses the global connection's read/write event to register timer, so it will break horribly when multiple subrequests "sleep" at the same time.
-* Added the [echo_location_async](http://wiki.nginx.org/NginxHttpEchoModule#echo_location_async) directive which can issue a GET subrequest and insert its contents herein.
+* Reimplement the [echo_sleep](http://wiki.nginx.org/HttpEchoModule#echo_sleep) directive using per-request event and timer; the old implementation uses the global connection's read/write event to register timer, so it will break horribly when multiple subrequests "sleep" at the same time.
+* Added the [echo_location_async](http://wiki.nginx.org/HttpEchoModule#echo_location_async) directive which can issue a GET subrequest and insert its contents herein.
 
 v0.08
 -----
 
-* [echo_sleep](http://wiki.nginx.org/NginxHttpEchoModule#echo_sleep): now we delete our `write event timer` in the `post_sleep` handle.
-* Added `doc/manpage.wiki` which tracks changes in the [wiki page](http://wiki.nginx.org/NginxHttpEchoModule).
+* [echo_sleep](http://wiki.nginx.org/HttpEchoModule#echo_sleep): now we delete our `write event timer` in the `post_sleep` handle.
+* Added `doc/manpage.wiki` which tracks changes in the [wiki page](http://wiki.nginx.org/HttpEchoModule).
 * Added the `util/wiki2pod.pl` script to convert `doc/manpage.wiki` to `README`.
 * Disabled the `DDEBUG` macro in the C source by default.
 
@@ -1541,7 +1586,7 @@ Test Suite
 ==========
 
 This module comes with a Perl-driven test suite. The [test cases](http://github.com/agentzh/echo-nginx-module/tree/master/t/) are
-[declarative](http://github.com/agentzh/echo-nginx-module/blob/master/t/echo.t) too. Thanks to the [Test::Base](http://search.cpan.org/perldoc?Test::Base) module in the Perl world.
+[declarative](http://github.com/agentzh/echo-nginx-module/blob/master/t/echo.t) too. Thanks to the [Test::Nginx](http://search.cpan.org/perldoc?Test::Nginx) module in the Perl world.
 
 To run it on your side:
 
@@ -1551,16 +1596,14 @@ To run it on your side:
 
 You need to terminate any Nginx processes before running the test suite if you have changed the Nginx server binary.
 
-At the moment, [LWP::UserAgent](http://search.cpan.org/perldoc?LWP::UserAgent) is used by the [test scaffold](http://github.com/agentzh/echo-nginx-module/blob/master/test/lib/Test/Nginx/Echo.pm) for simplicity and it's rather weak in testing *streaming* behavior of Nginx (I'm using "curl" to test these aspects manually for now). I'm considering coding up my own Perl HTTP client library based on [IO::Select](http://search.cpan.org/perldoc?IO::Select) and [IO::Socket](http://search.cpan.org/perldoc?IO::Socket) (there might be already one around?).
-
 Because a single nginx server (by default, `localhost:1984`) is used across all the test scripts (`.t` files), it's meaningless to run the test suite in parallel by specifying `-jN` when invoking the `prove` utility.
 
-Some parts of the test suite requires standard modules [proxy](http://wiki.nginx.org/NginxHttpProxyModule), [rewrite](http://wiki.nginx.org/NginxHttpRewriteModule) and [SSI](http://wiki.nginx.org/NginxHttpSsiModule) to be enabled as well when building Nginx.
+Some parts of the test suite requires standard modules [proxy](http://wiki.nginx.org/HttpProxyModule), [rewrite](http://wiki.nginx.org/HttpRewriteModule) and [SSI](http://wiki.nginx.org/HttpSsiModule) to be enabled as well when building Nginx.
 
 TODO
 ====
 
-* Fix the [echo_after_body](http://wiki.nginx.org/NginxHttpEchoModule#echo_after_body) directive in subrequests.
+* Fix the [echo_after_body](http://wiki.nginx.org/HttpEchoModule#echo_after_body) directive in subrequests.
 * Add directives *echo_read_client_request_body* and *echo_request_headers*.
 * Add new directive *echo_log* to use Nginx's logging facility directly from the config file and specific loglevel can be specified, as in
 
@@ -1568,7 +1611,7 @@ TODO
       echo_log debug "I am being called.";
 
 
-* Add support for options `-h` and `-t` to [echo_subrequest_async](http://wiki.nginx.org/NginxHttpEchoModule#echo_subrequest_async) and [echo_subrequest](http://wiki.nginx.org/NginxHttpEchoModule#echo_subrequest). For example
+* Add support for options `-h` and `-t` to [echo_subrequest_async](http://wiki.nginx.org/HttpEchoModule#echo_subrequest_async) and [echo_subrequest](http://wiki.nginx.org/HttpEchoModule#echo_subrequest). For example
 
 
       echo_subrequest POST /sub -q 'foo=Foo&bar=Bar' -b 'hello' -t 'text/plan' -h 'X-My-Header: blah blah'
@@ -1577,7 +1620,7 @@ TODO
 * Add options to control whether a subrequest should inherit cached variables from its parent request (i.e. the current request that is calling the subrequest in question). Currently none of the subrequests issued by this module inherit the cached variables from the parent request.
 * Add new variable *$echo_active_subrequests* to show `r->main->count - 1`.
 * Add the *echo_file* and *echo_cached_file* directives.
-* Add new varaible *$echo_request_headers* to accompany the existing [$echo_client_request_headers](http://wiki.nginx.org/NginxHttpEchoModule#.24echo_client_request_headers) variable.
+* Add new varaible *$echo_request_headers* to accompany the existing [$echo_client_request_headers](http://wiki.nginx.org/HttpEchoModule#.24echo_client_request_headers) variable.
 * Add new directive *echo_foreach*, as in
 
 
@@ -1627,14 +1670,12 @@ Thanks Marcus Clyne for providing this idea.
 Getting involved
 ================
 
-You'll be very welcomed to submit patches to the [author](http://wiki.nginx.org/NginxHttpEchoModule#Author) or just ask for a commit bit to the [source repository](http://wiki.nginx.org/NginxHttpEchoModule#Source_Repository) on GitHub.
-
-
+You'll be very welcomed to submit patches to the [author](http://wiki.nginx.org/HttpEchoModule#Author) or just ask for a commit bit to the [source repository](http://wiki.nginx.org/HttpEchoModule#Source_Repository) on GitHub.
 
 Author
 ======
 
-agentzh (章亦春) *<agentzh@gmail.com>*
+Zhang "agentzh" Yichun (章亦春) *<agentzh@gmail.com>*
 
 This wiki page is also maintained by the author himself, and everybody is encouraged to improve this page as well.
 
@@ -1643,7 +1684,7 @@ Copyright & License
 
 Copyright (c) 2009, 2010, 2011, Taobao Inc., Alibaba Group ( <http://www.taobao.com> ).
 
-Copyright (c) 2009, 2010, 2011, Yichun "agentzh" Zhang (章亦春) <agentzh@gmail.com>.
+Copyright (c) 2009, 2010, 2011, Zhang "agentzh" Yichun (章亦春) <agentzh@gmail.com>.
 
 This module is licensed under the terms of the BSD license.
 
@@ -1670,6 +1711,7 @@ See Also
 ========
 
 * The original [blog post](http://agentzh.blogspot.com/2009/10/hacking-on-nginx-echo-module.html) about this module's initial development.
-* The standard [addition filter module](http://wiki.nginx.org/NginxHttpAdditionModule).
-* The standard [proxy module](http://wiki.nginx.org/NginxHttpProxyModule).
+* The standard [addition filter module](http://wiki.nginx.org/HttpAdditionModule).
+* The standard [proxy module](http://wiki.nginx.org/HttpProxyModule).
+* The [ngx_openresty](http://openresty.org) bundle.
 

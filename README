@@ -5,6 +5,9 @@ Name
     *This module is not distributed with the Nginx source.* See the
     installation instructions.
 
+Status
+    This module is production ready.
+
 Version
     This document describes echo-nginx-module v0.36
     (<https://github.com/agentzh/echo-nginx-module/downloads>) released on 8
@@ -105,7 +108,7 @@ Synopsis
         echo_duplicate 1 " END ";
         echo_duplicate 3 "--";
         echo;
-      }   
+      }
 
       # /bighello will generate 1000,000,000 hello's.
       location /bighello {
@@ -181,8 +184,8 @@ Description
         config file).
 
     2.  wrap the upstream response with custom header and footer (kinda like
-        the addition module but with contents read directly from the config
-        file and Nginx variables).
+        the [module (HttpAdditionModule)] but with contents read directly
+        from the config file and Nginx variables).
 
     3.  merge contents of various "Nginx locations" (i.e., subrequests)
         together in a single main request (using echo_location and its
@@ -230,8 +233,8 @@ Description
 Content Handler Directives
     Use of the following directives register this module to the current
     Nginx location as a content handler. If you want to use another module,
-    like the standard proxy module, as the content handler, use the filter
-    directives provided by this module.
+    like the [proxy module (HttpProxyModule)], as the content handler, use
+    the filter directives provided by this module.
 
     All the content handler directives can be mixed together in a single
     Nginx location and they're supposed to run sequentially just as in the
@@ -240,8 +243,8 @@ Content Handler Directives
     Every content handler directive supports variable interpolation in its
     arguments (if any).
 
-    The MIME type set by the standard default_type directive is respected by
-    this module, as in:
+    The MIME type set by the [default_type directive
+    (HttpCoreModule#default_type)] is respected by this module, as in:
 
       location /hello {
         default_type text/plain;
@@ -258,7 +261,7 @@ Content Handler Directives
       Connection: keep-alive
 
     Since the v0.22 release, all of the directives are allowed in the
-    rewrite module's if directive block, for instance:
+    [module (HttpRewriteModule)]'s if directive block, for instance:
 
         location ^~ /if {
             set $res miss;
@@ -275,6 +278,8 @@ Content Handler Directives
     default: *no*
 
     context: *location*
+
+    phase: *content*
 
     Sends arguments joined by spaces, along with a trailing newline, out to
     the client.
@@ -293,7 +298,7 @@ Content Handler Directives
 
        echo The current request uri is $request_uri;
 
-    where $request_uri is a variable exposed by the [[NginxHttpCoreModule]].
+    where $request_uri is a variable exposed by the [[HttpCoreModule]].
 
     This command can be used multiple times in a single location
     configuration, as in
@@ -363,6 +368,8 @@ Content Handler Directives
 
     context: *location*
 
+    phase: *content*
+
     Outputs duplication of a string indicated by the second argument, using
     the times specified in the first argument.
 
@@ -407,6 +414,8 @@ Content Handler Directives
     default: *no*
 
     context: *location*
+
+    phase: *content*
 
     Forces the data potentially buffered by underlying Nginx output filters
     to send immediately to the client side via socket.
@@ -474,6 +483,8 @@ Content Handler Directives
 
     context: *location*
 
+    phase: *content*
+
     Sleeps for the time period specified by the argument, which is in
     seconds.
 
@@ -503,6 +514,8 @@ Content Handler Directives
 
     context: *location*
 
+    phase: *content*
+
     This is a blocking version of the echo_sleep directive.
 
     See the documentation of echo_sleep for more detail.
@@ -520,6 +533,8 @@ Content Handler Directives
     default: *no*
 
     context: *location*
+
+    phase: *content*
 
     Reset the timer begin time to *now*, i.e., the time when this command is
     executed during request.
@@ -607,6 +622,8 @@ Content Handler Directives
 
     context: *location*
 
+    phase: *content*
+
     Issue GET subrequest to the location specified (first argument) with
     optional url arguments specified in the second argument.
 
@@ -687,8 +704,8 @@ Content Handler Directives
     directive.
 
     Due to an unknown bug in Nginx (it still exists in Nginx 0.8.20), the
-    standard SSI module is required to ensure that the contents of the
-    subrequests issued by this directive are correctly merged into the
+    [SSI module (HttpSsiModule)] is required to ensure that the contents of
+    the subrequests issued by this directive are correctly merged into the
     output chains of the main one. Fortunately, the SSI module is enabled by
     default during Nginx's "configure" process.
 
@@ -727,6 +744,8 @@ Content Handler Directives
     default: *no*
 
     context: *location*
+
+    phase: *content*
 
     Just like the echo_location_async directive, but "echo_location" issues
     subrequests *in series* rather than in parallel. That is, the content
@@ -801,6 +820,8 @@ Content Handler Directives
     default: *no*
 
     context: *location*
+
+    phase: *content*
 
     Initiate an asynchronous subrequest using HTTP method, an optional url
     arguments (or querystring) and an optional request body which can be
@@ -882,6 +903,8 @@ Content Handler Directives
 
     context: *location*
 
+    phase: *content*
+
     This is the synchronous version of the echo_subrequest_async directive.
     And just like echo_location, it does not block the Nginx worker process
     (while echo_blocking_sleep does), rather, it uses continuation to pass
@@ -899,6 +922,8 @@ Content Handler Directives
     default: *no*
 
     context: *location*
+
+    phase: *content*
 
     Split the second argument "string" using the delimiter specified in the
     first argument, and then iterate through the resulting items. For
@@ -968,6 +993,8 @@ Content Handler Directives
 
     context: *location*
 
+    phase: *content*
+
     This directive is used to terminate the body of looping and conditional
     control structures like echo_foreach_split.
 
@@ -979,6 +1006,8 @@ Content Handler Directives
     default: *no*
 
     context: *location*
+
+    phase: *content*
 
     Outputs the contents of the request body previous read.
 
@@ -996,7 +1025,7 @@ Content Handler Directives
 
     This directive was first introduced in the release v0.18.
 
-    See also echo_read_request_body and the chunkin module.
+    See also echo_read_request_body and the [module (HttpChunkinModule)].
 
   echo_exec
     syntax: *echo_exec <location> [<query_string>]*
@@ -1006,6 +1035,8 @@ Content Handler Directives
     default: *no*
 
     context: *location*
+
+    phase: *content*
 
     Does an internal redirect to the location specified. An optional query
     string can be specified for normal locations, as in
@@ -1064,6 +1095,8 @@ Filter Directives
 
     context: *location*
 
+    phase: *output filter*
+
     It's the filter version of the echo directive, and prepends its output
     to the beginning of the original outputs generated by the underlying
     content handler.
@@ -1083,8 +1116,9 @@ Filter Directives
       hello
       world
 
-    In the previous sample, we borrow the standard proxy module to serve as
-    the underlying content handler that generates the "main contents".
+    In the previous sample, we borrow the [proxy module (HttpProxyModule)]
+    to serve as the underlying content handler that generates the "main
+    contents".
 
     Multiple instances of this filter directive are also allowed, as in:
 
@@ -1115,6 +1149,8 @@ Filter Directives
     default: *no*
 
     context: *location*
+
+    phase: *output filter*
 
     WARNING this directive does not work for nginx >= 0.7.65.
 
@@ -1198,8 +1234,8 @@ Variables
     Compare it to the $echo_client_request_method variable.
 
     At least for Nginx 0.8.20 and older, the $request_method variable
-    provided by the http core module is actually doing what our
-    $echo_client_request_method is doing.
+    provided by the [core module (HttpCoreModule)] is actually doing what
+    our $echo_client_request_method is doing.
 
     This variable was first introduced in our v0.15 release.
 
@@ -1257,8 +1293,8 @@ Variables
     it is *not* cacheable.
 
     This is quite different from the $request_uri variable exported by the
-    [[NginxHttpCoreModule]], because $request_uri is the *unparsed* form of
-    the current request's URI.
+    [[HttpCoreModule]], because $request_uri is the *unparsed* form of the
+    current request's URI.
 
     This variable was first introduced in version 0.17.
 
@@ -1298,13 +1334,23 @@ Variables
     This directive was first introduced in the v0.23 release.
 
 Installation
-    Grab the nginx source code from nginx.net (<http://nginx.net/>), for
-    example, the version 0.8.54 (see nginx compatibility), and then build
-    the source with this module:
+    You're recommended to install this module (as well as the Nginx core and
+    many other goodies) via the ngx_openresty bundle
+    (<http://openresty.org>). See the detailed instructions
+    (<http://openresty.org/#Installation>) for downloading and installing
+    ngx_openresty into your system. This is the easiest and most safe way to
+    set things up.
 
-        $ wget 'http://sysoev.ru/nginx/nginx-0.8.54.tar.gz'
-        $ tar -xzvf nginx-0.8.54.tar.gz
-        $ cd nginx-0.8.54/
+    Alternatively, you can install this module manually with the Nginx
+    source:
+
+    Grab the nginx source code from nginx.org (<http://nginx.org/>), for
+    example, the version 1.0.5 (see nginx compatibility), and then build the
+    source with this module:
+
+        $ wget 'http://sysoev.ru/nginx/nginx-1.0.5.tar.gz'
+        $ tar -xzvf nginx-1.0.5.tar.gz
+        $ cd nginx-1.0.5/
 
         # Here we assume you would install you nginx under /opt/nginx/.
         $ ./configure --prefix=/opt/nginx \
@@ -1316,6 +1362,9 @@ Installation
     Download the latest version of the release tarball of this module from
     echo-nginx-module file list
     (<http://github.com/agentzh/echo-nginx-module/downloads>).
+
+    Also, this module is included and enabled by default in the
+    ngx_openresty bundle (<http://openresty.org>).
 
 Compatibility
     The following versions of Nginx should work with this module:
@@ -1380,11 +1429,12 @@ Report Bugs
     there must be some serious bugs lurking somewhere in this module. So
     whenever you are bitten by any quirks, please don't hesitate to
 
-    1.  send a bug report or even patches to <agentzh@gmail.com>,
-
-    2.  or create a ticket on the issue tracking interface
+    1.  create a ticket on the issue tracking interface
         (<http://github.com/agentzh/echo-nginx-module/issues>) provided by
-        GitHub.
+        GitHub,
+
+    2.  or send a bug report, questions, or even patches to the nginx
+        mailing list (<http://mailman.nginx.org/mailman/listinfo/nginx>).
 
 Source Repository
     Available on github at agentzh/echo-nginx-module
@@ -1503,8 +1553,9 @@ ChangeLog
         rather than explicit "ngx_pcalloc" calls for safety.
 
   v0.22
-    *   Now we allowed all the directives appear in the rewrite module's if
-        block. But so far I've only tested the echo directive.
+    *   Now we allowed all the directives appear in the [module
+        (HttpRewriteModule)]'s if block. But so far I've only tested the
+        echo directive.
 
   v0.21
     *   Added a new directive named echo_exec which does internal redirect
@@ -1577,8 +1628,8 @@ ChangeLog
 
   v0.14
     *   Added new directive echo_read_request_body to explicitly read client
-        request body so that the [[NginxHttpCoreModule#$request_body]]
-        variable will always have non-empty values.
+        request body so that the [[HttpCoreModule#$request_body]] variable
+        will always have non-empty values.
 
     *   Now we shuffer test cases automatically in .t files and fixed bugs
         in the tests themselves which are hidden by config reload fallback
@@ -1621,7 +1672,7 @@ ChangeLog
         "post_sleep" handle.
 
     *   Added "doc/manpage.wiki" which tracks changes in the wiki page
-        (<http://wiki.nginx.org/NginxHttpEchoModule>).
+        (<http://wiki.nginx.org/HttpEchoModule>).
 
     *   Added the "util/wiki2pod.pl" script to convert "doc/manpage.wiki" to
         "README".
@@ -1633,8 +1684,8 @@ Test Suite
     (<http://github.com/agentzh/echo-nginx-module/tree/master/t/>) are
     declarative
     (<http://github.com/agentzh/echo-nginx-module/blob/master/t/echo.t>)
-    too. Thanks to the Test::Base
-    (<http://search.cpan.org/perldoc?Test::Base>) module in the Perl world.
+    too. Thanks to the Test::Nginx
+    (<http://search.cpan.org/perldoc?Test::Nginx>) module in the Perl world.
 
     To run it on your side:
 
@@ -1642,18 +1693,6 @@ Test Suite
 
     You need to terminate any Nginx processes before running the test suite
     if you have changed the Nginx server binary.
-
-    At the moment, LWP::UserAgent
-    (<http://search.cpan.org/perldoc?LWP::UserAgent>) is used by the test
-    scaffold
-    (<http://github.com/agentzh/echo-nginx-module/blob/master/test/lib/Test/
-    Nginx/Echo.pm>) for simplicity and it's rather weak in testing
-    *streaming* behavior of Nginx (I'm using "curl" to test these aspects
-    manually for now). I'm considering coding up my own Perl HTTP client
-    library based on IO::Select
-    (<http://search.cpan.org/perldoc?IO::Select>) and IO::Socket
-    (<http://search.cpan.org/perldoc?IO::Socket>) (there might be already
-    one around?).
 
     Because a single nginx server (by default, "localhost:1984") is used
     across all the test scripts (".t" files), it's meaningless to run the
@@ -1737,7 +1776,7 @@ Getting involved
     a commit bit to the source repository on GitHub.
 
 Author
-    agentzh (章亦春) *<agentzh@gmail.com>*
+    Zhang "agentzh" Yichun (章亦春) *<agentzh@gmail.com>*
 
     This wiki page is also maintained by the author himself, and everybody
     is encouraged to improve this page as well.
@@ -1746,7 +1785,7 @@ Copyright & License
     Copyright (c) 2009, 2010, 2011, Taobao Inc., Alibaba Group (
     http://www.taobao.com ).
 
-    Copyright (c) 2009, 2010, 2011, Yichun "agentzh" Zhang (章亦春)
+    Copyright (c) 2009, 2010, 2011, Zhang "agentzh" Yichun (章亦春)
     <agentzh@gmail.com>.
 
     This module is licensed under the terms of the BSD license.
@@ -1779,7 +1818,9 @@ See Also
         (<http://agentzh.blogspot.com/2009/10/hacking-on-nginx-echo-module.h
         tml>) about this module's initial development.
 
-    *   The standard addition filter module.
+    *   The standard [filter module (HttpAdditionModule)].
 
-    *   The standard proxy module.
+    *   The standard [module (HttpProxyModule)].
+
+    *   The ngx_openresty (<http://openresty.org>) bundle.
 
