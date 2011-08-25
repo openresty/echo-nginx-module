@@ -272,7 +272,7 @@ Since the [v0.22](http://wiki.nginx.org/HttpEchoModule#v0.22) release, all of th
 
 echo
 ----
-**syntax:** *echo [options] <string>...*
+**syntax:** *echo [options] &lt;string&gt;...*
 
 **default:** *no*
 
@@ -369,7 +369,7 @@ which yields
 
 echo_duplicate
 --------------
-**syntax:** *echo_duplicate <count> <string>*
+**syntax:** *echo_duplicate &lt;count&gt; &lt;string&gt;*
 
 **default:** *no*
 
@@ -483,7 +483,7 @@ See also [echo](http://wiki.nginx.org/HttpEchoModule#echo), [echo_sleep](http://
 
 echo_sleep
 ----------
-**syntax:** *echo_sleep <seconds>*
+**syntax:** *echo_sleep &lt;seconds&gt;*
 
 **default:** *no*
 
@@ -510,7 +510,7 @@ Behind the scene, it sets up a per-request "sleep" ngx_event_t object, and adds 
 
 echo_blocking_sleep
 -------------------
-**syntax:** *echo_blocking_sleep <seconds>*
+**syntax:** *echo_blocking_sleep &lt;seconds&gt;*
 
 **default:** *no*
 
@@ -610,7 +610,7 @@ This directive itself was first introduced in the echo module's [v0.14 release](
 
 echo_location_async
 -------------------
-**syntax:** *echo_location_async <location> [<url_args>]*
+**syntax:** *echo_location_async &lt;location&gt; [&lt;url_args&gt;]*
 
 **default:** *no*
 
@@ -727,7 +727,7 @@ This directive is first introduced in [version 0.09](http://wiki.nginx.org/HttpE
 
 echo_location
 -------------
-**syntax:** *echo_location <location> [<url_args>]*
+**syntax:** *echo_location &lt;location&gt; [&lt;url_args&gt;]*
 
 **default:** *no*
 
@@ -795,7 +795,7 @@ See also [echo_location_async](http://wiki.nginx.org/HttpEchoModule#echo_locatio
 
 echo_subrequest_async
 ---------------------
-**syntax:** *echo_subrequest_async <HTTP_method> <location> [-q <url_args>] [-b <request_body>] [-f <request_body_path>]*
+**syntax:** *echo_subrequest_async &lt;HTTP_method&gt; &lt;location&gt; [-q &lt;url_args&gt;] [-b &lt;request_body&gt;] [-f &lt;request_body_path&gt;]*
 
 **default:** *no*
 
@@ -880,7 +880,7 @@ See also the [echo_subrequest](http://wiki.nginx.org/HttpEchoModule#echo_subrequ
 
 echo_subrequest
 ---------------
-**syntax:** *echo_subrequest_async <HTTP_method> <location> [-q <url_args>] [-b <request_body>] [-f <request_body_path>]*
+**syntax:** *echo_subrequest_async &lt;HTTP_method&gt; &lt;location&gt; [-q &lt;url_args&gt;] [-b &lt;request_body&gt;] [-f &lt;request_body_path&gt;]*
 
 **default:** *no*
 
@@ -898,7 +898,7 @@ This directive was first introduced in the [release v0.15](http://wiki.nginx.org
 
 echo_foreach_split
 ------------------
-**syntax:** *echo_foreach_split <delimiter> <string>*
+**syntax:** *echo_foreach_split &lt;delimiter&gt; &lt;string&gt;*
 
 **default:** *no*
 
@@ -1013,9 +1013,9 @@ See also [echo_read_request_body](http://wiki.nginx.org/HttpEchoModule#echo_read
 
 echo_exec
 ---------
-**syntax:** *echo_exec <location> [<query_string>]*
+**syntax:** *echo_exec &lt;location&gt; [&lt;query_string&gt;]*
 
-**syntax:** *echo_exec <named_location>*
+**syntax:** *echo_exec &lt;named_location&gt;*
 
 **default:** *no*
 
@@ -1675,7 +1675,7 @@ You'll be very welcomed to submit patches to the [author](http://wiki.nginx.org/
 Author
 ======
 
-Zhang "agentzh" Yichun (章亦春) *<agentzh@gmail.com>*
+Zhang "agentzh" Yichun (章亦春) *&lt;agentzh@gmail.com&gt;*
 
 This wiki page is also maintained by the author himself, and everybody is encouraged to improve this page as well.
 
