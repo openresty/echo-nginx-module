@@ -277,7 +277,7 @@ Content Handler Directives
 
     default: *no*
 
-    context: *location*
+    context: *location, location if*
 
     phase: *content*
 
@@ -366,7 +366,7 @@ Content Handler Directives
 
     default: *no*
 
-    context: *location*
+    context: *location, location if*
 
     phase: *content*
 
@@ -413,7 +413,7 @@ Content Handler Directives
 
     default: *no*
 
-    context: *location*
+    context: *location, location if*
 
     phase: *content*
 
@@ -481,7 +481,7 @@ Content Handler Directives
 
     default: *no*
 
-    context: *location*
+    context: *location, location if*
 
     phase: *content*
 
@@ -512,7 +512,7 @@ Content Handler Directives
 
     default: *no*
 
-    context: *location*
+    context: *location, location if*
 
     phase: *content*
 
@@ -532,7 +532,7 @@ Content Handler Directives
 
     default: *no*
 
-    context: *location*
+    context: *location, location if*
 
     phase: *content*
 
@@ -570,6 +570,14 @@ Content Handler Directives
     See also echo_sleep and $echo_timer_elapsed.
 
   echo_read_request_body
+    syntax: *echo_read_request_body*
+
+    default: *no*
+
+    context: *location, location if*
+
+    phase: *content*
+
     Explicitly reads request body so that the $request_body variable will
     always have non-empty values (unless the body is so big that it has been
     saved by Nginx to a local temporary file).
@@ -620,7 +628,7 @@ Content Handler Directives
 
     default: *no*
 
-    context: *location*
+    context: *location, location if*
 
     phase: *content*
 
@@ -743,7 +751,7 @@ Content Handler Directives
 
     default: *no*
 
-    context: *location*
+    context: *location, location if*
 
     phase: *content*
 
@@ -819,7 +827,7 @@ Content Handler Directives
 
     default: *no*
 
-    context: *location*
+    context: *location, location if*
 
     phase: *content*
 
@@ -901,7 +909,7 @@ Content Handler Directives
 
     default: *no*
 
-    context: *location*
+    context: *location, location if*
 
     phase: *content*
 
@@ -921,7 +929,7 @@ Content Handler Directives
 
     default: *no*
 
-    context: *location*
+    context: *location, location if*
 
     phase: *content*
 
@@ -991,7 +999,7 @@ Content Handler Directives
 
     default: *no*
 
-    context: *location*
+    context: *location, location if*
 
     phase: *content*
 
@@ -1005,7 +1013,7 @@ Content Handler Directives
 
     default: *no*
 
-    context: *location*
+    context: *location, location if*
 
     phase: *content*
 
@@ -1034,7 +1042,7 @@ Content Handler Directives
 
     default: *no*
 
-    context: *location*
+    context: *location, location if*
 
     phase: *content*
 
@@ -1093,7 +1101,7 @@ Filter Directives
 
     default: *no*
 
-    context: *location*
+    context: *location, location if*
 
     phase: *output filter*
 
@@ -1148,7 +1156,7 @@ Filter Directives
 
     default: *no*
 
-    context: *location*
+    context: *location, location if*
 
     phase: *output filter*
 

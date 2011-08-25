@@ -269,7 +269,7 @@ Since the [[#v0.22|v0.22]] release, all of the directives are allowed in the [[H
 
 '''default:''' ''no''
 
-'''context:''' ''location''
+'''context:''' ''location, location if''
 
 '''phase:''' ''content''
 
@@ -365,7 +365,7 @@ which yields
 
 '''default:''' ''no''
 
-'''context:''' ''location''
+'''context:''' ''location, location if''
 
 '''phase:''' ''content''
 
@@ -415,7 +415,7 @@ This directive was first introduced in [[#v0.11|version 0.11]].
 
 '''default:''' ''no''
 
-'''context:''' ''location''
+'''context:''' ''location, location if''
 
 '''phase:''' ''content''
 
@@ -477,7 +477,7 @@ See also [[#echo|echo]], [[#echo_sleep|echo_sleep]], and [[#echo_location_async|
 
 '''default:''' ''no''
 
-'''context:''' ''location''
+'''context:''' ''location, location if''
 
 '''phase:''' ''content''
 
@@ -503,7 +503,7 @@ Behind the scene, it sets up a per-request "sleep" ngx_event_t object, and adds 
 
 '''default:''' ''no''
 
-'''context:''' ''location''
+'''context:''' ''location, location if''
 
 '''phase:''' ''content''
 
@@ -520,7 +520,7 @@ Note that this directive will block the current Nginx worker process completely 
 
 '''default:''' ''no''
 
-'''context:''' ''location''
+'''context:''' ''location, location if''
 
 '''phase:''' ''content''
 
@@ -555,6 +555,13 @@ Invocation of this directive will force the underlying Nginx timer to get update
 See also [[#echo_sleep|echo_sleep]] and [[#$echo_timer_elapsed|$echo_timer_elapsed]].
 
 == echo_read_request_body ==
+'''syntax:''' ''echo_read_request_body''
+
+'''default:''' ''no''
+
+'''context:''' ''location, location if''
+
+'''phase:''' ''content''
 
 Explicitly reads request body so that the [[HttpCoreModule#$request_body|$request_body]] variable will always have non-empty values (unless the body is so big that it has been saved by Nginx to a local temporary file).
 
@@ -600,7 +607,7 @@ This directive itself was first introduced in the echo module's [[#v0.14|v0.14 r
 
 '''default:''' ''no''
 
-'''context:''' ''location''
+'''context:''' ''location, location if''
 
 '''phase:''' ''content''
 
@@ -716,7 +723,7 @@ This directive is first introduced in [[#v0.09|version 0.09]] of this module and
 
 '''default:''' ''no''
 
-'''context:''' ''location''
+'''context:''' ''location, location if''
 
 '''phase:''' ''content''
 
@@ -783,7 +790,7 @@ See also [[#echo_location_async|echo_location_async]] for more details about the
 
 '''default:''' ''no''
 
-'''context:''' ''location''
+'''context:''' ''location, location if''
 
 '''phase:''' ''content''
 
@@ -867,7 +874,7 @@ See also the [[#echo_subrequest|echo_subrequest]] and [[#echo_location_async|ech
 
 '''default:''' ''no''
 
-'''context:''' ''location''
+'''context:''' ''location, location if''
 
 '''phase:''' ''content''
 
@@ -884,7 +891,7 @@ This directive was first introduced in the [[#v0.15|release v0.15]].
 
 '''default:''' ''no''
 
-'''context:''' ''location''
+'''context:''' ''location, location if''
 
 '''phase:''' ''content''
 
@@ -956,7 +963,7 @@ This directive was first introduced in the [[#v0.17|release v0.17]].
 
 '''default:''' ''no''
 
-'''context:''' ''location''
+'''context:''' ''location, location if''
 
 '''phase:''' ''content''
 
@@ -969,7 +976,7 @@ This directive was first introduced in the [[#v0.17|release v0.17]].
 
 '''default:''' ''no''
 
-'''context:''' ''location''
+'''context:''' ''location, location if''
 
 '''phase:''' ''content''
 
@@ -998,7 +1005,7 @@ See also [[#echo_read_request_body|echo_read_request_body]] and the [[HttpChunki
 
 '''default:''' ''no''
 
-'''context:''' ''location''
+'''context:''' ''location, location if''
 
 '''phase:''' ''content''
 
@@ -1056,7 +1063,7 @@ Every filter directive supports variable interpolation in its arguments (if any)
 
 '''default:''' ''no''
 
-'''context:''' ''location''
+'''context:''' ''location, location if''
 
 '''phase:''' ''output filter''
 
@@ -1113,7 +1120,7 @@ This directive can be mixed with its brother directive [[#echo_after_body|echo_a
 
 '''default:''' ''no''
 
-'''context:''' ''location''
+'''context:''' ''location, location if''
 
 '''phase:''' ''output filter''
 

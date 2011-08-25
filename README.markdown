@@ -276,7 +276,7 @@ echo
 
 **default:** *no*
 
-**context:** *location*
+**context:** *location, location if*
 
 **phase:** *content*
 
@@ -373,7 +373,7 @@ echo_duplicate
 
 **default:** *no*
 
-**context:** *location*
+**context:** *location, location if*
 
 **phase:** *content*
 
@@ -424,7 +424,7 @@ echo_flush
 
 **default:** *no*
 
-**context:** *location*
+**context:** *location, location if*
 
 **phase:** *content*
 
@@ -487,7 +487,7 @@ echo_sleep
 
 **default:** *no*
 
-**context:** *location*
+**context:** *location, location if*
 
 **phase:** *content*
 
@@ -514,7 +514,7 @@ echo_blocking_sleep
 
 **default:** *no*
 
-**context:** *location*
+**context:** *location, location if*
 
 **phase:** *content*
 
@@ -532,7 +532,7 @@ echo_reset_timer
 
 **default:** *no*
 
-**context:** *location*
+**context:** *location, location if*
 
 **phase:** *content*
 
@@ -568,6 +568,13 @@ See also [echo_sleep](http://wiki.nginx.org/HttpEchoModule#echo_sleep) and [$ech
 
 echo_read_request_body
 ----------------------
+**syntax:** *echo_read_request_body*
+
+**default:** *no*
+
+**context:** *location, location if*
+
+**phase:** *content*
 
 Explicitly reads request body so that the [$request_body](http://wiki.nginx.org/HttpCoreModule#.24request_body) variable will always have non-empty values (unless the body is so big that it has been saved by Nginx to a local temporary file).
 
@@ -614,7 +621,7 @@ echo_location_async
 
 **default:** *no*
 
-**context:** *location*
+**context:** *location, location if*
 
 **phase:** *content*
 
@@ -731,7 +738,7 @@ echo_location
 
 **default:** *no*
 
-**context:** *location*
+**context:** *location, location if*
 
 **phase:** *content*
 
@@ -799,7 +806,7 @@ echo_subrequest_async
 
 **default:** *no*
 
-**context:** *location*
+**context:** *location, location if*
 
 **phase:** *content*
 
@@ -884,7 +891,7 @@ echo_subrequest
 
 **default:** *no*
 
-**context:** *location*
+**context:** *location, location if*
 
 **phase:** *content*
 
@@ -902,7 +909,7 @@ echo_foreach_split
 
 **default:** *no*
 
-**context:** *location*
+**context:** *location, location if*
 
 **phase:** *content*
 
@@ -975,7 +982,7 @@ echo_end
 
 **default:** *no*
 
-**context:** *location*
+**context:** *location, location if*
 
 **phase:** *content*
 
@@ -989,7 +996,7 @@ echo_request_body
 
 **default:** *no*
 
-**context:** *location*
+**context:** *location, location if*
 
 **phase:** *content*
 
@@ -1019,7 +1026,7 @@ echo_exec
 
 **default:** *no*
 
-**context:** *location*
+**context:** *location, location if*
 
 **phase:** *content*
 
@@ -1079,7 +1086,7 @@ echo_before_body
 
 **default:** *no*
 
-**context:** *location*
+**context:** *location, location if*
 
 **phase:** *output filter*
 
@@ -1137,7 +1144,7 @@ echo_after_body
 
 **default:** *no*
 
-**context:** *location*
+**context:** *location, location if*
 
 **phase:** *output filter*
 
