@@ -636,3 +636,18 @@ hi(world);
 --- response_body chop
 hi(world people);
 
+
+
+=== TEST 31: sanity (HEAD)
+--- config
+    location /main {
+        echo_subrequest GET /sub;
+        echo_subrequest GET /sub;
+    }
+    location /sub {
+        echo hello;
+    }
+--- request
+    HEAD /main
+--- response_body
+

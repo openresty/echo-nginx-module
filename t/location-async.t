@@ -409,3 +409,18 @@ hi(world);
 --- response_body chop
 hi(world people);
 
+
+
+=== TEST 23: sanity (HEAD)
+--- config
+    location /main {
+        echo_location_async /sub;
+        echo_location_async /sub;
+    }
+    location /sub {
+        echo hello;
+    }
+--- request
+    HEAD /main
+--- response_body
+

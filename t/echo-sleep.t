@@ -170,3 +170,16 @@ done
 before
 after
 
+
+
+=== TEST 12: two echos around sleep (HEAD)
+--- config
+    location /echo {
+        echo before...;
+        echo_sleep 0.01;
+        echo after...;
+    }
+--- request
+    HEAD /echo
+--- response_body
+

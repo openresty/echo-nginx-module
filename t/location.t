@@ -540,3 +540,18 @@ hi(world);
 --- response_body chop
 hi(world people);
 
+
+
+=== TEST 25: sanity (HEAD)
+--- config
+    location /main {
+        echo_location /sub;
+        echo_location /sub;
+    }
+    location /sub {
+        echo hello;
+    }
+--- request
+    HEAD /main
+--- response_body
+

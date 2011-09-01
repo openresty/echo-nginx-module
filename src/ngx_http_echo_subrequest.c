@@ -83,7 +83,7 @@ ngx_http_echo_exec_echo_subrequest_async(ngx_http_request_t *r,
     }
 
     rc = ngx_http_echo_send_header_if_needed(r, ctx);
-    if (r->header_only || rc >= NGX_HTTP_SPECIAL_RESPONSE) {
+    if (rc == NGX_ERROR || rc > NGX_OK || r->header_only) {
         return rc;
     }
 
@@ -140,8 +140,7 @@ ngx_http_echo_exec_echo_subrequest(ngx_http_request_t *r,
     }
 
     rc = ngx_http_echo_send_header_if_needed(r, ctx);
-
-    if (r->header_only || rc >= NGX_HTTP_SPECIAL_RESPONSE) {
+    if (rc == NGX_ERROR || rc > NGX_OK || r->header_only) {
         return rc;
     }
 
@@ -697,13 +696,6 @@ ngx_http_echo_exec_exec(ngx_http_request_t *r,
     if (args.len > 0 && user_args == NULL) {
         user_args = &args;
     }
-
-    /*
-    rc = ngx_http_echo_send_header_if_needed(r, ctx);
-    if (r->header_only || rc >= NGX_HTTP_SPECIAL_RESPONSE) {
-        return rc;
-    }
-    */
 
     if (uri->data[0] == '@') {
         if (user_args && user_args->len > 0) {

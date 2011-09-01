@@ -326,3 +326,15 @@ world
 4
 --- SKIP
 
+
+
+=== TEST 23: HEAD
+--- config
+    location /echo {
+        echo hello;
+        echo world;
+    }
+--- request
+    HEAD /echo
+--- response_body
+

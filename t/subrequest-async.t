@@ -560,3 +560,18 @@ hi(world);
 --- response_body chop
 hi(world people);
 
+
+
+=== TEST 29: sanity (HEAD)
+--- config
+    location /main {
+        echo_subrequest_async GET /sub;
+        echo_subrequest_async GET /sub;
+    }
+    location /sub {
+        echo hello;
+    }
+--- request
+    HEAD /main
+--- response_body
+

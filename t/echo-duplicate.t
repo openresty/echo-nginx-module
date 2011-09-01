@@ -76,3 +76,14 @@ __DATA__
     GET /dup
 --- response_body
 
+
+
+=== TEST 7: sanity (HEAD)
+--- config
+    location /dup {
+        echo_duplicate 3 a;
+    }
+--- request
+    HEAD /dup
+--- response_body
+
