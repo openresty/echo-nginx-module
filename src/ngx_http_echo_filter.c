@@ -100,6 +100,7 @@ ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
     ngx_http_echo_loc_conf_t    *conf;
     ngx_flag_t                   last;
     ngx_chain_t                 *cl;
+    ngx_chain_t                 *prev;
     ngx_buf_t                   *buf;
 
     if (in == NULL || r->header_only) {
@@ -133,10 +134,21 @@ ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
 
     last = 0;
 
-    for (cl = in; cl; cl = cl->next) {
+    prev = NULL;
+    for (cl = in; cl; prev = cl, cl = cl->next) {
         if (cl->buf->last_buf) {
-            cl->buf->last_buf = 0;
-            cl->buf->sync = 1;
+            if (ngx_buf_special(cl->buf)) {
+                if (prev) {
+                    prev->next = NULL;
+
+                } else {
+                    in = NULL;
+                }
+
+            } else {
+                cl->buf->last_buf = 0;
+            }
+
             last = 1;
         }
     }

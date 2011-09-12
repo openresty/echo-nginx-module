@@ -192,3 +192,19 @@ status: 404$
 --- response_body
 hello
 
+
+
+=== TEST 12: echo_after_body + gzip
+--- config
+    gzip             on;
+    gzip_min_length  1;
+    location /main {
+        echo_after_body 'world!';
+        echo_duplicate 1024 'hello';
+    }
+--- request
+    GET /main
+--- response_body_like
+hello
+--- SKIP
+
