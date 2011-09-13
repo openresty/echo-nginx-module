@@ -66,6 +66,7 @@ ngx_http_echo_exec_echo_sync(ngx_http_request_t *r,
     if (cl == NULL) {
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
+
     cl->buf  = buf;
     cl->next = NULL;
 

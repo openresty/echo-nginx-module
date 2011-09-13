@@ -138,6 +138,8 @@ ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
 
     prev = NULL;
     for (cl = in; cl; prev = cl, cl = cl->next) {
+        dd("prev %p, cl %p, special %d", prev, cl, ngx_buf_special(cl->buf));
+
         if (cl->buf->last_buf) {
             if (ngx_buf_special(cl->buf)) {
                 if (prev) {
@@ -155,12 +157,16 @@ ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
         }
     }
 
-    rc = ngx_http_echo_next_body_filter(r, in);
+    dd("in %p, last %d", in, (int) last);
 
-    dd("next filter returns %d, last %d", (int) rc, (int) last);
+    if (in) {
+        rc = ngx_http_echo_next_body_filter(r, in);
 
-    if (rc == NGX_ERROR || rc > NGX_OK || !last) {
-        return rc;
+        dd("next filter returns %d, last %d", (int) rc, (int) last);
+
+        if (rc == NGX_ERROR || rc > NGX_OK || !last) {
+            return rc;
+        }
     }
 
     dd("exec filter cmds for after body cmds");

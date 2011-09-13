@@ -7,6 +7,7 @@ version=$1
 force=$2
 home=~
 
+  #--without-http_ssi_module \
 ngx-build $force $version \
             --with-cc-opt="-DDEBUG_MALLOC" \
             --with-http_stub_status_module \
@@ -35,5 +36,4 @@ ngx-build $force $version \
           #--add-module=$home/work/ndk/examples/http/set_var \
           #--add-module=$root/../eval-nginx-module \
           #--add-module=/home/agentz/work/nginx_eval_module-1.0.1 \
-  #--without-http_ssi_module  # we cannot disable ssi because echo_location_async depends on it (i dunno why?!)
 
