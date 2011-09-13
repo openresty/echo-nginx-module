@@ -1,4 +1,6 @@
+#ifndef DDEBUG
 #define DDEBUG 0
+#endif
 #include "ddebug.h"
 
 #include "ngx_http_echo_filter.h"
@@ -98,7 +100,7 @@ ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
     ngx_http_echo_ctx_t         *ctx;
     ngx_int_t                    rc;
     ngx_http_echo_loc_conf_t    *conf;
-    ngx_flag_t                   last;
+    unsigned                     last;
     ngx_chain_t                 *cl;
     ngx_chain_t                 *prev;
     ngx_buf_t                   *buf;
@@ -155,7 +157,9 @@ ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
 
     rc = ngx_http_echo_next_body_filter(r, in);
 
-    if (rc == NGX_ERROR || !last) {
+    dd("next filter returns %d, last %d", (int) rc, (int) last);
+
+    if (rc == NGX_ERROR || rc > NGX_OK || !last) {
         return rc;
     }
 
@@ -164,7 +168,7 @@ ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
     rc = ngx_http_echo_exec_filter_cmds(r, ctx, conf->after_body_cmds,
             &ctx->next_after_body_cmd);
 
-    if (rc == NGX_ERROR || rc >= NGX_HTTP_SPECIAL_RESPONSE) {
+    if (rc == NGX_ERROR || rc > NGX_OK) {
         dd("FAILED: exec filter cmds for after body cmds");
         return rc;
     }
@@ -243,7 +247,7 @@ ngx_http_echo_exec_filter_cmds(ngx_http_request_t *r,
             rc = ngx_http_echo_exec_echo(r, ctx, computed_args,
                     1 /* in filter */, opts);
 
-            if (rc != NGX_OK) {
+            if (rc == NGX_ERROR || rc > NGX_OK) {
                 return rc;
             }
 
