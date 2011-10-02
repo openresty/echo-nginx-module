@@ -1,9 +1,12 @@
+#ifndef DDEBUG
 #define DDEBUG 0
+#endif
 #include "ddebug.h"
 
 #include "ngx_http_echo_util.h"
 #include "ngx_http_echo_subrequest.h"
 #include "ngx_http_echo_handler.h"
+
 
 #define ngx_http_echo_method_name(m) { sizeof(m) - 1, (u_char *) m " " }
 
@@ -39,12 +42,12 @@ typedef struct ngx_http_echo_subrequest_s {
 
 
 static ngx_int_t ngx_http_echo_parse_method_name(ngx_str_t **method_name_ptr);
-
 static ngx_int_t ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr,
         ngx_http_echo_subrequest_t *parsed_sr);
-
 static ngx_int_t ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
         ngx_array_t *computed_args, ngx_http_echo_subrequest_t **parsed_sr_ptr);
+static ngx_int_t ngx_http_echo_set_content_length_header(ngx_http_request_t *r,
+        off_t len);
 
 
 ngx_int_t
@@ -390,9 +393,10 @@ static ngx_int_t
 ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr,
         ngx_http_echo_subrequest_t *parsed_sr)
 {
-    ngx_table_elt_t            *h;
     ngx_http_core_main_conf_t  *cmcf;
     ngx_http_request_t         *r;
+    ngx_http_request_body_t    *body;
+    ngx_int_t                   rc;
 
     sr->method = parsed_sr->method;
     sr->method_name = *(parsed_sr->method_name);
@@ -415,47 +419,16 @@ ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr,
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
 
-    if (parsed_sr->content_length_n > 0) {
-        sr->headers_in.content_length_n = parsed_sr->content_length_n;
-        sr->request_body = parsed_sr->request_body;
+    body = parsed_sr->request_body;
+    if (body) {
+        sr->request_body = body;
 
-        if (ngx_list_init(&sr->headers_in.headers, sr->pool, 20,
-                    sizeof(ngx_table_elt_t)) != NGX_OK)
-        {
+        rc = ngx_http_echo_set_content_length_header(sr,
+                body->buf ? ngx_buf_size(body->buf) : 0);
+
+        if (rc != NGX_OK) {
             return NGX_HTTP_INTERNAL_SERVER_ERROR;
         }
-
-        h = ngx_list_push(&sr->headers_in.headers);
-        if (h == NULL) {
-            return NGX_HTTP_INTERNAL_SERVER_ERROR;
-        }
-
-        h->value.data = ngx_palloc(sr->pool, NGX_OFF_T_LEN);
-
-        if (h->value.data == NULL) {
-            return NGX_HTTP_INTERNAL_SERVER_ERROR;
-        }
-
-        h->value.len = ngx_sprintf(h->value.data, "%z",
-                parsed_sr->content_length_n) - h->value.data;
-
-        sr->headers_in.content_length = h;
-
-        h->hash = sr->header_hash;
-
-        h->key = ngx_http_echo_content_length_header_key;
-        h->value = sr->headers_in.content_length->value;
-
-        h->lowcase_key = ngx_pnalloc(sr->pool, h->key.len);
-        if (h->lowcase_key == NULL) {
-            return NGX_HTTP_INTERNAL_SERVER_ERROR;
-        }
-
-        ngx_strlow(h->lowcase_key, h->key.data, h->key.len);
-
-        dd("sr content length: %.*s",
-                (int) sr->headers_in.content_length->value.len,
-                sr->headers_in.content_length->value.data);
     }
 
     dd("subrequest body: %p", sr->request_body);
@@ -709,5 +682,99 @@ ngx_http_echo_exec_exec(ngx_http_request_t *r,
     }
 
     return ngx_http_internal_redirect(r, uri, user_args);
+}
+
+
+static ngx_int_t
+ngx_http_echo_set_content_length_header(ngx_http_request_t *r, off_t len)
+{
+    ngx_table_elt_t                 *h, *header;
+    u_char                          *p;
+    ngx_list_part_t                 *part;
+    ngx_http_request_t              *pr;
+    ngx_uint_t                       i;
+
+    r->headers_in.content_length_n = len;
+
+    if (ngx_list_init(&r->headers_in.headers, r->pool, 20,
+                sizeof(ngx_table_elt_t)) != NGX_OK) {
+        return NGX_ERROR;
+    }
+
+    h = ngx_list_push(&r->headers_in.headers);
+    if (h == NULL) {
+        return NGX_ERROR;
+    }
+
+    h->key = ngx_http_echo_content_length_header_key;
+    h->lowcase_key = ngx_pnalloc(r->pool, h->key.len);
+    if (h->lowcase_key == NULL) {
+        return NGX_ERROR;
+    }
+
+    ngx_strlow(h->lowcase_key, h->key.data, h->key.len);
+
+    r->headers_in.content_length = h;
+
+    p = ngx_palloc(r->pool, NGX_OFF_T_LEN);
+    if (p == NULL) {
+        return NGX_ERROR;
+    }
+
+    h->value.data = p;
+
+    h->value.len = ngx_sprintf(h->value.data, "%O", len) - h->value.data;
+
+    h->hash = ngx_hash(ngx_hash(ngx_hash(ngx_hash(ngx_hash(ngx_hash(ngx_hash(
+            ngx_hash(ngx_hash(ngx_hash(ngx_hash(ngx_hash(
+            ngx_hash('c', 'o'), 'n'), 't'), 'e'), 'n'), 't'), '-'), 'l'), 'e'),
+            'n'), 'g'), 't'), 'h');
+
+    dd("r content length: %.*s",
+            (int)r->headers_in.content_length->value.len,
+            r->headers_in.content_length->value.data);
+
+    pr = r->parent;
+
+    if (pr == NULL) {
+        return NGX_OK;
+    }
+
+    /* forward the parent request's all other request headers */
+
+    part = &pr->headers_in.headers.part;
+    header = part->elts;
+
+    for (i = 0; /* void */; i++) {
+
+        if (i >= part->nelts) {
+            if (part->next == NULL) {
+                break;
+            }
+
+            part = part->next;
+            header = part->elts;
+            i = 0;
+        }
+
+        if (header[i].key.len == sizeof("Content-Length") - 1 &&
+                ngx_strncasecmp(header[i].key.data, (u_char *) "Content-Length",
+                sizeof("Content-Length") - 1) == 0)
+        {
+            continue;
+        }
+
+        h = ngx_list_push(&r->headers_in.headers);
+        if (h == NULL) {
+            return NGX_ERROR;
+        }
+
+        *h = header[i];
+    }
+
+    /* XXX maybe we should set those built-in header slot in
+     * ngx_http_headers_in_t too? */
+
+    return NGX_OK;
 }
 
