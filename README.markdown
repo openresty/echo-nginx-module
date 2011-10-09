@@ -13,7 +13,7 @@ This module is production ready.
 Version
 =======
 
-This document describes echo-nginx-module [v0.36](https://github.com/agentzh/echo-nginx-module/downloads) released on 8 July 2011.
+This document describes echo-nginx-module [v0.37rc5](https://github.com/agentzh/echo-nginx-module/downloads) released on 9 October 2011.
 
 Synopsis
 ========
@@ -1337,12 +1337,12 @@ You're recommended to install this module (as well as the Nginx core and many ot
 Alternatively, you can install this module manually with the Nginx source:
 
 Grab the nginx source code from [nginx.org](http://nginx.org/), for example,
-the version 1.0.5 (see [nginx compatibility](http://wiki.nginx.org/HttpEchoModule#Compatibility)), and then build the source with this module:
+the version 1.0.8 (see [nginx compatibility](http://wiki.nginx.org/HttpEchoModule#Compatibility)), and then build the source with this module:
 
 
-    $ wget 'http://sysoev.ru/nginx/nginx-1.0.5.tar.gz'
-    $ tar -xzvf nginx-1.0.5.tar.gz
-    $ cd nginx-1.0.5/
+    $ wget 'http://sysoev.ru/nginx/nginx-1.0.8.tar.gz'
+    $ tar -xzvf nginx-1.0.8.tar.gz
+    $ cd nginx-1.0.8/
     
     # Here we assume you would install you nginx under /opt/nginx/.
     $ ./configure --prefix=/opt/nginx \
@@ -1361,7 +1361,8 @@ Compatibility
 
 The following versions of Nginx should work with this module:
 
-* **1.0.x**                       (last tested: 1.0.5)
+* **1.1.x**                       (last tested: 1.1.5)
+* **1.0.x**                       (last tested: 1.0.8)
 * **0.9.x**                       (last tested: 0.9.4)
 * **0.8.x**                       (last tested: 0.8.54)
 * **0.7.x >= 0.7.21**             (last tested: 0.7.68)
