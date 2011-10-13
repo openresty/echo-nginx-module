@@ -75,7 +75,7 @@ ngx_http_echo_exec_echo_subrequest_async(ngx_http_request_t *r,
     args.len = 0;
 
     if (ngx_http_parse_unsafe_uri(r, parsed_sr->location, &args, &flags)
-            != NGX_OK)
+        != NGX_OK)
     {
         ctx->headers_sent = 1;
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
@@ -131,7 +131,7 @@ ngx_http_echo_exec_echo_subrequest(ngx_http_request_t *r,
     args.len = 0;
 
     if (ngx_http_parse_unsafe_uri(r, parsed_sr->location, &args, &flags)
-            != NGX_OK)
+        != NGX_OK)
     {
         ctx->headers_sent = 1;
 
@@ -653,6 +653,7 @@ ngx_http_echo_exec_exec(ngx_http_request_t *r,
 
     if (computed_args->nelts > 1) {
         user_args = &computed_arg[1];
+
     } else {
         user_args = NULL;
     }
@@ -661,7 +662,8 @@ ngx_http_echo_exec_exec(ngx_http_request_t *r,
     args.len = 0;
 
     if (ngx_http_parse_unsafe_uri(r, uri, &args, &flags)
-            != NGX_OK) {
+        != NGX_OK)
+    {
         ctx->headers_sent = 1;
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
@@ -671,12 +673,19 @@ ngx_http_echo_exec_exec(ngx_http_request_t *r,
     }
 
     if (uri->data[0] == '@') {
+
         if (user_args && user_args->len > 0) {
+
             ngx_log_error(NGX_LOG_ALERT, r->connection->log, 0,
                     "query strings %V ignored when exec'ing named location %V",
                     user_args, uri);
 
         }
+
+#if 1
+        /* clear the modules contexts */
+        ngx_memzero(r->ctx, sizeof(void *) * ngx_http_max_module);
+#endif
 
         return ngx_http_named_location(r, uri);
     }

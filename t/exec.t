@@ -132,3 +132,41 @@ uri: [/foo]
 hello
 hello
 
+
+
+=== TEST 8: exec should clear ctx
+--- config
+    location @bar {
+        echo hello;
+        echo world;
+        echo heh;
+    }
+  location /foo {
+      #echo_sleep 0.001;
+      echo_reset_timer;
+      echo_exec @bar;
+  }
+--- request
+    GET /foo
+--- response_body
+hello
+world
+heh
+
+
+
+=== TEST 9: reset ctx
+--- config
+    location @proxy {
+        rewrite_by_lua return;
+        echo hello;
+    }
+    location /main {
+        rewrite_by_lua return;
+        echo_exec @proxy;
+    }
+--- request
+    GET /main
+--- response_body
+hello
+
