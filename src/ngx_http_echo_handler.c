@@ -81,6 +81,7 @@ ngx_http_echo_wev_handler(ngx_http_request_t *r)
     dd("rc: %d", (int) rc);
 
     if (rc == NGX_DONE) {
+        ngx_http_finalize_request(r, rc);
         return;
     }
 
@@ -116,6 +117,8 @@ ngx_http_echo_handler(ngx_http_request_t *r)
     dd("subrequest in memory: %d", (int) r->subrequest_in_memory);
 
     rc = ngx_http_echo_run_cmds(r);
+
+    dd("run cmds returned %d", (int) rc);
 
     if (rc == NGX_ERROR) {
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
@@ -243,7 +246,6 @@ ngx_http_echo_run_cmds(ngx_http_request_t *r)
 
         case echo_opcode_echo_location:
             return ngx_http_echo_exec_echo_location(r, ctx, computed_args);
-            break;
 
         case echo_opcode_echo_subrequest_async:
             dd("found opcode echo subrequest async...");
@@ -253,11 +255,9 @@ ngx_http_echo_run_cmds(ngx_http_request_t *r)
 
         case echo_opcode_echo_subrequest:
             return ngx_http_echo_exec_echo_subrequest(r, ctx, computed_args);
-            break;
 
         case echo_opcode_echo_sleep:
             return ngx_http_echo_exec_echo_sleep(r, ctx, computed_args);
-            break;
 
         case echo_opcode_echo_flush:
             rc = ngx_http_echo_exec_echo_flush(r, ctx);
@@ -310,7 +310,6 @@ ngx_http_echo_run_cmds(ngx_http_request_t *r)
         case echo_opcode_echo_exec:
             dd("echo_exec");
             return ngx_http_echo_exec_exec(r, ctx, computed_args);
-            break;
 
         default:
             ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,

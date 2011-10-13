@@ -6,6 +6,7 @@
 #include "ngx_http_echo_util.h"
 #include "ngx_http_echo_subrequest.h"
 #include "ngx_http_echo_handler.h"
+#include <nginx.h>
 
 
 #define ngx_http_echo_method_name(m) { sizeof(m) - 1, (u_char *) m " " }
@@ -672,6 +673,8 @@ ngx_http_echo_exec_exec(ngx_http_request_t *r,
         user_args = &args;
     }
 
+    r->write_event_handler = ngx_http_request_empty_handler;
+
     if (uri->data[0] == '@') {
 
         if (user_args && user_args->len > 0) {
@@ -686,6 +689,9 @@ ngx_http_echo_exec_exec(ngx_http_request_t *r,
         /* clear the modules contexts */
         ngx_memzero(r->ctx, sizeof(void *) * ngx_http_max_module);
 #endif
+
+        dd("named location: %.*s, c:%d", (int) uri->len, uri->data,
+                (int) r->main->count);
 
         return ngx_http_named_location(r, uri);
     }
