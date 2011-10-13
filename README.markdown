@@ -13,7 +13,7 @@ This module is production ready.
 Version
 =======
 
-This document describes echo-nginx-module [v0.37rc5](https://github.com/agentzh/echo-nginx-module/downloads) released on 9 October 2011.
+This document describes echo-nginx-module [v0.37rc5](https://github.com/agentzh/echo-nginx-module/tags) released on 9 October 2011.
 
 Synopsis
 ========
@@ -1352,7 +1352,7 @@ the version 1.0.8 (see [nginx compatibility](http://wiki.nginx.org/HttpEchoModul
     $ make install
 
 
-Download the latest version of the release tarball of this module from [echo-nginx-module file list](http://github.com/agentzh/echo-nginx-module/downloads).
+Download the latest version of the release tarball of this module from [echo-nginx-module file list](http://github.com/agentzh/echo-nginx-module/tags).
 
 Also, this module is included and enabled by default in the [ngx_openresty bundle](http://openresty.org).
 
