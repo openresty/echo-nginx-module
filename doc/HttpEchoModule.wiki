@@ -10,7 +10,7 @@ This module is production ready.
 
 = Version =
 
-This document describes echo-nginx-module [https://github.com/agentzh/echo-nginx-module/tags v0.37rc5] released on 9 October 2011.
+This document describes echo-nginx-module [https://github.com/agentzh/echo-nginx-module/tags v0.37rc7] released on 24 October 2011.
 
 = Synopsis =
 
