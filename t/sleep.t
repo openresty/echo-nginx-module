@@ -183,3 +183,18 @@ after
     HEAD /echo
 --- response_body
 
+
+
+=== TEST 13: sleep by variable
+--- config
+    location ~ ^/sleep/(.+) {
+        echo before...;
+        echo_sleep $1;
+        echo after...;
+    }
+--- request
+    GET /sleep/0.01
+--- response_body
+before...
+after...
+

@@ -305,7 +305,6 @@ helloworld
 Content-Length: 6
 --- response_body
 hello
-world
 
 
 

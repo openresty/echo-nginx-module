@@ -162,6 +162,12 @@ ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
     if (in) {
         rc = ngx_http_echo_next_body_filter(r, in);
 
+#if 0
+        if (rc == NGX_AGAIN) {
+            return NGX_ERROR;
+        }
+#endif
+
         dd("next filter returns %d, last %d", (int) rc, (int) last);
 
         if (rc == NGX_ERROR || rc > NGX_OK || !last) {

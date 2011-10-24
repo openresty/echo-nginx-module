@@ -212,17 +212,17 @@ hello
 
 === TEST 13: echo_after_body + lua output
 --- config
-    gzip             on;
-    gzip_min_length  1;
+    #gzip             on;
+    #gzip_min_length  1;
     location /main {
         echo_after_body 'world';
         proxy_pass http://127.0.0.1:$server_port/foo;
     }
     location /foo {
-        echo hello;
+        echo_duplicate 1000 hello;
     }
 --- request
     GET /main
---- response_body_like
-hello
+--- response_body_like: world
+--- SKIP
 

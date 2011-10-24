@@ -139,3 +139,17 @@ trees
 hi
 trees
 
+
+=== TEST 13: blocking sleep by variable
+--- config
+    location ~ ^/sleep/(.+) {
+        echo before...;
+        echo_blocking_sleep $1;
+        echo after...;
+    }
+--- request
+    GET /sleep/0.01
+--- response_body
+before...
+after...
+

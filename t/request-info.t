@@ -161,3 +161,19 @@ haha
 --- response_body
 status: 
 
+
+
+=== TEST 10: echo_request_body (empty body)
+--- config
+    location /body {
+      echo_read_request_body;
+      echo_request_body;
+    }
+    location /main {
+        proxy_pass http://127.0.0.1:$server_port/body;
+    }
+--- request eval
+"POST /main"
+--- response_body eval
+""
+

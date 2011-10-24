@@ -1,6 +1,8 @@
 /* Copyright (C) agentzh */
 
+#ifndef DDEBUG
 #define DDEBUG 0
+#endif
 #include "ddebug.h"
 
 #include "ngx_http_echo_sleep.h"
@@ -23,26 +25,25 @@ ngx_http_echo_exec_echo_sleep(
 {
     ngx_str_t                   *computed_arg;
     ngx_str_t                   *computed_arg_elts;
-    float                        delay; /* in sec */
+    ngx_int_t                    delay; /* in msec */
     ngx_http_cleanup_t          *cln;
 
     computed_arg_elts = computed_args->elts;
     computed_arg = &computed_arg_elts[0];
 
-    delay = atof( (char*) computed_arg->data );
+    delay = ngx_atofp(computed_arg->data, computed_arg->len, 3);
 
-    if (delay < 0.001) { /* should be bigger than 1 msec */
+    if (delay == NGX_ERROR) {
         ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
                    "invalid sleep duration \"%V\"", &computed_arg_elts[0]);
 
         return NGX_HTTP_BAD_REQUEST;
     }
 
-    dd("adding timer with delay %.02lf sec, r:%.*s", delay,
-            (int) r->uri.len,
-            r->uri.data);
+    dd("adding timer with delay %lu ms, r:%.*s", (unsigned long) delay,
+            (int) r->uri.len, r->uri.data);
 
-    ngx_add_timer(&ctx->sleep, (ngx_msec_t) (1000 * delay));
+    ngx_add_timer(&ctx->sleep, (ngx_msec_t) delay);
 
     /* we don't check broken downstream connections
      * ourselves so even if the client shuts down
@@ -158,22 +159,22 @@ ngx_http_echo_exec_echo_blocking_sleep(ngx_http_request_t *r,
 {
     ngx_str_t                   *computed_arg;
     ngx_str_t                   *computed_arg_elts;
-    float                       delay; /* in sec */
+    ngx_int_t                    delay; /* in msec */
 
     computed_arg_elts = computed_args->elts;
     computed_arg = &computed_arg_elts[0];
 
-    delay = atof( (char*) computed_arg->data );
+    delay = ngx_atofp(computed_arg->data, computed_arg->len, 3);
 
-    if (delay < 0.001) { /* should be bigger than 1 msec */
+    if (delay == NGX_ERROR) {
         ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
                    "invalid sleep duration \"%V\"", &computed_arg_elts[0]);
         return NGX_HTTP_BAD_REQUEST;
     }
 
-    dd("blocking DELAY = %.02lf sec", delay);
+    dd("blocking delay: %lu ms", (unsigned long) delay);
 
-    ngx_msleep((ngx_msec_t) (1000 * delay));
+    ngx_msleep((ngx_msec_t) delay);
 
     return NGX_OK;
 }
