@@ -30,6 +30,9 @@ ngx-build $force $version \
           --add-module=$root/../headers-more-nginx-module \
           --add-module=$root/../lua-nginx-module \
           --add-module=$root $opts \
+          --with-select_module \
+          --with-poll_module \
+          --with-rtsig_module \
           --with-debug || exit 1
           #--add-module=$root/../lz-session-nginx-module \
           #--add-module=$home/work/ndk \

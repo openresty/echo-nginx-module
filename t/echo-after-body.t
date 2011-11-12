@@ -6,14 +6,18 @@ use Test::Nginx::Socket;
 plan tests => repeat_each() * 2 * blocks();
 
 no_long_string();
+log_level('warn');
 
 #master_on();
+#workers(1);
 
 run_tests();
 
 __DATA__
 
 === TEST 1: sanity
+--- http_config
+    postpone_output 1;
 --- config
     location /echo {
         echo_after_body hello;
