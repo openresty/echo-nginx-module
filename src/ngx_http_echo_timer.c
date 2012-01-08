@@ -29,8 +29,7 @@ ngx_http_echo_timer_elapsed_variable(ngx_http_request_t *r,
 
     /* force the ngx timer to update */
 
-#if defined nginx_version && (nginx_version >= 8035 \
-        || (nginx_version < 8000 && nginx_version >= 7066))
+#if (nginx_version >= 8035) || (nginx_version < 8000 && nginx_version >= 7066)
     ngx_time_update();
 #else
     ngx_time_update(0, 0);
@@ -47,7 +46,12 @@ ngx_http_echo_timer_elapsed_variable(ngx_http_request_t *r,
     ms = (ms >= 0) ? ms : 0;
 
     size = sizeof("-9223372036854775808.000") - 1;
+
     p = ngx_palloc(r->pool, size);
+    if (p == NULL) {
+        return NGX_ERROR;
+    }
+
     v->len = ngx_snprintf(p, size, "%T.%03M",
              ms / 1000, ms % 1000) - p;
     v->data = p;
@@ -55,6 +59,7 @@ ngx_http_echo_timer_elapsed_variable(ngx_http_request_t *r,
     v->valid = 1;
     v->no_cacheable = 1;
     v->not_found = 0;
+
     return NGX_OK;
 }
 

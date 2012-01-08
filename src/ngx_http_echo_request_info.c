@@ -160,6 +160,10 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
     size = header_in->pos - header_in->start;
 
     v->data = ngx_palloc(r->pool, size);
+    if (v->data == NULL) {
+        return NGX_ERROR;
+    }
+
     last = ngx_cpymem(v->data, header_in->start, size);
 
     /* fix \0 introduced by the nginx header parser and
