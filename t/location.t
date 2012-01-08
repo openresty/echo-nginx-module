@@ -338,6 +338,7 @@ Foo Bar
 
 
 === TEST 17: let subrequest to read the main request's request body
+--- SKIP
 --- config
     location /main {
         echo_location /sub;

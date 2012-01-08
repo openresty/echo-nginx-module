@@ -1,4 +1,6 @@
+#ifndef DDEBUG
 #define DDEBUG 0
+#endif
 
 #include "ddebug.h"
 
@@ -6,6 +8,8 @@
 
 #include <stdlib.h>
 #include <ngx_log.h>
+#include <nginx.h>
+
 
 ngx_int_t
 ngx_http_echo_timer_elapsed_variable(ngx_http_request_t *r,
@@ -63,8 +67,7 @@ ngx_http_echo_exec_echo_reset_timer(ngx_http_request_t *r,
 
     /* force the ngx timer to update */
 
-#if defined nginx_version && (nginx_version >= 8035 \
-        || (nginx_version < 8000 && nginx_version >= 7066))
+#if (nginx_version >= 8035) || (nginx_version < 8000 && nginx_version >= 7066)
     ngx_time_update();
 #else
     ngx_time_update(0, 0);

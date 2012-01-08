@@ -446,6 +446,7 @@ Foo Bar
 
 
 === TEST 22: let subrequest to read the main request's request body
+--- SKIP
 --- config
     location /main {
         echo_subrequest POST /sub;

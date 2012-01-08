@@ -402,6 +402,7 @@ content length: 5
 
 
 === TEST 21: let subrequest to read the main request's request body
+--- SKIP
 --- config
     location /main {
         echo_subrequest_async POST /sub;

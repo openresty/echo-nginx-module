@@ -338,6 +338,7 @@ No no no
 
 
 === TEST 19: let subrequest to read the main request's request body
+--- SKIP
 --- config
     location /main {
         echo_location_async /sub;
