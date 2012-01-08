@@ -7,7 +7,9 @@ version=$1
 force=$2
 home=~
 
+            #--with-cc=gcc46 \
   #--without-http_ssi_module \
+
 ngx-build $force $version \
             --with-cc-opt="-DDEBUG_MALLOC" \
             --with-http_stub_status_module \
