@@ -37,8 +37,10 @@ ngx_http_echo_timer_elapsed_variable(ngx_http_request_t *r,
 
     tp = ngx_timeofday();
 
-    dd("old sec msec: %ld %d\n", ctx->timer_begin.sec, ctx->timer_begin.msec);
-    dd("new sec msec: %ld %d\n", tp->sec, tp->msec);
+    dd("old sec msec: %ld %d\n", (long) ctx->timer_begin.sec,
+       (int) ctx->timer_begin.msec);
+
+    dd("new sec msec: %ld %d\n", (long) tp->sec, (int) tp->msec);
 
     ms = (ngx_msec_int_t)
              ((tp->sec - ctx->timer_begin.sec) * 1000 +

@@ -1,4 +1,6 @@
+#ifndef DDEBUG
 #define DDEBUG 0
+#endif
 #include "ddebug.h"
 
 #include "ngx_http_echo_foreach.h"
@@ -72,7 +74,7 @@ ngx_http_echo_exec_echo_foreach_split(ngx_http_request_t *r,
 
     compound  = &computed_arg_elts[1];
 
-    dd("HEY coumpound len: %u", compound->len);
+    dd("HEY coumpound len: %u", (int) compound->len);
 
     ctx->foreach = ngx_palloc(r->pool, sizeof(ngx_http_echo_foreach_ctx_t));
 
