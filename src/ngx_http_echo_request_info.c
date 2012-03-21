@@ -92,8 +92,9 @@ ngx_http_echo_request_body_variable(ngx_http_request_t *r,
 {
     u_char       *p;
     size_t        len;
-    ngx_buf_t    *buf, *next;
+    ngx_buf_t    *b;
     ngx_chain_t  *cl;
+    ngx_chain_t  *in;
 
     if (r->request_body == NULL
         || r->request_body->bufs == NULL
@@ -104,21 +105,27 @@ ngx_http_echo_request_body_variable(ngx_http_request_t *r,
         return NGX_OK;
     }
 
-    cl = r->request_body->bufs;
-    buf = cl->buf;
+    in = r->request_body->bufs;
 
-    if (cl->next == NULL) {
-        v->len = buf->last - buf->pos;
-        v->valid = 1;
-        v->no_cacheable = 0;
-        v->not_found = 0;
-        v->data = buf->pos;
+    len = 0;
+    for (cl = in; cl; cl = cl->next) {
+        b = cl->buf;
 
-        return NGX_OK;
+        if (!ngx_buf_in_memory(b)) {
+            if (b->in_file) {
+                ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
+                               "variable echo_request_body sees in-file only "
+                               "buffers and discard the whole body data");
+
+                v->not_found = 1;
+
+                return NGX_OK;
+            }
+
+        } else {
+            len += b->last - b->pos;
+        }
     }
-
-    next = cl->next->buf;
-    len = (buf->last - buf->pos) + (next->last - next->pos);
 
     p = ngx_pnalloc(r->pool, len);
     if (p == NULL) {
@@ -127,8 +134,22 @@ ngx_http_echo_request_body_variable(ngx_http_request_t *r,
 
     v->data = p;
 
-    p = ngx_cpymem(p, buf->pos, buf->last - buf->pos);
-    ngx_memcpy(p, next->pos, next->last - next->pos);
+    for (cl = in; cl; cl = cl->next) {
+        b = cl->buf;
+
+        if (ngx_buf_in_memory(b)) {
+            p = ngx_copy(p, b->pos, b->last - b->pos);
+        }
+    }
+
+    if (p - v->data != (ssize_t) len) {
+        ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
+                       "variable echo_request_body: buffer error");
+
+        v->not_found = 1;
+
+        return NGX_OK;
+    }
 
     v->len = len;
     v->valid = 1;
