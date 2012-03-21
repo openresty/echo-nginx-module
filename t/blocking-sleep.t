@@ -140,7 +140,8 @@ hi
 trees
 
 
-=== TEST 13: blocking sleep by variable
+
+=== TEST 10: blocking sleep by variable
 --- config
     location ~ ^/sleep/(.+) {
         echo before...;
