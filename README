@@ -9,9 +9,9 @@ Status
     This module is production ready.
 
 Version
-    This document describes echo-nginx-module v0.37
-    (<https://github.com/agentzh/echo-nginx-module/tags>) released on 13
-    January 2012.
+    This document describes echo-nginx-module v0.38rc2
+    (<https://github.com/agentzh/echo-nginx-module/tags>) released on 21
+    March 2012.
 
 Synopsis
       location /hello {
@@ -1353,12 +1353,12 @@ Installation
     source:
 
     Grab the nginx source code from nginx.org (<http://nginx.org/>), for
-    example, the version 1.0.8 (see nginx compatibility), and then build the
-    source with this module:
+    example, the version 1.0.11 (see nginx compatibility), and then build
+    the source with this module:
 
-        $ wget 'http://sysoev.ru/nginx/nginx-1.0.8.tar.gz'
-        $ tar -xzvf nginx-1.0.8.tar.gz
-        $ cd nginx-1.0.8/
+        $ wget 'http://sysoev.ru/nginx/nginx-1.0.11.tar.gz'
+        $ tar -xzvf nginx-1.0.11.tar.gz
+        $ cd nginx-1.0.11/
 
         # Here we assume you would install you nginx under /opt/nginx/.
         $ ./configure --prefix=/opt/nginx \
@@ -1379,7 +1379,7 @@ Compatibility
 
     *   1.1.x (last tested: 1.1.5)
 
-    *   1.0.x (last tested: 1.0.8)
+    *   1.0.x (last tested: 1.0.11)
 
     *   0.9.x (last tested: 0.9.4)
 
