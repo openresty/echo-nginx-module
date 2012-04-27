@@ -4,7 +4,7 @@ use lib 'lib';
 
 use Test::Nginx::Socket;
 
-plan tests => 2 * blocks();
+plan tests => 2 * blocks() + 1;
 
 #$Test::Nginx::LWP::LogLevel = 'debug';
 
@@ -474,7 +474,9 @@ GET /main
 1
 1
 1
---- timeout: 2
+--- timeout: 5
+--- no_error_log
+[error]
 
 
 
