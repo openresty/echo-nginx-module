@@ -259,3 +259,25 @@ TODO: needs to uri_decode $echo_it...
 [b&c]
 [d]
 
+
+
+=== TEST 14: github issue #2: setting a variable from $echo_it results to crashing
+--- config
+location = /getFile {
+    set $filelist "a,b,c";
+    echo_foreach_split ',' $filelist;
+    set $file $echo_it;
+    echo_subrequest GET '/getFile2' -q 'sha256=$file';
+    echo_end;
+}
+
+location = /getFile2 {
+    echo "sha256: $arg_sha256";
+}
+--- request
+    GET /getFile
+--- response_body
+sha256: 
+sha256: 
+sha256: 
+
