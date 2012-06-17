@@ -302,9 +302,10 @@ helloworld
 --- request
     GET /main
 --- response_headers
-Content-Length: 6
+!Content-Length
 --- response_body
 hello
+world
 
 
 

@@ -3,7 +3,9 @@
 use lib 'lib';
 use Test::Nginx::Socket;
 
-plan tests => 2 * blocks();
+repeat_each(2);
+
+plan tests => repeat_each() * (blocks() * 2);
 
 #$Test::Nginx::LWP::LogLevel = 'debug';
 
