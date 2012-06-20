@@ -12,66 +12,49 @@
 #include <ngx_log.h>
 
 /* config init handler */
-static void * ngx_http_echo_create_conf(ngx_conf_t *cf);
+static void * ngx_http_echo_create_loc_conf(ngx_conf_t *cf);
+static char * ngx_http_echo_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child);
 
 /* config directive handlers */
 static char * ngx_http_echo_echo(ngx_conf_t *cf, ngx_command_t *cmd,
         void *conf);
-
 static char * ngx_http_echo_echo_request_body(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
-
 static char * ngx_http_echo_echo_sleep(ngx_conf_t *cf, ngx_command_t *cmd,
         void *conf);
-
 static char * ngx_http_echo_echo_flush(ngx_conf_t *cf, ngx_command_t *cmd,
         void *conf);
-
 static char * ngx_http_echo_echo_blocking_sleep(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
-
 static char * ngx_http_echo_echo_reset_timer(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
-
 static char * ngx_http_echo_echo_before_body(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
-
 static char * ngx_http_echo_echo_after_body(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
-
 static char * ngx_http_echo_echo_location_async(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
-
 static char * ngx_http_echo_echo_location(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
-
 static char * ngx_http_echo_echo_subrequest_async(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
-
 static char * ngx_http_echo_echo_subrequest(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
-
 static char * ngx_http_echo_echo_duplicate(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
-
 static char * ngx_http_echo_echo_read_request_body(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
-
 static char * ngx_http_echo_echo_foreach_split(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
-
 static char * ngx_http_echo_echo_end(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
-
 static char * ngx_http_echo_echo_abort_parent(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
-
 static char * ngx_http_echo_echo_exec(ngx_conf_t *cf,
         ngx_command_t *cmd, void *conf);
-
 static char * ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
         ngx_http_echo_cmd_category_t cat,
-        ngx_conf_t *cf, ngx_command_t *cmd, void* conf);
+        ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
 
 
 static ngx_http_module_t ngx_http_echo_module_ctx = {
@@ -85,8 +68,8 @@ static ngx_http_module_t ngx_http_echo_module_ctx = {
     NULL,                          /* create server configuration */
     NULL,                          /* merge server configuration */
 
-    ngx_http_echo_create_conf, /* create location configuration */
-    NULL                           /* merge location configuration */
+    ngx_http_echo_create_loc_conf, /* create location configuration */
+    ngx_http_echo_merge_loc_conf   /* merge location configuration */
 };
 
 
@@ -239,7 +222,7 @@ ngx_module_t ngx_http_echo_module = {
 
 
 static void *
-ngx_http_echo_create_conf(ngx_conf_t *cf)
+ngx_http_echo_create_loc_conf(ngx_conf_t *cf)
 {
     ngx_http_echo_loc_conf_t        *conf;
 
@@ -257,6 +240,29 @@ ngx_http_echo_create_conf(ngx_conf_t *cf)
      */
 
     return conf;
+}
+
+
+static char *
+ngx_http_echo_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child)
+{
+    ngx_http_echo_loc_conf_t    *prev = parent;
+    ngx_http_echo_loc_conf_t    *conf = child;
+
+    if (conf->handler_cmds == NULL) {
+        conf->handler_cmds = prev->handler_cmds;
+        conf->seen_leading_output = prev->seen_leading_output;
+    }
+
+    if (conf->before_body_cmds == NULL) {
+        conf->before_body_cmds = prev->before_body_cmds;
+    }
+
+    if (conf->after_body_cmds == NULL) {
+        conf->after_body_cmds = prev->after_body_cmds;
+    }
+
+    return NGX_CONF_OK;
 }
 
 

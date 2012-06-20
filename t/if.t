@@ -113,3 +113,38 @@ too long
 --- response_body
 ok
 
+
+
+=== TEST 7: echo should be inherited by if blocks
+--- config
+    location /foo {
+        if ($uri ~ 'foo') {
+        }
+        echo ok;
+    }
+--- request
+    GET /foo
+--- response_body
+ok
+
+
+
+=== TEST 8: echo_after_body and echo_before_body should be inherited by if blocks
+--- config
+    location /foo {
+        if ($uri ~ 'foo') {
+        }
+        echo_before_body -n 'hello';
+        echo_location /comma;
+        echo_after_body 'world';
+    }
+
+    location = /comma {
+        internal;
+        echo -n ', ';
+    }
+--- request
+    GET /foo
+--- response_body
+hello, world
+

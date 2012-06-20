@@ -120,6 +120,10 @@ ngx_http_echo_handler(ngx_http_request_t *r)
 
     dd("run cmds returned %d", (int) rc);
 
+    if (rc == NGX_OK || rc == NGX_DONE || rc == NGX_DECLINED) {
+        return rc;
+    }
+
     if (rc == NGX_ERROR) {
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
@@ -128,33 +132,26 @@ ngx_http_echo_handler(ngx_http_request_t *r)
         return rc;
     }
 
-    if (rc == NGX_DONE) {
-        return NGX_DONE;
-    }
+    /* rc == NGX_AGAIN */
 
-    if (rc == NGX_AGAIN) {
 #if defined(nginx_version) && nginx_version >= 8011
-        r->main->count++;
+    r->main->count++;
 #endif
 
-        /* XXX we need this for 0.7.x and 0.8.x < 0.8.11 */
-        dd("%d", r->connection->destroyed);
-        dd("%d", r->done);
+    dd("%d", r->connection->destroyed);
+    dd("%d", r->done);
 
-        ctx = ngx_http_get_module_ctx(r, ngx_http_echo_module);
-        if (ctx) {
-            dd("mark busy %d for %.*s", (int) ctx->next_handler_cmd,
-                    (int) r->uri.len,
-                    r->uri.data);
+    ctx = ngx_http_get_module_ctx(r, ngx_http_echo_module);
+    if (ctx) {
+        dd("mark busy %d for %.*s", (int) ctx->next_handler_cmd,
+                (int) r->uri.len,
+                r->uri.data);
 
-            ctx->waiting = 1;
-            ctx->done = 0;
-        }
-
-        return NGX_DONE;
+        ctx->waiting = 1;
+        ctx->done = 0;
     }
 
-    return NGX_OK;
+    return NGX_DONE;
 }
 
 
