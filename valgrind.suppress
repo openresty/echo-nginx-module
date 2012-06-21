@@ -1,5 +1,12 @@
 {
 <insert_a_suppression_name_here>
+Memcheck:Leak
+fun:malloc
+fun:ngx_alloc
+fun:(below main)
+}
+{
+<insert_a_suppression_name_here>
 Memcheck:Param
 socketcall.sendmsg(msg.msg_iov[i])
 fun:sendmsg
