@@ -13,7 +13,8 @@
 
 /* config init handler */
 static void * ngx_http_echo_create_loc_conf(ngx_conf_t *cf);
-static char * ngx_http_echo_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child);
+static char * ngx_http_echo_merge_loc_conf(ngx_conf_t *cf, void *parent,
+        void *child);
 
 /* config directive handlers */
 static char * ngx_http_echo_echo(ngx_conf_t *cf, ngx_command_t *cmd,
