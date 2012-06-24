@@ -9,9 +9,9 @@ Status
     This module is production ready.
 
 Version
-    This document describes echo-nginx-module v0.38rc2
-    (<https://github.com/agentzh/echo-nginx-module/tags>) released on 21
-    March 2012.
+    This document describes echo-nginx-module v0.39
+    (<https://github.com/agentzh/echo-nginx-module/tags>) released on 22
+    June 2012.
 
 Synopsis
       location /hello {
@@ -194,13 +194,6 @@ Description
     This is a special dual-role module that can *lazily* serve as a content
     handler or register itself as an output filter only upon demand. By
     default, this module does not do anything at all.
-
-    Use of any of this module's directives (no matter content handler
-    directives or filter directives) will force the chunked encoding to be
-    used for the HTTP response due to the streaming nature of this module
-    (unless HTTP 1.0 is enforced by the client and the Content-Length header
-    will be set to the size of the first handler directive that generates
-    contents).
 
     Technially, this module has also demonstrated the following techniques
     that might be helpful for module writers:
@@ -1376,6 +1369,8 @@ Installation
 
 Compatibility
     The following versions of Nginx should work with this module:
+
+    *   1.2.x (last tested: 1.2.1)
 
     *   1.1.x (last tested: 1.1.5)
 

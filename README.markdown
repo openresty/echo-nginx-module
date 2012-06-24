@@ -1,3 +1,8 @@
+<!---
+Don't edit this file manually! Instead you should generate it by using:
+    wiki2markdown.pl doc/HttpEchoModule.wiki
+-->
+
 Name
 ====
 
@@ -13,7 +18,7 @@ This module is production ready.
 Version
 =======
 
-This document describes echo-nginx-module [v0.38rc2](https://github.com/agentzh/echo-nginx-module/tags) released on 21 March 2012.
+This document describes echo-nginx-module [v0.39](https://github.com/agentzh/echo-nginx-module/tags) released on 22 June 2012.
 
 Synopsis
 ========
@@ -213,8 +218,6 @@ People will also find it useful in real-world applications that need to
 1. merge contents of various "Nginx locations" (i.e., subrequests) together in a single main request (using [echo_location](http://wiki.nginx.org/HttpEchoModule#echo_location) and its friends).
 
 This is a special dual-role module that can *lazily* serve as a content handler or register itself as an output filter only upon demand. By default, this module does not do anything at all.
-
-Use of any of this module's directives (no matter [content handler directives](http://wiki.nginx.org/HttpEchoModule#Content_Handler_Directives) or [filter directives](http://wiki.nginx.org/HttpEchoModule#Filter_Directives)) will force the chunked encoding to be used for the HTTP response due to the streaming nature of this module (unless HTTP 1.0 is enforced by the client and the Content-Length header will be set to the size of the first handler directive that generates contents).
 
 Technially, this module has also demonstrated the following techniques that might be helpful for module writers:
 
@@ -1361,6 +1364,7 @@ Compatibility
 
 The following versions of Nginx should work with this module:
 
+* **1.2.x**                       (last tested: 1.2.1)
 * **1.1.x**                       (last tested: 1.1.5)
 * **1.0.x**                       (last tested: 1.0.11)
 * **0.9.x**                       (last tested: 0.9.4)
