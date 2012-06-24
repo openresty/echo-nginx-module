@@ -130,10 +130,12 @@ ngx_int_t
 ngx_http_echo_send_header_if_needed(ngx_http_request_t* r,
         ngx_http_echo_ctx_t *ctx)
 {
-    /* ngx_int_t   rc; */
+    ngx_http_echo_loc_conf_t    *elcf;
 
-    if ( ! ctx->headers_sent ) {
-        r->headers_out.status = NGX_HTTP_OK;
+    if (!ctx->headers_sent) {
+        elcf = ngx_http_get_module_loc_conf(r, ngx_http_echo_module);
+
+        r->headers_out.status = (ngx_uint_t) elcf->status;
 
         if (ngx_http_set_content_type(r) != NGX_OK) {
             return NGX_HTTP_INTERNAL_SERVER_ERROR;

@@ -200,6 +200,13 @@ static ngx_command_t  ngx_http_echo_commands[] = {
       offsetof(ngx_http_echo_loc_conf_t, handler_cmds),
       NULL },
 
+    { ngx_string("echo_status"),
+      NGX_HTTP_LOC_CONF|NGX_HTTP_LIF_CONF|NGX_CONF_TAKE1,
+      ngx_conf_set_num_slot,
+      NGX_HTTP_LOC_CONF_OFFSET,
+      offsetof(ngx_http_echo_loc_conf_t, status),
+      NULL },
+
       ngx_null_command
 };
 
@@ -238,6 +245,8 @@ ngx_http_echo_create_loc_conf(ngx_conf_t *cf)
      *  conf->seen_trailing_output = 0
      */
 
+    conf->status = NGX_CONF_UNSET;
+
     return conf;
 }
 
@@ -260,6 +269,8 @@ ngx_http_echo_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child)
     if (conf->after_body_cmds == NULL) {
         conf->after_body_cmds = prev->after_body_cmds;
     }
+
+    ngx_conf_merge_value(conf->status, prev->status, 200);
 
     return NGX_CONF_OK;
 }

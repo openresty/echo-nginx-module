@@ -82,6 +82,7 @@ typedef struct {
 
     unsigned         seen_leading_output;
 
+    ngx_int_t        status;
 } ngx_http_echo_loc_conf_t;
 
 
