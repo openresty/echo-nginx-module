@@ -58,9 +58,8 @@ static char * ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
 
 
 static ngx_http_module_t ngx_http_echo_module_ctx = {
-    /* TODO we could add our own variables here... */
-    ngx_http_echo_handler_init,                 /* preconfiguration */
-    ngx_http_echo_filter_init,                  /* postconfiguration */
+    ngx_http_echo_handler_init,    /* preconfiguration */
+    ngx_http_echo_filter_init,     /* postconfiguration */
 
     NULL,                          /* create main configuration */
     NULL,                          /* init main configuration */
@@ -207,8 +206,8 @@ static ngx_command_t  ngx_http_echo_commands[] = {
 
 ngx_module_t ngx_http_echo_module = {
     NGX_MODULE_V1,
-    &ngx_http_echo_module_ctx, /* module context */
-    ngx_http_echo_commands,   /* module directives */
+    &ngx_http_echo_module_ctx,     /* module context */
+    ngx_http_echo_commands,        /* module directives */
     NGX_HTTP_MODULE,               /* module type */
     NULL,                          /* init master */
     NULL,                          /* init module */
@@ -272,7 +271,6 @@ ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
         ngx_conf_t *cf, ngx_command_t *cmd, void* conf)
 {
     ngx_http_core_loc_conf_t        *clcf;
-    /* ngx_http_echo_loc_conf_t        *elcf = conf; */
     ngx_array_t                    **args_ptr;
     ngx_http_script_compile_t        sc;
     ngx_str_t                       *raw_args;
