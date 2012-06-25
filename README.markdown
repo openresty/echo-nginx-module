@@ -18,7 +18,7 @@ This module is production ready.
 Version
 =======
 
-This document describes echo-nginx-module [v0.39](https://github.com/agentzh/echo-nginx-module/tags) released on 22 June 2012.
+This document describes echo-nginx-module [v0.40](https://github.com/agentzh/echo-nginx-module/tags) released on 25 June 2012.
 
 Synopsis
 ========
@@ -1076,6 +1076,42 @@ Technically speaking, this directive exposes the Nginx internal API functions `n
 
 This directive was first introduced in the [v0.21 release](http://wiki.nginx.org/HttpEchoModule#v0.21).
 
+echo_status
+-----------
+**syntax:** *echo_status &lt;status-num&gt;*
+
+**default:** *echo_status 200*
+
+**context:** *location, location if*
+
+**phase:** *content*
+
+Specify the default response status code. Default to `200`. This directive is declarative and the relative order with other echo-like directives is not important.
+
+Here is an example,
+
+
+    location = /bad {
+        echo_status 404;
+        echo "Something is missing...";
+    }
+
+
+then we get a response like this:
+
+
+    HTTP/1.1 404 Not Found
+    Server: nginx/1.2.1
+    Date: Sun, 24 Jun 2012 03:58:18 GMT
+    Content-Type: text/plain
+    Transfer-Encoding: chunked
+    Connection: keep-alive
+
+    Something is missing...
+
+
+This directive was first introduced in the `v0.40` release.
+
 Filter Directives
 =================
 
@@ -1340,12 +1376,12 @@ You're recommended to install this module (as well as the Nginx core and many ot
 Alternatively, you can install this module manually with the Nginx source:
 
 Grab the nginx source code from [nginx.org](http://nginx.org/), for example,
-the version 1.0.11 (see [nginx compatibility](http://wiki.nginx.org/HttpEchoModule#Compatibility)), and then build the source with this module:
+the version 1.2.1 (see [nginx compatibility](http://wiki.nginx.org/HttpEchoModule#Compatibility)), and then build the source with this module:
 
 
-    $ wget 'http://sysoev.ru/nginx/nginx-1.0.11.tar.gz'
-    $ tar -xzvf nginx-1.0.11.tar.gz
-    $ cd nginx-1.0.11/
+    $ wget 'http://sysoev.ru/nginx/nginx-1.2.1.tar.gz'
+    $ tar -xzvf nginx-1.2.1.tar.gz
+    $ cd nginx-1.2.1/
     
     # Here we assume you would install you nginx under /opt/nginx/.
     $ ./configure --prefix=/opt/nginx \
