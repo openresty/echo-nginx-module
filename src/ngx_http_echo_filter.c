@@ -178,11 +178,10 @@ ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
     dd("exec filter cmds for after body cmds");
 
     rc = ngx_http_echo_exec_filter_cmds(r, ctx, conf->after_body_cmds,
-            &ctx->next_after_body_cmd);
-
+                                        &ctx->next_after_body_cmd);
     if (rc == NGX_ERROR || rc > NGX_OK) {
         dd("FAILED: exec filter cmds for after body cmds");
-        return rc;
+        return NGX_ERROR;
     }
 
     ctx->skip_filter = 1;
@@ -197,11 +196,15 @@ ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
     }
 
     buf = ngx_calloc_buf(r->pool);
+    if (buf == NULL) {
+        return NGX_ERROR;
+    }
+
     buf->last_buf = 1;
 
     cl = ngx_alloc_chain_link(r->pool);
     if (cl == NULL) {
-        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        return NGX_ERROR;
     }
 
     cl->next = NULL;
@@ -228,16 +231,14 @@ ngx_http_echo_exec_filter_cmds(ngx_http_request_t *r,
         /* evaluate arguments for the current cmd (if any) */
         if (cmd->args) {
             computed_args = ngx_array_create(r->pool, cmd->args->nelts,
-                    sizeof(ngx_str_t));
-
+                                             sizeof(ngx_str_t));
             if (computed_args == NULL) {
-                return NGX_HTTP_INTERNAL_SERVER_ERROR;
+                return NGX_ERROR;
             }
 
             opts = ngx_array_create(r->pool, 1, sizeof(ngx_str_t));
-
             if (opts == NULL) {
-                return NGX_HTTP_INTERNAL_SERVER_ERROR;
+                return NGX_ERROR;
             }
 
             rc = ngx_http_echo_eval_cmd_args(r, cmd, computed_args, opts);
