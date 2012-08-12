@@ -18,7 +18,7 @@ This module is production ready.
 Version
 =======
 
-This document describes echo-nginx-module [v0.40](https://github.com/agentzh/echo-nginx-module/tags) released on 25 June 2012.
+This document describes ngx_echo [v0.41](https://github.com/agentzh/echo-nginx-module/tags) released on 12 August 2012.
 
 Synopsis
 ========
@@ -1445,275 +1445,38 @@ By design, all of this module's directives do not inherit between nested locatio
     ? }
 
 
+Community
+=========
+
+English Mailing List
+--------------------
+
+The [openresty-en](https://groups.google.com/group/openresty-en) mailing list is for English speakers.
+
+Chinese Mailing List
+--------------------
+
+The [openresty](https://groups.google.com/group/openresty) mailing list is for Chinese speakers.
+
 Report Bugs
 ===========
 
 Although a lot of effort has been put into testing and code tuning, there must be some serious bugs lurking somewhere in this module. So whenever you are bitten by any quirks, please don't hesitate to
 
 1. create a ticket on the [issue tracking interface](http://github.com/agentzh/echo-nginx-module/issues) provided by GitHub,
-1. or send a bug report, questions, or even patches to the [nginx mailing list](http://mailman.nginx.org/mailman/listinfo/nginx).
+1. or send a bug report, questions, or even patches to the [OpenResty Community](http://wiki.nginx.org/HttpEchoModule#Community).
 
 Source Repository
 =================
 
 Available on github at [agentzh/echo-nginx-module](http://github.com/agentzh/echo-nginx-module).
 
-ChangeLog
-=========
+Changes
+=======
 
-v0.37
------
+The changes of every release of this module can be obtained from the ngx_openresty bundle's change logs:
 
-January 13, 2012
-
-* bugfix: data truncation might occur with [echo_after_body](http://wiki.nginx.org/HttpEchoModule#echo_after_body) in not-so-good networks (we should be prepared for `NGX_AGAIN` returned by downstream output filters). thanks 林青  (Kindy Lin) for reporting it.
-* bugfix: we no longer check `sync` buffers for subrequests because it is incorrect.
-* bugfix: fixed a bug when sending out response headers: we did not take into account the `NGX_ERROR` error code returned by `ngx_http_send_header`.
-* bugfix: we did not work with HEAD http requests before.
-* bugfix: now we carefully eliminate empty flush buffers in [echo_after_body](http://wiki.nginx.org/HttpEchoModule#echo_after_body) to work around a long-standing bug in the standard [HttpGzipModule](http://wiki.nginx.org/HttpGzipModule).
-* bugfix: we might send empty chain link in [echo_after_body](http://wiki.nginx.org/HttpEchoModule#echo_after_body) because it may trigger the infamous `"the http output chain is empty"` alert in `error.log` when the standard [HttpSsiModule](http://wiki.nginx.org/HttpSsiModule) is disabled. thanks Sparsh Gupta.
-* bugfix: we did not set subrequest's `Content-Length` request headers which could cause problems in the backends.
-* bugfix: [echo_exec](http://wiki.nginx.org/HttpEchoModule#echo_exec) + named locations might cause weird issues and now we explicitly clear all the modules' contexts before calling `ngx_http_named_location`.
-* bugfix: [echo_exec](http://wiki.nginx.org/HttpEchoModule#echo_exec) might hang when running after [echo_sleep](http://wiki.nginx.org/HttpEchoModule#echo_sleep) (or other I/O interruption calls): we should have called `ngx_http_finalize_request` on `NGX_DONE` to decrement `r->main->count` anyway.
-* bugfix: there was a memory issue in both [echo_sleep](http://wiki.nginx.org/HttpEchoModule#echo_sleep) and [echo_blocking_sleep](http://wiki.nginx.org/HttpEchoModule#echo_blocking_sleep): we should not pass `ngx_str_t` strings to `atof()` which expects C strings.
-* bugfix: some users report that this module cannot be compiled with Nginx 1.0.x on their systems due to `ngx_time_update` (as in [github issue #7](https://github.com/agentzh/echo-nginx-module/issues/7)). this is a blind attemp to fix it because we could not reproduce it on our side.
-* bugfix: fixed places in the source code that we did not check null pointers returned by the memory allocator.
-
-v0.36
------
-
-July 08, 2011
-
-* now we back-ported the subrequest mechanism of ngx_lua to ngx_echo. this also helps some crazy test cases of mixing echo_location and echo_location_async pass now.
-* now echo_location and its friends can work with ngx_xss (as well as other output filter modules) completely. thanks wd for reporting this issue.
-* done some minor optimization when modifying subrequest's content-length header.
-* now we always pad a trailing \0 to filepath in "echo_subrequest(_async) METHOD /path -f filepath" because ngx_open_cached_file requires a C string file name. thanks dr-dr xp.
-* made our filter optimization works with nginx HUP by clearing the ngx_http_echo_filter_used flag at nginx pre-config callback. thanks Marcus Clyne.
-
-v0.35
------
-
-February 07, 2011
-
-* added the `-f /path/to/file` option to the [echo_subrequest](http://wiki.nginx.org/HttpEchoModule#echo_subrequest) and [echo_subrequest_async](http://wiki.nginx.org/HttpEchoModule#echo_subrequest_async) directives to allow POST/PUT a disk file in the subrequest. thanks [Bernd Dorn](https://github.com/dobe).
-
-v0.34
------
-
-September 14, 2010
-
-* we no longer use the problematic `ngx_strXcmp` macros in our source because it may cause invalid reads and thus segmentation faults. thanks Piotr Sikora.
-
-v0.33
------
-
-June 08, 2010
-
-* fixed compatibility with nginx 0.7.66+ because the ngx_time_update macro's parameter list has changed. thanks Guang Feng (蔡镜明).
-
-v0.32
------
-
-June 04, 2010
-
-* we should have used `ngx_calloc_buf` instead of `ngx_alloc_buf` for the last chunk generated for [echo_after_body](http://wiki.nginx.org/HttpEchoModule#echo_after_body). thanks valgrind's memcheck tool.
-* we should initialize flags before feeding it into `ngx_http_parse_unsafe_uri`. thanks valgrind's memcheck tool.
-* fixed a minor issue in the [echo_location](http://wiki.nginx.org/HttpEchoModule#echo_location)/[echo_subrequest](http://wiki.nginx.org/HttpEchoModule#echo_subrequest) implementation, which used to have race conditions.
-
-v0.31
------
-
-May 24, 2010
-
-* the echo wev handler should not proceed if it is still waiting for some sequential subrequest or has just processed one to avoid bouncing issues.
-* fixed a segfault for echo_exec for 0.7.x: we should check `r->done` before proceeding.
-* no longer explicitly set `r->write_event_handler` to `ngx_http_request_empty_handler` because it's totally wrong for the state machine.
-* fixed the sequential subrequest model bugs: we should ensure the `pr->write_event_handler` gets called immediately after the `post_subrequest` callback when the subrequest finalizes.
-
-v0.30
------
-
-May 06, 2010
-
-* fixed the [echo_exec](http://wiki.nginx.org/HttpEchoModule#echo_exec) directive for nginx >= 0.8.11. we didn't get the `r->main->count` right in the previous version.
-
-v0.29
------
-
-May 05, 2010
-
-* refactored the core of this module. now the implementation of [echo_location](http://wiki.nginx.org/HttpEchoModule#echo_location), [echo_subrequest](http://wiki.nginx.org/HttpEchoModule#echo_subrequest), [echo_sleep](http://wiki.nginx.org/HttpEchoModule#echo_sleep), and [echo_read_request_body](http://wiki.nginx.org/HttpEchoModule#echo_read_request_body) finally fit well with the nginx event model and Igor Sysoev's way of thinking.
-
-v0.28
------
-
-May 03, 2010
-
-* added support for the `-n` and `--` options to the [echo](http://wiki.nginx.org/HttpEchoModule#echo), [echo_before_body](http://wiki.nginx.org/HttpEchoModule#echo_before_body), and [echo_after_body](http://wiki.nginx.org/HttpEchoModule#echo_after_body) directives.
-
-v0.27
------
-
-April 02, 2010
-
-* applied the patch from Sergey A. Osokin to work with nginx 0.8.35.
-
-v0.26
------
-
-January 26, 2010
-
-* bug fix: we should bypass upstream filters in our echo filters. an output filter should ever call `ngx_http_output_filter` nor `ngx_http_send_special`.
-
-v0.25
------
-
-January 15, 2010
-
-* now we register a request cleanup handler to ensure our sleep event's timer will always get properly deleted even if the request is quit prematurely. this affects the echo_sleep directive.
-* use ngx_null_string whenever possible in the source.
-* sync'd the bundled test scaffold to Test::Nginx 0.07.
-
-v0.24
------
-
-December 28, 2009
-
-* various source file name and coding style fixes. (the code now looks more like Igor Sysoev's.)
-
-v0.23
------
-
-December 04, 2009
-
-* now the subrequest can read the client request body directly (for the main request) because we made subrequests inherit its parent's `r->header_in` as well. This affects the [echo_read_request_body](http://wiki.nginx.org/HttpEchoModule#echo_read_request_body) directive.
-* fixed [echo_after_body](http://wiki.nginx.org/HttpEchoModule#echo_after_body) in subrequests by using a hack (checking `cl->buf->sync` for the last buf) for nginx 0.8.7+ only.
-* added new varaible [$echo_response_status](http://wiki.nginx.org/HttpEchoModule#.24echo_response_status) to help testing the status code of a subrequest. (The [memc](http://wiki.nginx.org/HttpMemcModule) module makes use of it.)
-* use the `ngx_calloc_buf` macro to allocate new bufs in the code rather than explicit `ngx_pcalloc` calls for safety.
-
-v0.22
------
-
-November 25, 2009
-
-* Now we allowed all the directives appear in the [rewrite module](http://wiki.nginx.org/HttpRewriteModule)'s [if](http://wiki.nginx.org/HttpRewriteModule#if) block. But so far I've only tested the [echo](http://wiki.nginx.org/HttpEchoModule#echo) directive.
-
-v0.21
------
-
-November 23, 2009
-
-* Added a new directive named [echo_exec](http://wiki.nginx.org/HttpEchoModule#echo_exec) which does internal redirect to other (named) locations.
-
-v0.20
------
-
-November 20, 2009
-
-* Fixed a bug in [echo_sleep](http://wiki.nginx.org/HttpEchoModule#echo_sleep)'s `r->main->count` handling for nginx 0.8.x. This bug will cause the server to hang when proxing a location with [echo_sleep](http://wiki.nginx.org/HttpEchoModule#echo_sleep).
-* Applied the `ngx_str3cmp`, `ngx_str4cmp`, and `ngx_str6cmp` optimizing macros to the `parse_method_name` function, as suggested by Marcus Clyne.
-* Added [TODO items](http://wiki.nginx.org/HttpEchoModule#TODO) regarding `$echo_random` and `echo_repeat` suggested by Marcus Clyne.
-
-v0.19
------
-
-November 19, 2009
-
-* Fixed the CPS-style chained subrequest model for the [echo_location](http://wiki.nginx.org/HttpEchoModule#echo_location) and [echo_subrequest](http://wiki.nginx.org/HttpEchoModule#echo_subrequest) directives. they are now working perfectly and will not hang the server with the recent nginx 0.8.21 ~ 0.8.27 releases. To be specifically, the chained subrequest should call `ngx_http_finalize_request` on its parent request if the content handler of the parent request does not return `NGX_DONE`.
-* Undeprecated the [echo_location](http://wiki.nginx.org/HttpEchoModule#echo_location) and [echo_subrequest](http://wiki.nginx.org/HttpEchoModule#echo_subrequest) directives.
-
-v0.18
------
-
-November 15, 2009
-
-* Fixed the "zero size buf in output" alerts in error.log.
-* Added the new directive [echo_request_body](http://wiki.nginx.org/HttpEchoModule#echo_request_body).
-* Now we use the `ngx_http_parse_unsafe_uri` function to check the locations to [echo_location_async](http://wiki.nginx.org/HttpEchoModule#echo_location_async) and its friends. Thanks Arvind Jayaprakash for suggesting this fix.
-* Deprecated the [echo_location](http://wiki.nginx.org/HttpEchoModule#echo_location) and [echo_subrequest](http://wiki.nginx.org/HttpEchoModule#echo_subrequest) directives.
-* For HTTP 1.0 clients, use the buf length of the first chain link as the output header Content-Length.
-* Implemented new variable [$echo_incr](http://wiki.nginx.org/HttpEchoModule#.24echo_incr).
-
-v0.17
------
-
-October 26, 2009
-
-* Added new directives [echo_foreach_split](http://wiki.nginx.org/HttpEchoModule#echo_foreach_split) and [echo_end](http://wiki.nginx.org/HttpEchoModule#echo_end). Also introduced a "topic variable" named [$echo_it](http://wiki.nginx.org/HttpEchoModule#.24echo_it).
-* Added new variables [$echo_request_uri](http://wiki.nginx.org/HttpEchoModule#.24echo_request_uri) and [$echo_cacheable_request_uri](http://wiki.nginx.org/HttpEchoModule#.24echo_cacheable_request_uri).
-
-v0.16
------
-
-October 25, 2009
-
-* Now the subrequests issued by the [echo_location_async](http://wiki.nginx.org/HttpEchoModule#echo_location) and [echo_location](http://wiki.nginx.org/HttpEchoModule#echo_location) directives no longer inherit cached variable values from its parent request. (The underlying `ngx_http_subrequest` function, however, does automatic cachable variable value inheritance.)
-* Added an undocumented variable *echo_cached_request_uri* to help testing of this module.
-
-v0.15
------
-
-October 24, 2009
-
-* Added new directives [echo_subrequest](http://wiki.nginx.org/HttpEchoModule#echo_subrequest) and [echo_subrequest_async](http://wiki.nginx.org/HttpEchoModule#echo_subrequest_async) for the full nginx subrequest API.
-* Removed the `echo_client_request_headers` directive, and provided the [$echo_client_request_headers](http://wiki.nginx.org/HttpEchoModule#.24echo_client_request_headers) variable instead.
-* Added new variables [$echo_request_method](http://wiki.nginx.org/HttpEchoModule#.24echo_request_method) and [$echo_client_request_method](http://wiki.nginx.org/HttpEchoModule#.24echo_client_request_method).
-
-v0.14
------
-
-October 22, 2009
-
-* Added new directive [echo_read_request_body](http://wiki.nginx.org/HttpEchoModule#echo_read_request_body) to explicitly read client request body so that the [[HttpCoreModule#$request_body]] variable will always have non-empty values.
-* Now we shuffer test cases automatically in .t files and fixed bugs in the tests themselves which are hidden by config reload fallback in failure.
-
-v0.13
------
-
-October 21, 2009
-
-* Fixed the special cases when the outputs of a [echo_duplicate](http://wiki.nginx.org/HttpEchoModule#echo_duplicate) directive is empty.
-* Now we explicitly clear content length and accept ranges headers in the content handler.
-
-v0.12
------
-
-October 21, 2009
-
-* Implemented the [echo_location](http://wiki.nginx.org/HttpEchoModule#echo_location) directive, which can issue chained GET subrequests in the Continuation Passing Style (CPS), rather than the parallel subrequest issued by the [echo_location_async](http://wiki.nginx.org/HttpEchoModule#echo_location_async) directive.
-
-v0.11
------
-
-October 20, 2009
-
-* Implemented the [echo_duplicate](http://wiki.nginx.org/HttpEchoModule#echo_duplicate) directive to help generating large chunk of data for testing.
-
-v0.10
------
-
-October 20, 2009
-
-* Fixed compilation regression against Nginx 0.7.21. This bug appears in version 0.09.
-* Refactored the codebase by splitting source into various small files.
-
-v0.09
------
-
-October 19, 2009
-
-* Reimplement the [echo_sleep](http://wiki.nginx.org/HttpEchoModule#echo_sleep) directive using per-request event and timer; the old implementation uses the global connection's read/write event to register timer, so it will break horribly when multiple subrequests "sleep" at the same time.
-* Added the [echo_location_async](http://wiki.nginx.org/HttpEchoModule#echo_location_async) directive which can issue a GET subrequest and insert its contents herein.
-
-v0.08
------
-
-October 18, 2009
-
-* [echo_sleep](http://wiki.nginx.org/HttpEchoModule#echo_sleep): now we delete our `write event timer` in the `post_sleep` handle.
-* Added `doc/manpage.wiki` which tracks changes in the [wiki page](http://wiki.nginx.org/HttpEchoModule).
-* Added the `util/wiki2pod.pl` script to convert `doc/manpage.wiki` to `README`.
-* Disabled the `DDEBUG` macro in the C source by default.
+<http://openresty.org/#Changes>
 
 Test Suite
 ==========
@@ -1808,16 +1571,14 @@ You'll be very welcomed to submit patches to the [author](http://wiki.nginx.org/
 Author
 ======
 
-Zhang "agentzh" Yichun (章亦春) *&lt;agentzh@gmail.com&gt;*
+Yichun "agentzh" Zhang (章亦春) *&lt;agentzh@gmail.com&gt;*
 
 This wiki page is also maintained by the author himself, and everybody is encouraged to improve this page as well.
 
 Copyright & License
 ===================
 
-Copyright (c) 2009, 2010, 2011, Taobao Inc., Alibaba Group ( <http://www.taobao.com> ).
-
-Copyright (c) 2009, 2010, 2011, Zhang "agentzh" Yichun (章亦春) <agentzh@gmail.com>.
+Copyright (c) 2009-2012, Yichun "agentzh" Zhang (章亦春) <agentzh@gmail.com>.
 
 This module is licensed under the terms of the BSD license.
 
