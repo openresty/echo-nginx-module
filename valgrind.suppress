@@ -3,6 +3,13 @@
 Memcheck:Leak
 fun:malloc
 fun:ngx_alloc
+obj:*
+}
+{
+<insert_a_suppression_name_here>
+Memcheck:Leak
+fun:malloc
+fun:ngx_alloc
 fun:(below main)
 }
 {
