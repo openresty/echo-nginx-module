@@ -44,7 +44,7 @@ __DATA__
 --- request
     GET /timer
 --- response_body_like
-^elapsed 0\.0(4[6-9]|5[0-5]) sec\.$
+^elapsed 0\.0(4[6-9]|5[0-6]) sec\.$
 
 
 
