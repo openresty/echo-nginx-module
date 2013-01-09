@@ -61,3 +61,5 @@ go
 Changes
 build1[012]
 analyze
+Makefile
+*.plist
