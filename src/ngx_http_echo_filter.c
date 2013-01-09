@@ -102,7 +102,7 @@ ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
     ngx_http_echo_loc_conf_t    *conf;
     unsigned                     last;
     ngx_chain_t                 *cl;
-    ngx_buf_t                   *buf;
+    ngx_buf_t                   *b;
 
     if (in == NULL || r->header_only) {
         return ngx_http_echo_next_body_filter(r, in);
@@ -181,12 +181,18 @@ ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
      * ngx_http_send_special(r, NGX_HTTP_LAST) here
      * because we should bypass the upstream filters. */
 
-    buf = ngx_calloc_buf(r->pool);
-    if (buf == NULL) {
+    b = ngx_calloc_buf(r->pool);
+    if (b == NULL) {
         return NGX_ERROR;
     }
 
-    buf->last_buf = 1;
+    if (r == r->main && !r->post_action) {
+        b->last_buf = 1;
+
+    } else {
+        b->sync = 1;
+        b->last_in_chain = 1;
+    }
 
     cl = ngx_alloc_chain_link(r->pool);
     if (cl == NULL) {
@@ -194,7 +200,7 @@ ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
     }
 
     cl->next = NULL;
-    cl->buf = buf;
+    cl->buf = b;
 
     return ngx_http_echo_next_body_filter(r, cl);
 }
