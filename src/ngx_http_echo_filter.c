@@ -102,7 +102,6 @@ ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
     ngx_http_echo_loc_conf_t    *conf;
     unsigned                     last;
     ngx_chain_t                 *cl;
-    ngx_chain_t                 *prev;
     ngx_buf_t                   *buf;
 
     if (in == NULL || r->header_only) {
@@ -136,23 +135,13 @@ ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
 
     last = 0;
 
-    prev = NULL;
-    for (cl = in; cl; prev = cl, cl = cl->next) {
-        dd("prev %p, cl %p, special %d", prev, cl, ngx_buf_special(cl->buf));
+    for (cl = in; cl; cl = cl->next) {
+        dd("cl %p, special %d", cl, ngx_buf_special(cl->buf));
 
-        if (cl->buf->last_buf) {
-            if (ngx_buf_special(cl->buf)) {
-                if (prev) {
-                    prev->next = NULL;
-
-                } else {
-                    in = NULL;
-                }
-
-            } else {
-                cl->buf->last_buf = 0;
-            }
-
+        if (cl->buf->last_buf || cl->buf->last_in_chain) {
+            cl->buf->last_buf = 0;
+            cl->buf->last_in_chain = 0;
+            cl->buf->sync = 1;
             last = 1;
         }
     }
@@ -191,9 +180,6 @@ ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
     /* XXX we can NOT use
      * ngx_http_send_special(r, NGX_HTTP_LAST) here
      * because we should bypass the upstream filters. */
-    if (r != r->main) {
-        return NGX_OK;
-    }
 
     buf = ngx_calloc_buf(r->pool);
     if (buf == NULL) {

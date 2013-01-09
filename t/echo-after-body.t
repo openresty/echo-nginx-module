@@ -182,7 +182,7 @@ status: 404$
 
 
 
-=== TEST 11: in subrequests (echo_after_body does not work)
+=== TEST 11: in subrequests
 --- config
     location /main {
         echo_location_async /hello;
@@ -195,6 +195,7 @@ status: 404$
     GET /main
 --- response_body
 hello
+world!
 
 
 
@@ -214,7 +215,7 @@ hello
 
 
 
-=== TEST 13: echo_after_body + lua output
+=== TEST 13: echo_after_body + proxy output
 --- config
     #gzip             on;
     #gzip_min_length  1;
@@ -223,10 +224,10 @@ hello
         proxy_pass http://127.0.0.1:$server_port/foo;
     }
     location /foo {
-        echo_duplicate 1000 hello;
+        echo_duplicate 10 hello;
     }
 --- request
     GET /main
---- response_body_like: world
---- SKIP
+--- response_body_like
+^(?:hello){10}world$
 
