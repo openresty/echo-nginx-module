@@ -3,7 +3,9 @@
 use lib 'lib';
 use Test::Nginx::Socket;
 
-plan tests => repeat_each() * 2 * blocks();
+repeat_each(2);
+
+plan tests => repeat_each() * (2 * blocks() + 1);
 
 no_long_string();
 log_level('warn');
