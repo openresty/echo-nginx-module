@@ -9,9 +9,9 @@ Status
     This module is production ready.
 
 Version
-    This document describes ngx_echo v0.41
-    (<https://github.com/agentzh/echo-nginx-module/tags>) released on 12
-    August 2012.
+    This document describes ngx_echo v0.42
+    (<https://github.com/agentzh/echo-nginx-module/tags>) released on 23
+    January 2013.
 
 Synopsis
       location /hello {
@@ -1379,12 +1379,12 @@ Installation
     source:
 
     Grab the nginx source code from nginx.org (<http://nginx.org/>), for
-    example, the version 1.2.1 (see nginx compatibility), and then build the
+    example, the version 1.2.6 (see nginx compatibility), and then build the
     source with this module:
 
-        $ wget 'http://sysoev.ru/nginx/nginx-1.2.1.tar.gz'
-        $ tar -xzvf nginx-1.2.1.tar.gz
-        $ cd nginx-1.2.1/
+        $ wget 'http://sysoev.ru/nginx/nginx-1.2.6.tar.gz'
+        $ tar -xzvf nginx-1.2.6.tar.gz
+        $ cd nginx-1.2.6/
 
         # Here we assume you would install you nginx under /opt/nginx/.
         $ ./configure --prefix=/opt/nginx \
@@ -1403,7 +1403,9 @@ Installation
 Compatibility
     The following versions of Nginx should work with this module:
 
-    *   1.2.x (last tested: 1.2.1)
+    *   1.3.x (last tested: 1.3.7)
+
+    *   1.2.x (last tested: 1.2.6)
 
     *   1.1.x (last tested: 1.1.5)
 
@@ -1590,14 +1592,14 @@ Getting involved
     a commit bit to the source repository on GitHub.
 
 Author
-    Yichun "agentzh" Zhang (章亦春) *<agentzh@gmail.com>*
+    Yichun "agentzh" Zhang (章亦春) *<agentzh@gmail.com>*, CloudFlare Inc.
 
     This wiki page is also maintained by the author himself, and everybody
     is encouraged to improve this page as well.
 
 Copyright & License
-    Copyright (c) 2009-2012, Yichun "agentzh" Zhang (章亦春)
-    <agentzh@gmail.com>.
+    Copyright (c) 2009-2013, Yichun "agentzh" Zhang (章亦春)
+    <agentzh@gmail.com>, CloudFlare Inc.
 
     This module is licensed under the terms of the BSD license.
 

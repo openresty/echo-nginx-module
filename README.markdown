@@ -18,7 +18,7 @@ This module is production ready.
 Version
 =======
 
-This document describes ngx_echo [v0.41](https://github.com/agentzh/echo-nginx-module/tags) released on 12 August 2012.
+This document describes ngx_echo [v0.42](https://github.com/agentzh/echo-nginx-module/tags) released on 23 January 2013.
 
 Synopsis
 ========
@@ -1376,12 +1376,12 @@ You're recommended to install this module (as well as the Nginx core and many ot
 Alternatively, you can install this module manually with the Nginx source:
 
 Grab the nginx source code from [nginx.org](http://nginx.org/), for example,
-the version 1.2.1 (see [nginx compatibility](http://wiki.nginx.org/HttpEchoModule#Compatibility)), and then build the source with this module:
+the version 1.2.6 (see [nginx compatibility](http://wiki.nginx.org/HttpEchoModule#Compatibility)), and then build the source with this module:
 
 
-    $ wget 'http://sysoev.ru/nginx/nginx-1.2.1.tar.gz'
-    $ tar -xzvf nginx-1.2.1.tar.gz
-    $ cd nginx-1.2.1/
+    $ wget 'http://sysoev.ru/nginx/nginx-1.2.6.tar.gz'
+    $ tar -xzvf nginx-1.2.6.tar.gz
+    $ cd nginx-1.2.6/
     
     # Here we assume you would install you nginx under /opt/nginx/.
     $ ./configure --prefix=/opt/nginx \
@@ -1400,7 +1400,8 @@ Compatibility
 
 The following versions of Nginx should work with this module:
 
-* **1.2.x**                       (last tested: 1.2.1)
+* **1.3.x**                       (last tested: 1.3.7)
+* **1.2.x**                       (last tested: 1.2.6)
 * **1.1.x**                       (last tested: 1.1.5)
 * **1.0.x**                       (last tested: 1.0.11)
 * **0.9.x**                       (last tested: 0.9.4)
@@ -1571,14 +1572,14 @@ You'll be very welcomed to submit patches to the [author](http://wiki.nginx.org/
 Author
 ======
 
-Yichun "agentzh" Zhang (章亦春) *&lt;agentzh@gmail.com&gt;*
+Yichun "agentzh" Zhang (章亦春) *&lt;agentzh@gmail.com&gt;*, CloudFlare Inc.
 
 This wiki page is also maintained by the author himself, and everybody is encouraged to improve this page as well.
 
 Copyright & License
 ===================
 
-Copyright (c) 2009-2012, Yichun "agentzh" Zhang (章亦春) <agentzh@gmail.com>.
+Copyright (c) 2009-2013, Yichun "agentzh" Zhang (章亦春) <agentzh@gmail.com>, CloudFlare Inc.
 
 This module is licensed under the terms of the BSD license.
 
