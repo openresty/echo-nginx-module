@@ -13,7 +13,7 @@ __DATA__
 --- config
     location /echo {
         echo "headers:";
-        echo $echo_client_request_headers;
+        echo -n $echo_client_request_headers;
     }
 --- request
     GET /echo
@@ -22,7 +22,7 @@ __DATA__
 GET /echo HTTP/1.1\r
 Host: localhost\r
 Connection: Close\r
-
+\r
 "
 
 
@@ -30,7 +30,7 @@ Connection: Close\r
 === TEST 2: echo_client_request_headers before echo
 --- config
     location /echo {
-        echo $echo_client_request_headers;
+        echo -n $echo_client_request_headers;
         echo "...these are the headers";
     }
 --- request
@@ -39,7 +39,7 @@ Connection: Close\r
 "GET /echo HTTP/1.1\r
 Host: localhost\r
 Connection: Close\r
-
+\r
 ...these are the headers
 "
 
@@ -49,7 +49,7 @@ Connection: Close\r
 --- config
     location /echo {
         echo "headers are";
-        echo $echo_client_request_headers;
+        echo -n $echo_client_request_headers;
         echo "...these are the headers";
     }
 --- request
@@ -59,7 +59,7 @@ Connection: Close\r
 GET /echo HTTP/1.1\r
 Host: localhost\r
 Connection: Close\r
-
+\r
 ...these are the headers
 "
 
