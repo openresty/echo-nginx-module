@@ -54,6 +54,7 @@ ngx_http_echo_request_method_variable(ngx_http_request_t *r,
         v->no_cacheable = 0;
         v->not_found = 0;
         v->data = r->method_name.data;
+
     } else {
         v->not_found = 1;
     }
@@ -75,6 +76,7 @@ ngx_http_echo_client_request_method_variable(ngx_http_request_t *r,
         v->no_cacheable = 0;
         v->not_found = 0;
         v->data = r->main->method_name.data;
+
     } else {
         v->not_found = 1;
     }
@@ -326,6 +328,7 @@ ngx_http_echo_cacheable_request_uri_variable(ngx_http_request_t *r,
         v->no_cacheable = 0;
         v->not_found = 0;
         v->data = r->uri.data;
+
     } else {
         v->not_found = 1;
     }
@@ -344,6 +347,7 @@ ngx_http_echo_request_uri_variable(ngx_http_request_t *r,
         v->no_cacheable = 1;
         v->not_found = 0;
         v->data = r->uri.data;
+
     } else {
         v->not_found = 1;
     }
@@ -372,6 +376,7 @@ ngx_http_echo_response_status_variable(ngx_http_request_t *r,
         v->valid = 1;
         v->no_cacheable = 1;
         v->not_found = 0;
+
     } else {
         v->not_found = 1;
     }
