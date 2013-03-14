@@ -14,7 +14,7 @@ __DATA__
 === TEST 1: standalone directive
 --- config
     location /echo {
-        echo -n $echo_client_request_headers;
+        echo $echo_client_request_headers;
     }
 --- request
     GET /echo
@@ -22,7 +22,7 @@ __DATA__
 "GET /echo HTTP/1.1\r
 Host: localhost\r
 Connection: Close\r
-\r
+
 "
 --- no_error_log
 [error]
@@ -32,8 +32,8 @@ Connection: Close\r
 === TEST 2: multiple instances
 --- config
     location /echo {
-        echo -n $echo_client_request_headers;
-        echo -n $echo_client_request_headers;
+        echo $echo_client_request_headers;
+        echo $echo_client_request_headers;
     }
 --- request
     GET /echo
@@ -41,11 +41,11 @@ Connection: Close\r
 "GET /echo HTTP/1.1\r
 Host: localhost\r
 Connection: Close\r
-\r
+
 GET /echo HTTP/1.1\r
 Host: localhost\r
 Connection: Close\r
-\r
+
 "
 --- no_error_log
 [error]
@@ -128,7 +128,7 @@ heh]
 --- config
   # echo back the client request
   location /echoback {
-    echo -n $echo_client_request_headers;
+    echo $echo_client_request_headers;
     echo_read_request_body;
     echo $echo_request_body;
   }
@@ -141,7 +141,7 @@ haha
 Host: localhost\r
 Connection: Close\r
 Content-Length: 14\r
-\r
+
 body here
 haha
 "
@@ -204,7 +204,7 @@ status:
 === TEST 11: small header
 --- config
     location /t {
-        echo -n $echo_client_request_headers;
+        echo $echo_client_request_headers;
     }
 --- request
 GET /t
@@ -212,10 +212,8 @@ GET /t
 qq{GET /t HTTP/1.1\r
 Host: localhost\r
 Connection: Close\r
-\r
+
 }
---- no_error_log
-[error]
 --- no_error_log
 [error]
 
@@ -226,7 +224,7 @@ Connection: Close\r
     client_header_buffer_size 10;
     large_client_header_buffers 30 561;
     location /t {
-        echo -n $echo_client_request_headers;
+        echo $echo_client_request_headers;
     }
 --- request
 GET /t
@@ -238,7 +236,7 @@ qq{GET /t HTTP/1.1\r
 Host: localhost\r
 Connection: Close\r
 }
-.(CORE::join "\r\n", map { "Header$_: value-$_" } 1..512) . "\r\n\r\n"
+.(CORE::join "\r\n", map { "Header$_: value-$_" } 1..512) . "\r\n\n"
 
 --- no_error_log
 [error]
@@ -248,7 +246,7 @@ Connection: Close\r
 === TEST 13: small header, with leading CRLF
 --- config
     location /t {
-        echo -n $echo_client_request_headers;
+        echo $echo_client_request_headers;
     }
 --- raw_request eval
 "\r\nGET /t HTTP/1.1\r
@@ -260,7 +258,7 @@ Connection: close\r
 qq{GET /t HTTP/1.1\r
 Host: localhost\r
 Connection: close\r
-\r
+
 }
 --- no_error_log
 [error]
@@ -272,7 +270,7 @@ Connection: close\r
     client_header_buffer_size 10;
     large_client_header_buffers 30 561;
     location /t {
-        echo -n $echo_client_request_headers;
+        echo $echo_client_request_headers;
     }
 
 --- raw_request eval
@@ -287,7 +285,7 @@ qq{GET /t HTTP/1.1\r
 Host: localhost\r
 Connection: close\r
 }
-.(CORE::join "\r\n", map { "Header$_: value-$_" } 1..512) . "\r\n\r\n"
+.(CORE::join "\r\n", map { "Header$_: value-$_" } 1..512) . "\r\n\n"
 
 --- no_error_log
 [error]
@@ -297,7 +295,7 @@ Connection: close\r
 === TEST 15: small header, pipelined
 --- config
     location /t {
-        echo -n $echo_client_request_headers;
+        echo $echo_client_request_headers;
     }
 --- pipelined_requests eval
 ["GET /t", "GET /th"]
@@ -310,12 +308,12 @@ Foo: bar
 Host: localhost\r
 Connection: keep-alive\r
 Foo: bar\r
-\r
+
 }, qq{GET /th HTTP/1.1\r
 Host: localhost\r
 Connection: close\r
 Foo: bar\r
-\r
+
 }]
 --- no_error_log
 [error]
@@ -327,7 +325,7 @@ Foo: bar\r
     client_header_buffer_size 10;
     large_client_header_buffers 30 561;
     location /t {
-        echo -n $echo_client_request_headers;
+        echo $echo_client_request_headers;
     }
 --- pipelined_requests eval
 ["GET /t", "GET /t"]
@@ -336,7 +334,7 @@ Foo: bar\r
 CORE::join "\n", map { "Header$_: value-$_" } 1..512
 
 --- response_body eval
-my $headers = (CORE::join "\r\n", map { "Header$_: value-$_" } 1..512) . "\r\n\r\n";
+my $headers = (CORE::join "\r\n", map { "Header$_: value-$_" } 1..512) . "\r\n\n";
 
 [qq{GET /t HTTP/1.1\r
 Host: localhost\r
@@ -355,7 +353,7 @@ $headers}]
 === TEST 17: small header, multi-line header
 --- config
     location /t {
-        echo -n $echo_client_request_headers;
+        echo $echo_client_request_headers;
     }
 --- raw_request eval
 "GET /t HTTP/1.1\r
@@ -371,7 +369,7 @@ Host: localhost\r
 Connection: close\r
 Foo: bar baz\r
   blah\r
-\r
+
 }
 --- no_error_log
 [error]
@@ -383,7 +381,7 @@ Foo: bar baz\r
     client_header_buffer_size 10;
     large_client_header_buffers 50 567;
     location /t {
-        echo -n $echo_client_request_headers;
+        echo $echo_client_request_headers;
     }
 
 --- raw_request eval
@@ -399,7 +397,7 @@ qq{GET /t HTTP/1.1\r
 Host: localhost\r
 Connection: close\r
 }
-.(CORE::join "\r\n", map { "Header$_: value-$_\r\n hello $_ world blah blah" } 1..512) . "\r\n\r\n"
+.(CORE::join "\r\n", map { "Header$_: value-$_\r\n hello $_ world blah blah" } 1..512) . "\r\n\n"
 
 --- no_error_log
 [error]
