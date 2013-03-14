@@ -267,21 +267,6 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
             }
 #endif
 
-            for (; p != last; p++) {
-                if (*p == '\0') {
-                    if (p + 1 == last) {
-                        /* XXX this should not happen */
-                        dd("found string end!!");
-
-                    } else if (*(p + 1) == LF) {
-                        *p = CR;
-
-                    } else {
-                        *p = ':';
-                    }
-                }
-            }
-
             if (b == r->header_in) {
                 break;
             }
@@ -296,17 +281,28 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
         } else {
             last = ngx_copy(v->data, r->request_line.data, size);
         }
+    }
 
-        for (p = v->data; p != last; p++) {
-            if (*p == '\0') {
-                if (p + 1 != last && *(p + 1) == LF) {
-                    *p = CR;
-
-                } else {
-                    *p = ':';
-                }
-            }
+    for (p = v->data; p != last; p++) {
+	if (*p == '\0') {
+	    if (p + 1 == last) {
+		/* XXX this should not happen */
+		dd("found string end!!");
+		
+	    } else if (*(p + 1) == LF) {
+		*p = CR;
+		
+	    } else {
+		*p = ':';
+	    }
         }
+	if (p + 3 != last
+	    && p[0] == CR && p[1] == LF 
+	    && p[2] == CR && p[3] == LF)
+	{
+	    last = p + 2;
+	    break;
+	}
     }
 
     v->len = last - v->data;
