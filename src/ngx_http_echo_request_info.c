@@ -170,7 +170,7 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
     u_char                      *p, *last;
     ngx_int_t                    i;
     ngx_buf_t                   *b, *first = NULL;
-    unsigned                     found, no_req_line = 0;
+    unsigned                     found;
     ngx_http_connection_t       *hc;
 
     hc = r->http_connection;
@@ -242,19 +242,9 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
                 dd("request line: %.*s", (int) r->request_line.len,
                    r->request_line.data);
 
-                if (no_req_line) {
-                    last = ngx_copy(last,
-                                    r->request_line.data + r->request_line.len
-                                    + 2,
-                                    b->pos - r->request_line.data
-                                    - r->request_line.len - 2);
-
-                } else {
-                    last = ngx_copy(last,
-                                    r->request_line.data,
-                                    b->pos - r->request_line.data);
-
-                }
+                last = ngx_copy(last,
+                                r->request_line.data,
+                                b->pos - r->request_line.data);
 
             } else {
                 last = ngx_copy(last, b->start, b->pos - b->start);
@@ -288,14 +278,7 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
         }
 
     } else {
-        if (no_req_line) {
-            last = ngx_copy(v->data,
-                            r->request_line.data + r->request_line.len + 2,
-                            size - r->request_line.len - 2);
-
-        } else {
-            last = ngx_copy(v->data, r->request_line.data, size);
-        }
+        last = ngx_copy(v->data, r->request_line.data, size);
 
         for (p = v->data; p != last; p++) {
             if (*p == '\0') {
