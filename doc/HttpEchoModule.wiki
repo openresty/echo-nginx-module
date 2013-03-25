@@ -10,7 +10,7 @@ This module is production ready.
 
 = Version =
 
-This document describes ngx_echo [https://github.com/agentzh/echo-nginx-module/tags v0.43] released on 10 March 2013.
+This document describes ngx_echo [https://github.com/agentzh/echo-nginx-module/tags v0.44] released on 24 March 2013.
 
 = Synopsis =
 
@@ -1268,7 +1268,7 @@ Accessing <code>/echoback</code> yields
   Accept: */*
 </geshi>
 
-Behind the scene, it recovers <code>r->main->header_in</code> on the C level and does not construct the headers itself by traversing parsed results in the request object, and strips the last (trailing) CRLF.
+Behind the scene, it recovers <code>r->main->header_in</code> (or the large header buffers, if any) on the C level and does not construct the headers itself by traversing parsed results in the request object.
 
 This variable was first introduced in [[#v0.15|version 0.15]].
 

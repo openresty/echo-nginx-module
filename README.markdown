@@ -18,7 +18,7 @@ This module is production ready.
 Version
 =======
 
-This document describes ngx_echo [v0.43](https://github.com/agentzh/echo-nginx-module/tags) released on 10 March 2013.
+This document describes ngx_echo [v0.44](https://github.com/agentzh/echo-nginx-module/tags) released on 24 March 2013.
 
 Synopsis
 ========
@@ -1305,7 +1305,7 @@ Accessing `/echoback` yields
       Accept: */*
 
 
-Behind the scene, it recovers `r->main->header_in` on the C level and does not construct the headers itself by traversing parsed results in the request object, and strips the last (trailing) CRLF.
+Behind the scene, it recovers `r->main->header_in` (or the large header buffers, if any) on the C level and does not construct the headers itself by traversing parsed results in the request object.
 
 This variable was first introduced in [version 0.15](http://wiki.nginx.org/HttpEchoModule#v0.15).
 
