@@ -404,3 +404,108 @@ Connection: close\r
 --- no_error_log
 [error]
 
+
+
+=== TEST 19: small header (POST body)
+--- config
+    location /t {
+        echo_read_request_body;
+        echo -n $echo_client_request_headers;
+    }
+--- request
+POST /t
+hello
+--- response_body eval
+qq{POST /t HTTP/1.1\r
+Host: localhost\r
+Connection: Close\r
+Content-Length: 5\r
+\r
+}
+--- no_error_log
+[error]
+
+
+
+=== TEST 20: small header (POST body) - in subrequests
+--- config
+    location /t {
+        echo_read_request_body;
+        echo -n $echo_client_request_headers;
+    }
+    location /main {
+        echo_location /t;
+    }
+
+--- request
+POST /main
+hello
+--- response_body eval
+qq{POST /main HTTP/1.1\r
+Host: localhost\r
+Connection: Close\r
+Content-Length: 5\r
+\r
+}
+--- no_error_log
+[error]
+
+
+
+=== TEST 21: large header (POST body)
+--- config
+    client_header_buffer_size 10;
+    large_client_header_buffers 30 561;
+    location /t {
+        echo_read_request_body;
+        echo -n $echo_client_request_headers;
+    }
+--- request
+POST /t
+hello
+
+--- more_headers eval
+CORE::join"\n", map { "Header$_: value-$_" } 1..512
+
+--- response_body eval
+qq{POST /t HTTP/1.1\r
+Host: localhost\r
+Connection: Close\r
+}
+.(CORE::join "\r\n", map { "Header$_: value-$_" } 1..512) . "\r\nContent-Length: 5\r\n\r\n"
+
+--- no_error_log
+[error]
+--- timeout: 5
+
+
+
+=== TEST 22: large header (POST body) - in subrequests
+--- config
+    client_header_buffer_size 10;
+    large_client_header_buffers 30 561;
+    location /t {
+        echo_read_request_body;
+        echo -n $echo_client_request_headers;
+    }
+
+    location /main {
+        echo_location /t;
+    }
+--- request
+POST /main
+hello
+--- more_headers eval
+CORE::join"\n", map { "Header$_: value-$_" } 1..512
+
+--- response_body eval
+qq{POST /main HTTP/1.1\r
+Host: localhost\r
+Connection: Close\r
+}
+.(CORE::join "\r\n", map { "Header$_: value-$_" } 1..512) . "\r\nContent-Length: 5\r\n\r\n"
+
+--- no_error_log
+[error]
+--- timeout: 5
+
