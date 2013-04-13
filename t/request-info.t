@@ -509,3 +509,29 @@ Connection: Close\r
 [error]
 --- timeout: 5
 
+
+
+=== TEST 23: raw headers - the default header buffer can hold the request line, but not the header entries
+--- config
+    location /t {
+        echo_read_request_body;
+        echo -n $echo_client_request_headers;
+    }
+--- request
+GET /t
+--- more_headers eval
+my $s = "User-Agent: curl\nBah: bah\n";
+$s .= "Accept: */*\n";
+$s .= "Cookie: " . "C" x 1200 . "\n";
+$s
+--- response_body eval
+"GET /t HTTP/1.1\r
+Host: localhost\r
+Connection: Close\r
+User-Agent: curl\r
+Bah: bah\r
+Accept: */*\r
+Cookie: " . ("C" x 1200) . "\r\n\r\n"
+--- no_error_log
+[error]
+

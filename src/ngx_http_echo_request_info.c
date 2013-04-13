@@ -171,20 +171,49 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
     ngx_int_t                    i;
     ngx_buf_t                   *b, *first = NULL;
     unsigned                     found;
+    ngx_connection_t            *c;
+    ngx_http_request_t          *mr;
     ngx_http_connection_t       *hc;
 
+    mr = r->main;
     hc = r->main->http_connection;
+    c = mr->connection;
+
+    size = 0;
+    b = c->buffer;
+
+    if (mr->request_line.data >= b->start
+        && mr->request_line.data + mr->request_line.len + 2 <= b->pos)
+    {
+        first = b;
+
+        if (mr->header_in == b) {
+            size += mr->header_end + 2 - mr->request_line.data;
+
+        } else {
+            /* the subsequent part of the header is in the large header
+             * buffers */
+#if 1
+            p = b->pos;
+            size += p - mr->request_line.data;
+
+            /* skip truncated header entries (if any) */
+            while (b->pos > b->start && b->pos[-1] != LF) {
+                b->pos--;
+                size--;
+            }
+#endif
+        }
+    }
 
     if (hc->nbusy) {
-        b = NULL;  /* to suppress a gcc warning */
-        size = 0;
+        b = NULL;
         for (i = 0; i < hc->nbusy; i++) {
             b = hc->busy[i];
 
             if (first == NULL) {
-                if (r->main->request_line.data >= b->pos
-                    || r->main->request_line.data
-                       + r->main->request_line.len + 2
+                if (mr->request_line.data >= b->pos
+                    || mr->request_line.data + mr->request_line.len + 2
                        <= b->start)
                 {
                     continue;
@@ -194,23 +223,13 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
                 first = b;
             }
 
-            if (b == r->main->header_in) {
-                size += r->main->header_end + 2 - b->start;
+            if (b == mr->header_in) {
+                size += mr->header_end + 2 - b->start;
                 break;
             }
 
             size += b->pos - b->start;
         }
-
-    } else {
-        b = r->main->header_in;
-
-        if (b == NULL) {
-            v->not_found = 1;
-            return NGX_OK;
-        }
-
-        size = r->main->header_end + 2 - r->main->request_line.data;
     }
 
     v->data = ngx_palloc(r->pool, size);
@@ -218,9 +237,34 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
         return NGX_ERROR;
     }
 
+    last = v->data;
+
+    b = c->buffer;
+    if (first == b) {
+        if (mr->header_in == b) {
+            pos = mr->header_end + 2;
+
+        } else {
+            pos = b->pos;
+        }
+
+        last = ngx_copy(v->data, mr->request_line.data,
+                        pos - mr->request_line.data);
+
+        for (p = v->data; p != last; p++) {
+            if (*p == '\0') {
+                if (p + 1 != last && *(p + 1) == LF) {
+                    *p = CR;
+
+                } else {
+                    *p = ':';
+                }
+            }
+        }
+    }
+
     if (hc->nbusy) {
-        last = v->data;
-        found = 0;
+        found = (b == c->buffer);
         for (i = 0; i < hc->nbusy; i++) {
             b = hc->busy[i];
 
@@ -235,20 +279,20 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
 
             p = last;
 
-            if (b == r->main->header_in) {
-                pos = r->main->header_end + 2;
+            if (b == mr->header_in) {
+                pos = mr->header_end + 2;
 
             } else {
                 pos = b->pos;
             }
 
             if (b == first) {
-                dd("request line: %.*s", (int) r->main->request_line.len,
-                   r->main->request_line.data);
+                dd("request line: %.*s", (int) mr->request_line.len,
+                   mr->request_line.data);
 
                 last = ngx_copy(last,
-                                r->main->request_line.data,
-                                pos - r->main->request_line.data);
+                                mr->request_line.data,
+                                pos - mr->request_line.data);
 
             } else {
                 last = ngx_copy(last, b->start, pos - b->start);
@@ -276,24 +320,19 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
                 }
             }
 
-            if (b == r->main->header_in) {
+            if (b == mr->header_in) {
                 break;
             }
         }
+    }
 
-    } else {
-        last = ngx_copy(v->data, r->main->request_line.data, size);
+    if (last - v->data > (ssize_t) size) {
+        ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
+                      "buffer error when evaluating "
+                      "$echo_client__request_headers: \"%V\"",
+                      (ngx_int_t) (last - v->data - size));
 
-        for (p = v->data; p != last; p++) {
-            if (*p == '\0') {
-                if (p + 1 != last && *(p + 1) == LF) {
-                    *p = CR;
-
-                } else {
-                    *p = ':';
-                }
-            }
-        }
+        return NGX_ERROR;
     }
 
     v->len = last - v->data;
