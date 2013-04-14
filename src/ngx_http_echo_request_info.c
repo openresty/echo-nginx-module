@@ -1,3 +1,9 @@
+
+/*
+ * Copyright (C) Yichun Zhang (agentzh)
+ */
+
+
 #ifndef DDEBUG
 #define DDEBUG 0
 #endif
@@ -14,7 +20,7 @@ static void ngx_http_echo_post_read_request_body(ngx_http_request_t *r);
 
 ngx_int_t
 ngx_http_echo_exec_echo_read_request_body(
-        ngx_http_request_t* r, ngx_http_echo_ctx_t *ctx)
+    ngx_http_request_t* r, ngx_http_echo_ctx_t *ctx)
 {
     return ngx_http_read_client_request_body(r,
             ngx_http_echo_post_read_request_body);
@@ -46,7 +52,7 @@ ngx_http_echo_post_read_request_body(ngx_http_request_t *r)
  * Copyrighted (C) by Igor Sysoev */
 ngx_int_t
 ngx_http_echo_request_method_variable(ngx_http_request_t *r,
-        ngx_http_variable_value_t *v, uintptr_t data)
+    ngx_http_variable_value_t *v, uintptr_t data)
 {
     if (r->method_name.data) {
         v->len = r->method_name.len;
@@ -68,7 +74,7 @@ ngx_http_echo_request_method_variable(ngx_http_request_t *r,
  * Copyrighted (C) by Igor Sysoev */
 ngx_int_t
 ngx_http_echo_client_request_method_variable(ngx_http_request_t *r,
-        ngx_http_variable_value_t *v, uintptr_t data)
+    ngx_http_variable_value_t *v, uintptr_t data)
 {
     if (r->main->method_name.data) {
         v->len = r->main->method_name.len;
@@ -90,7 +96,7 @@ ngx_http_echo_client_request_method_variable(ngx_http_request_t *r,
  * Copyrighted (C) by Igor Sysoev */
 ngx_int_t
 ngx_http_echo_request_body_variable(ngx_http_request_t *r,
-        ngx_http_variable_value_t *v, uintptr_t data)
+    ngx_http_variable_value_t *v, uintptr_t data)
 {
     u_char       *p;
     size_t        len;
@@ -164,7 +170,7 @@ ngx_http_echo_request_body_variable(ngx_http_request_t *r,
 
 ngx_int_t
 ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
-        ngx_http_variable_value_t *v, uintptr_t data)
+    ngx_http_variable_value_t *v, uintptr_t data)
 {
     size_t                       size;
     u_char                      *p, *last, *pos;
@@ -346,7 +352,7 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
 
 ngx_int_t
 ngx_http_echo_cacheable_request_uri_variable(ngx_http_request_t *r,
-        ngx_http_variable_value_t *v, uintptr_t data)
+    ngx_http_variable_value_t *v, uintptr_t data)
 {
     if (r->uri.len) {
         v->len = r->uri.len;
@@ -365,7 +371,7 @@ ngx_http_echo_cacheable_request_uri_variable(ngx_http_request_t *r,
 
 ngx_int_t
 ngx_http_echo_request_uri_variable(ngx_http_request_t *r,
-        ngx_http_variable_value_t *v, uintptr_t data)
+    ngx_http_variable_value_t *v, uintptr_t data)
 {
     if (r->uri.len) {
         v->len = r->uri.len;
@@ -384,7 +390,7 @@ ngx_http_echo_request_uri_variable(ngx_http_request_t *r,
 
 ngx_int_t
 ngx_http_echo_response_status_variable(ngx_http_request_t *r,
-        ngx_http_variable_value_t *v, uintptr_t data)
+    ngx_http_variable_value_t *v, uintptr_t data)
 {
     u_char                      *p;
 
@@ -410,3 +416,4 @@ ngx_http_echo_response_status_variable(ngx_http_request_t *r,
     return NGX_OK;
 }
 
+/* vi:set ft=c ts=4 sw=4 et fdm=marker: */
