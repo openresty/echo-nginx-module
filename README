@@ -10,7 +10,7 @@ Status
 
 Version
     This document describes ngx_echo v0.45
-    (<https://github.com/agentzh/echo-nginx-module/tags>) released on 27
+    (<https://github.com/agentzh/echo-nginx-module/tags >) released on 27
     March 2013.
 
 Synopsis
@@ -718,7 +718,7 @@ Content Handler Directives
 
     Technically speaking, this directive is an example that Nginx content
     handler issues one or more subrequests directly. AFAIK, the fancyindex
-    module (<https://connectical.com/projects/ngx-fancyindex/wiki>) also
+    module (<https://connectical.com/projects/ngx-fancyindex/wiki >) also
     does such kind of things ;)
 
     Nginx named locations like @foo is *not* supported here.
@@ -1362,15 +1362,15 @@ Variables
 Installation
     You're recommended to install this module (as well as the Nginx core and
     many other goodies) via the ngx_openresty bundle
-    (<http://openresty.org>). See the detailed instructions
-    (<http://openresty.org/#Installation>) for downloading and installing
+    (<http://openresty.org >). See the detailed instructions
+    (<http://openresty.org/#Installation >) for downloading and installing
     ngx_openresty into your system. This is the easiest and most safe way to
     set things up.
 
     Alternatively, you can install this module manually with the Nginx
     source:
 
-    Grab the nginx source code from nginx.org (<http://nginx.org/>), for
+    Grab the nginx source code from nginx.org (<http://nginx.org/ >), for
     example, the version 1.2.7 (see nginx compatibility), and then build the
     source with this module:
 
@@ -1387,10 +1387,10 @@ Installation
 
     Download the latest version of the release tarball of this module from
     echo-nginx-module file list
-    (<http://github.com/agentzh/echo-nginx-module/tags>).
+    (<https://github.com/agentzh/echo-nginx-module/tags >).
 
     Also, this module is included and enabled by default in the
-    ngx_openresty bundle (<http://openresty.org>).
+    ngx_openresty bundle (<http://openresty.org >).
 
 Compatibility
     The following versions of Nginx should work with this module:
@@ -1445,11 +1445,11 @@ Modules that use this module for testing
 
 Community
   English Mailing List
-    The openresty-en (<https://groups.google.com/group/openresty-en>)
+    The openresty-en (<https://groups.google.com/group/openresty-en >)
     mailing list is for English speakers.
 
   Chinese Mailing List
-    The openresty (<https://groups.google.com/group/openresty>) mailing list
+    The openresty (<https://groups.google.com/group/openresty >) mailing list
     is for Chinese speakers.
 
 Report Bugs
@@ -1458,7 +1458,7 @@ Report Bugs
     whenever you are bitten by any quirks, please don't hesitate to
 
     1.  create a ticket on the issue tracking interface
-        (<http://github.com/agentzh/echo-nginx-module/issues>) provided by
+        (<https://github.com/agentzh/echo-nginx-module/issues >) provided by
         GitHub,
 
     2.  or send a bug report, questions, or even patches to the OpenResty
@@ -1466,7 +1466,7 @@ Report Bugs
 
 Source Repository
     Available on github at agentzh/echo-nginx-module
-    (<http://github.com/agentzh/echo-nginx-module>).
+    (<https://github.com/agentzh/echo-nginx-module >).
 
 Changes
     The changes of every release of this module can be obtained from the
@@ -1476,11 +1476,11 @@ Changes
 
 Test Suite
     This module comes with a Perl-driven test suite. The test cases
-    (<http://github.com/agentzh/echo-nginx-module/tree/master/t/>) are
+    (<https://github.com/agentzh/echo-nginx-module/tree/master/t/ >) are
     declarative
-    (<http://github.com/agentzh/echo-nginx-module/blob/master/t/echo.t>)
+    (<https://github.com/agentzh/echo-nginx-module/blob/master/t/echo.t >)
     too. Thanks to the Test::Nginx
-    (<http://search.cpan.org/perldoc?Test::Nginx>) module in the Perl world.
+    (<http://search.cpan.org/perldoc?Test::Nginx >) module in the Perl world.
 
     To run it on your side:
 
@@ -1614,5 +1614,5 @@ See Also
 
     *   The standard [module (HttpProxyModule)].
 
-    *   The ngx_openresty (<http://openresty.org>) bundle.
+    *   The ngx_openresty (<http://openresty.org >) bundle.
 
