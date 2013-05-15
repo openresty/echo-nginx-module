@@ -1387,7 +1387,7 @@ the version 1.2.7 (see [nginx compatibility](http://wiki.nginx.org/HttpEchoModul
     $ make install
 
 
-Download the latest version of the release tarball of this module from [echo-nginx-module file list](http://github.com/agentzh/echo-nginx-module/tags).
+Download the latest version of the release tarball of this module from [echo-nginx-module file list](https://github.com/agentzh/echo-nginx-module/tags).
 
 Also, this module is included and enabled by default in the [ngx_openresty bundle](http://openresty.org).
 
@@ -1444,13 +1444,13 @@ Report Bugs
 
 Although a lot of effort has been put into testing and code tuning, there must be some serious bugs lurking somewhere in this module. So whenever you are bitten by any quirks, please don't hesitate to
 
-1. create a ticket on the [issue tracking interface](http://github.com/agentzh/echo-nginx-module/issues) provided by GitHub,
+1. create a ticket on the [issue tracking interface](https://github.com/agentzh/echo-nginx-module/issues) provided by GitHub,
 1. or send a bug report, questions, or even patches to the [OpenResty Community](http://wiki.nginx.org/HttpEchoModule#Community).
 
 Source Repository
 =================
 
-Available on github at [agentzh/echo-nginx-module](http://github.com/agentzh/echo-nginx-module).
+Available on github at [agentzh/echo-nginx-module](https://github.com/agentzh/echo-nginx-module).
 
 Changes
 =======
@@ -1462,8 +1462,8 @@ The changes of every release of this module can be obtained from the ngx_openres
 Test Suite
 ==========
 
-This module comes with a Perl-driven test suite. The [test cases](http://github.com/agentzh/echo-nginx-module/tree/master/t/) are
-[declarative](http://github.com/agentzh/echo-nginx-module/blob/master/t/echo.t) too. Thanks to the [Test::Nginx](http://search.cpan.org/perldoc?Test::Nginx) module in the Perl world.
+This module comes with a Perl-driven test suite. The [test cases](https://github.com/agentzh/echo-nginx-module/tree/master/t/) are
+[declarative](https://github.com/agentzh/echo-nginx-module/blob/master/t/echo.t) too. Thanks to the [Test::Nginx](http://search.cpan.org/perldoc?Test::Nginx) module in the Perl world.
 
 To run it on your side:
 
