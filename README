@@ -1387,7 +1387,7 @@ Installation
 
     Download the latest version of the release tarball of this module from
     echo-nginx-module file list
-    (<http://github.com/agentzh/echo-nginx-module/tags>).
+    (<https://github.com/agentzh/echo-nginx-module/tags>).
 
     Also, this module is included and enabled by default in the
     ngx_openresty bundle (<http://openresty.org>).
@@ -1458,7 +1458,7 @@ Report Bugs
     whenever you are bitten by any quirks, please don't hesitate to
 
     1.  create a ticket on the issue tracking interface
-        (<http://github.com/agentzh/echo-nginx-module/issues>) provided by
+        (<https://github.com/agentzh/echo-nginx-module/issues>) provided by
         GitHub,
 
     2.  or send a bug report, questions, or even patches to the OpenResty
@@ -1466,7 +1466,7 @@ Report Bugs
 
 Source Repository
     Available on github at agentzh/echo-nginx-module
-    (<http://github.com/agentzh/echo-nginx-module>).
+    (<https://github.com/agentzh/echo-nginx-module>).
 
 Changes
     The changes of every release of this module can be obtained from the
@@ -1476,9 +1476,9 @@ Changes
 
 Test Suite
     This module comes with a Perl-driven test suite. The test cases
-    (<http://github.com/agentzh/echo-nginx-module/tree/master/t/>) are
+    (<https://github.com/agentzh/echo-nginx-module/tree/master/t/>) are
     declarative
-    (<http://github.com/agentzh/echo-nginx-module/blob/master/t/echo.t>)
+    (<https://github.com/agentzh/echo-nginx-module/blob/master/t/echo.t>)
     too. Thanks to the Test::Nginx
     (<http://search.cpan.org/perldoc?Test::Nginx>) module in the Perl world.
 

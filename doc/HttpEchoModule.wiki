@@ -1345,7 +1345,7 @@ the version 1.2.7 (see [[#Compatibility|nginx compatibility]]), and then build t
     $ make install
 </geshi>
 
-Download the latest version of the release tarball of this module from [http://github.com/agentzh/echo-nginx-module/tags echo-nginx-module file list].
+Download the latest version of the release tarball of this module from [https://github.com/agentzh/echo-nginx-module/tags echo-nginx-module file list].
 
 Also, this module is included and enabled by default in the [http://openresty.org ngx_openresty bundle].
 
@@ -1396,12 +1396,12 @@ The [https://groups.google.com/group/openresty openresty] mailing list is for Ch
 
 Although a lot of effort has been put into testing and code tuning, there must be some serious bugs lurking somewhere in this module. So whenever you are bitten by any quirks, please don't hesitate to
 
-# create a ticket on the [http://github.com/agentzh/echo-nginx-module/issues issue tracking interface] provided by GitHub,
+# create a ticket on the [https://github.com/agentzh/echo-nginx-module/issues issue tracking interface] provided by GitHub,
 # or send a bug report, questions, or even patches to the [[#Community|OpenResty Community]].
 
 = Source Repository =
 
-Available on github at [http://github.com/agentzh/echo-nginx-module agentzh/echo-nginx-module].
+Available on github at [https://github.com/agentzh/echo-nginx-module agentzh/echo-nginx-module].
 
 = Changes =
 
@@ -1411,8 +1411,8 @@ http://openresty.org/#Changes
 
 = Test Suite =
 
-This module comes with a Perl-driven test suite. The [http://github.com/agentzh/echo-nginx-module/tree/master/t/ test cases] are
-[http://github.com/agentzh/echo-nginx-module/blob/master/t/echo.t declarative] too. Thanks to the [http://search.cpan.org/perldoc?Test::Nginx Test::Nginx] module in the Perl world.
+This module comes with a Perl-driven test suite. The [https://github.com/agentzh/echo-nginx-module/tree/master/t/ test cases] are
+[https://github.com/agentzh/echo-nginx-module/blob/master/t/echo.t declarative] too. Thanks to the [http://search.cpan.org/perldoc?Test::Nginx Test::Nginx] module in the Perl world.
 
 To run it on your side:
 
