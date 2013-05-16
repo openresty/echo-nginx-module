@@ -1372,12 +1372,12 @@ You're recommended to install this module (as well as the Nginx core and many ot
 Alternatively, you can install this module manually with the Nginx source:
 
 Grab the nginx source code from [nginx.org](http://nginx.org/), for example,
-the version 1.2.7 (see [nginx compatibility](http://wiki.nginx.org/HttpEchoModule#Compatibility)), and then build the source with this module:
+the version 1.2.9 (see [nginx compatibility](http://wiki.nginx.org/HttpEchoModule#Compatibility)), and then build the source with this module:
 
 
-    $ wget 'http://sysoev.ru/nginx/nginx-1.2.7.tar.gz'
-    $ tar -xzvf nginx-1.2.7.tar.gz
-    $ cd nginx-1.2.7/
+    $ wget 'http://sysoev.ru/nginx/nginx-1.2.9.tar.gz'
+    $ tar -xzvf nginx-1.2.9.tar.gz
+    $ cd nginx-1.2.9/
     
     # Here we assume you would install you nginx under /opt/nginx/.
     $ ./configure --prefix=/opt/nginx \
@@ -1397,7 +1397,7 @@ Compatibility
 The following versions of Nginx should work with this module:
 
 * **1.3.x**                       (last tested: 1.3.7)
-* **1.2.x**                       (last tested: 1.2.7)
+* **1.2.x**                       (last tested: 1.2.9)
 * **1.1.x**                       (last tested: 1.1.5)
 * **1.0.x**                       (last tested: 1.0.11)
 * **0.9.x**                       (last tested: 0.9.4)
