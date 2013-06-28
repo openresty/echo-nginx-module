@@ -22,7 +22,7 @@ This document describes ngx_echo [https://github.com/agentzh/echo-nginx-module/t
 
 <geshi lang="nginx">
   location /hello {
-    echo -n "hello, "
+    echo -n "hello, ";
     echo "world!";
   }
 </geshi>
@@ -1330,12 +1330,12 @@ You're recommended to install this module (as well as the Nginx core and many ot
 Alternatively, you can install this module manually with the Nginx source:
 
 Grab the nginx source code from [http://nginx.org/ nginx.org], for example,
-the version 1.2.9 (see [[#Compatibility|nginx compatibility]]), and then build the source with this module:
+the version 1.4.1 (see [[#Compatibility|nginx compatibility]]), and then build the source with this module:
 
 <geshi lang="bash">
-    $ wget 'http://sysoev.ru/nginx/nginx-1.2.9.tar.gz'
-    $ tar -xzvf nginx-1.2.9.tar.gz
-    $ cd nginx-1.2.9/
+    $ wget 'http://sysoev.ru/nginx/nginx-1.4.1.tar.gz'
+    $ tar -xzvf nginx-1.4.1.tar.gz
+    $ cd nginx-1.4.1/
     
     # Here we assume you would install you nginx under /opt/nginx/.
     $ ./configure --prefix=/opt/nginx \
@@ -1353,6 +1353,7 @@ Also, this module is included and enabled by default in the [http://openresty.or
 
 The following versions of Nginx should work with this module:
 
+* '''1.4.x'''                       (last tested: 1.4.1)
 * '''1.3.x'''                       (last tested: 1.3.7)
 * '''1.2.x'''                       (last tested: 1.2.9)
 * '''1.1.x'''                       (last tested: 1.1.5)
