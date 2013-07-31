@@ -80,7 +80,7 @@ ngx_http_echo_add_variables(ngx_conf_t *cf)
 
 static ngx_int_t
 ngx_http_echo_incr_variable(ngx_http_request_t *r,
-        ngx_http_variable_value_t *v, uintptr_t data)
+    ngx_http_variable_value_t *v, uintptr_t data)
 {
     ngx_http_echo_ctx_t         *ctx;
     u_char                      *p;

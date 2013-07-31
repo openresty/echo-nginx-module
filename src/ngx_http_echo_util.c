@@ -27,8 +27,8 @@ ngx_http_echo_create_ctx(ngx_http_request_t *r)
 
 ngx_int_t
 ngx_http_echo_eval_cmd_args(ngx_http_request_t *r,
-        ngx_http_echo_cmd_t *cmd, ngx_array_t *computed_args,
-        ngx_array_t *opts)
+    ngx_http_echo_cmd_t *cmd, ngx_array_t *computed_args,
+    ngx_array_t *opts)
 {
     ngx_uint_t                       i;
     ngx_array_t                     *args = cmd->args;
@@ -88,7 +88,7 @@ ngx_http_echo_eval_cmd_args(ngx_http_request_t *r,
 
 ngx_int_t
 ngx_http_echo_send_chain_link(ngx_http_request_t* r,
-        ngx_http_echo_ctx_t *ctx, ngx_chain_t *in)
+    ngx_http_echo_ctx_t *ctx, ngx_chain_t *in)
 {
     ngx_int_t        rc;
 
@@ -128,7 +128,7 @@ ngx_http_echo_send_chain_link(ngx_http_request_t* r,
 
 ngx_int_t
 ngx_http_echo_send_header_if_needed(ngx_http_request_t* r,
-        ngx_http_echo_ctx_t *ctx)
+    ngx_http_echo_ctx_t *ctx)
 {
     ngx_http_echo_loc_conf_t    *elcf;
 
@@ -209,7 +209,7 @@ ngx_http_echo_strlstrn(u_char *s1, u_char *last, u_char *s2, size_t n)
 
 ngx_int_t
 ngx_http_echo_post_request_at_head(ngx_http_request_t *r,
-        ngx_http_posted_request_t *pr)
+    ngx_http_posted_request_t *pr)
 {
     dd_enter();
 
@@ -230,7 +230,7 @@ ngx_http_echo_post_request_at_head(ngx_http_request_t *r,
 
 u_char *
 ngx_http_echo_rebase_path(ngx_pool_t *pool, u_char *src, size_t osize,
-        size_t *nsize)
+    size_t *nsize)
 {
     u_char            *p, *dst;
 

@@ -53,7 +53,7 @@ static ngx_int_t ngx_http_echo_set_content_length_header(ngx_http_request_t *r,
 
 ngx_int_t
 ngx_http_echo_exec_echo_subrequest_async(ngx_http_request_t *r,
-        ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args)
+    ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args)
 {
     ngx_int_t                       rc;
     ngx_http_echo_subrequest_t      *parsed_sr;
@@ -110,7 +110,7 @@ ngx_http_echo_exec_echo_subrequest_async(ngx_http_request_t *r,
 
 ngx_int_t
 ngx_http_echo_exec_echo_subrequest(ngx_http_request_t *r,
-        ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args)
+    ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args)
 {
     ngx_int_t                            rc;
     ngx_http_request_t                  *sr; /* subrequest object */
@@ -189,7 +189,7 @@ ngx_http_echo_exec_echo_subrequest(ngx_http_request_t *r,
 
 static ngx_int_t
 ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
-        ngx_array_t *computed_args, ngx_http_echo_subrequest_t **parsed_sr_ptr)
+    ngx_array_t *computed_args, ngx_http_echo_subrequest_t **parsed_sr_ptr)
 {
     ngx_str_t                   *computed_arg_elts, *arg;
     ngx_str_t                  **to_write = NULL;
@@ -392,7 +392,7 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
 
 static ngx_int_t
 ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr,
-        ngx_http_echo_subrequest_t *parsed_sr)
+    ngx_http_echo_subrequest_t *parsed_sr)
 {
     ngx_http_core_main_conf_t  *cmcf;
     ngx_http_request_t         *r;
@@ -557,7 +557,7 @@ ngx_http_echo_parse_method_name(ngx_str_t **method_name_ptr)
 /* XXX extermely evil and not working yet */
 ngx_int_t
 ngx_http_echo_exec_abort_parent(ngx_http_request_t *r,
-        ngx_http_echo_ctx_t *ctx)
+    ngx_http_echo_ctx_t *ctx)
 {
 #if 0
     ngx_http_postponed_request_t    *pr, *ppr;
@@ -636,7 +636,7 @@ ngx_http_echo_exec_abort_parent(ngx_http_request_t *r,
 
 ngx_int_t
 ngx_http_echo_exec_exec(ngx_http_request_t *r,
-        ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args)
+    ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args)
 {
     ngx_str_t                       *uri;
     ngx_str_t                       *user_args;

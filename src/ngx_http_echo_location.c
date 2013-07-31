@@ -15,7 +15,7 @@ static ngx_int_t ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr);
 
 ngx_int_t
 ngx_http_echo_exec_echo_location_async(ngx_http_request_t *r,
-        ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args)
+    ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args)
 {
     ngx_int_t                    rc;
     ngx_http_request_t          *sr; /* subrequest object */
@@ -24,7 +24,6 @@ ngx_http_echo_exec_echo_location_async(ngx_http_request_t *r,
     ngx_str_t                   *url_args;
     ngx_str_t                    args;
     ngx_uint_t                   flags = 0;
-
 
     dd_enter();
 
@@ -76,7 +75,7 @@ ngx_http_echo_exec_echo_location_async(ngx_http_request_t *r,
 
 ngx_int_t
 ngx_http_echo_exec_echo_location(ngx_http_request_t *r,
-        ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args)
+    ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args)
 {
     ngx_int_t                            rc;
     ngx_http_request_t                  *sr; /* subrequest object */
@@ -152,7 +151,6 @@ ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr)
     ngx_http_core_main_conf_t   *cmcf;
     ngx_http_request_t          *r;
 
-
     /* we do not inherit the parent request's variables */
     cmcf = ngx_http_get_module_main_conf(sr, ngx_http_core_module);
 
@@ -166,7 +164,7 @@ ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr)
     }
 
     sr->variables = ngx_pcalloc(sr->pool, cmcf->variables.nelts
-                                        * sizeof(ngx_http_variable_value_t));
+                                * sizeof(ngx_http_variable_value_t));
 
     if (sr->variables == NULL) {
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
@@ -174,4 +172,3 @@ ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr)
 
     return NGX_OK;
 }
-

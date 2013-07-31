@@ -23,7 +23,7 @@ static ngx_int_t ngx_http_echo_body_filter(ngx_http_request_t *r,
 
 /* filter handlers */
 static ngx_int_t ngx_http_echo_exec_filter_cmds(ngx_http_request_t *r,
-        ngx_http_echo_ctx_t *ctx, ngx_array_t *cmds, ngx_uint_t *iterator);
+    ngx_http_echo_ctx_t *ctx, ngx_array_t *cmds, ngx_uint_t *iterator);
 
 
 ngx_int_t
@@ -34,7 +34,7 @@ ngx_http_echo_filter_init (ngx_conf_t *cf)
                 (unsigned long) ngx_http_top_header_filter);
 
         ngx_http_echo_next_header_filter = ngx_http_top_header_filter;
-        ngx_http_top_header_filter  = ngx_http_echo_header_filter;
+        ngx_http_top_header_filter = ngx_http_echo_header_filter;
 
         dd("top body filter: %ld", (unsigned long) ngx_http_top_body_filter);
 
@@ -121,7 +121,7 @@ ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
 
         if (conf->before_body_cmds != NULL) {
             rc = ngx_http_echo_exec_filter_cmds(r, ctx, conf->before_body_cmds,
-                    &ctx->next_before_body_cmd);
+                                                &ctx->next_before_body_cmd);
             if (rc != NGX_OK) {
                 return NGX_ERROR;
             }
@@ -208,14 +208,13 @@ ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
 
 static ngx_int_t
 ngx_http_echo_exec_filter_cmds(ngx_http_request_t *r,
-        ngx_http_echo_ctx_t *ctx, ngx_array_t *cmds,
-        ngx_uint_t *iterator)
+    ngx_http_echo_ctx_t *ctx, ngx_array_t *cmds, ngx_uint_t *iterator)
 {
     ngx_int_t                    rc;
+    ngx_array_t                 *opts = NULL;
     ngx_array_t                 *computed_args = NULL;
     ngx_http_echo_cmd_t         *cmd;
     ngx_http_echo_cmd_t         *cmd_elts;
-    ngx_array_t                 *opts = NULL;
 
     for (cmd_elts = cmds->elts; *iterator < cmds->nelts; (*iterator)++) {
         cmd = &cmd_elts[*iterator];
@@ -237,8 +236,8 @@ ngx_http_echo_exec_filter_cmds(ngx_http_request_t *r,
 
             if (rc != NGX_OK) {
                 ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
-                        "Failed to evaluate arguments for "
-                        "the directive.");
+                              "Failed to evaluate arguments for "
+                              "the directive.");
                 return rc;
             }
         }
@@ -250,7 +249,7 @@ ngx_http_echo_exec_filter_cmds(ngx_http_request_t *r,
             dd("exec echo_before_body or echo_after_body...");
 
             rc = ngx_http_echo_exec_echo(r, ctx, computed_args,
-                    1 /* in filter */, opts);
+                                         1 /* in filter */, opts);
 
             if (rc == NGX_ERROR || rc > NGX_OK) {
                 return rc;
@@ -264,4 +263,3 @@ ngx_http_echo_exec_filter_cmds(ngx_http_request_t *r,
 
     return NGX_OK;
 }
-
