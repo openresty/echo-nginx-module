@@ -239,21 +239,53 @@ ngx_http_echo_run_cmds(ngx_http_request_t *r)
             break;
 
         case echo_opcode_echo_location_async:
+            if (!r->request_body) {
+                /* we require reading the request body before doing
+                 * subrequests */
+
+                ctx->next_handler_cmd--; /* re-run the current cmd */
+                goto read_request_body;
+            }
+
             dd("found opcode echo location async...");
             rc = ngx_http_echo_exec_echo_location_async(r, ctx,
                     computed_args);
             break;
 
         case echo_opcode_echo_location:
+            if (!r->request_body) {
+                /* we require reading the request body before doing
+                 * subrequests */
+
+                ctx->next_handler_cmd--; /* re-run the current cmd */
+                goto read_request_body;
+            }
+
             return ngx_http_echo_exec_echo_location(r, ctx, computed_args);
 
         case echo_opcode_echo_subrequest_async:
+            if (!r->request_body) {
+                /* we require reading the request body before doing
+                 * subrequests */
+
+                ctx->next_handler_cmd--; /* re-run the current cmd */
+                goto read_request_body;
+            }
+
             dd("found opcode echo subrequest async...");
             rc = ngx_http_echo_exec_echo_subrequest_async(r, ctx,
                     computed_args);
             break;
 
         case echo_opcode_echo_subrequest:
+            if (!r->request_body) {
+                /* we require reading the request body before doing
+                 * subrequests */
+
+                ctx->next_handler_cmd--; /* re-run the current cmd */
+                goto read_request_body;
+            }
+
             return ngx_http_echo_exec_echo_subrequest(r, ctx, computed_args);
 
         case echo_opcode_echo_sleep:
@@ -277,6 +309,8 @@ ngx_http_echo_run_cmds(ngx_http_request_t *r)
             break;
 
         case echo_opcode_echo_read_request_body:
+
+read_request_body:
             ctx->wait_read_request_body = 0;
 
             rc = ngx_http_echo_exec_echo_read_request_body(r, ctx);
@@ -327,6 +361,12 @@ ngx_http_echo_run_cmds(ngx_http_request_t *r)
 
     if (rc == NGX_ERROR || rc >= NGX_HTTP_SPECIAL_RESPONSE) {
         return rc;
+    }
+
+    if (!r->request_body) {
+        if (ngx_http_discard_request_body(r) != NGX_OK) {
+            return NGX_ERROR;
+        }
     }
 
     return NGX_OK;

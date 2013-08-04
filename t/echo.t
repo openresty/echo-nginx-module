@@ -3,9 +3,9 @@
 use lib 'lib';
 use Test::Nginx::Socket;
 
-repeat_each(1);
+repeat_each(2);
 
-plan tests => repeat_each() * (2 * blocks() + 1);
+plan tests => repeat_each() * (2 * blocks() + 5);
 
 #$Test::Nginx::LWP::LogLevel = 'debug';
 
@@ -337,4 +337,35 @@ world
 --- request
     HEAD /echo
 --- response_body
+
+
+
+=== TEST 24: POST
+--- config
+    location /echo {
+        echo hello;
+        echo world;
+    }
+--- pipelined_requests eval
+["POST /echo
+blah blah", "POST /echo
+foo bar baz"]
+--- response_body eval
+["hello\nworld\n","hello\nworld\n"]
+
+
+
+=== TEST 25: POST
+--- config
+    location /echo {
+        echo_sleep 0.001;
+        echo hello;
+        echo world;
+    }
+--- pipelined_requests eval
+["POST /echo
+blah blah", "POST /echo
+foo bar baz"]
+--- response_body eval
+["hello\nworld\n","hello\nworld\n"]
 
