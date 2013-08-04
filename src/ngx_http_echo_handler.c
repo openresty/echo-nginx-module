@@ -249,7 +249,7 @@ ngx_http_echo_run_cmds(ngx_http_request_t *r)
 
             dd("found opcode echo location async...");
             rc = ngx_http_echo_exec_echo_location_async(r, ctx,
-                    computed_args);
+                                                        computed_args);
             break;
 
         case echo_opcode_echo_location:
@@ -274,7 +274,7 @@ ngx_http_echo_run_cmds(ngx_http_request_t *r)
 
             dd("found opcode echo subrequest async...");
             rc = ngx_http_echo_exec_echo_subrequest_async(r, ctx,
-                    computed_args);
+                                                          computed_args);
             break;
 
         case echo_opcode_echo_subrequest:
@@ -297,7 +297,7 @@ ngx_http_echo_run_cmds(ngx_http_request_t *r)
 
         case echo_opcode_echo_blocking_sleep:
             rc = ngx_http_echo_exec_echo_blocking_sleep(r, ctx,
-                    computed_args);
+                                                        computed_args);
             break;
 
         case echo_opcode_echo_reset_timer:
@@ -347,7 +347,7 @@ read_request_body:
 
         default:
             ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
-                    "Unknown opcode: %d", cmd->opcode);
+                          "unknown opcode: %d", cmd->opcode);
             return NGX_HTTP_INTERNAL_SERVER_ERROR;
             break;
         }
