@@ -59,7 +59,7 @@ all
 buildroot/
 go
 Changes
-build1[012]
+build1[0-9]
 analyze
 Makefile
 *.plist
