@@ -44,11 +44,11 @@ typedef struct ngx_http_echo_subrequest_s {
 
 static ngx_int_t ngx_http_echo_parse_method_name(ngx_str_t **method_name_ptr);
 static ngx_int_t ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr,
-        ngx_http_echo_subrequest_t *parsed_sr);
+    ngx_http_echo_subrequest_t *parsed_sr);
 static ngx_int_t ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
-        ngx_array_t *computed_args, ngx_http_echo_subrequest_t **parsed_sr_ptr);
+    ngx_array_t *computed_args, ngx_http_echo_subrequest_t **parsed_sr_ptr);
 static ngx_int_t ngx_http_echo_set_content_length_header(ngx_http_request_t *r,
-        off_t len);
+    off_t len);
 
 
 ngx_int_t
@@ -69,8 +69,8 @@ ngx_http_echo_exec_echo_subrequest_async(ngx_http_request_t *r,
     }
 
     dd("location: %.*s",
-            (int) parsed_sr->location->len,
-            parsed_sr->location->data);
+        (int) parsed_sr->location->len,
+        parsed_sr->location->data);
 
     args.data = NULL;
     args.len = 0;
@@ -78,8 +78,10 @@ ngx_http_echo_exec_echo_subrequest_async(ngx_http_request_t *r,
     if (ngx_http_parse_unsafe_uri(r, parsed_sr->location, &args, &flags)
         != NGX_OK)
     {
-        ctx->headers_sent = 1;
-        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
+                       "echo_subrequest_async sees unsafe uri: \"%V\"",
+                       parsed_sr->location);
+        return NGX_ERROR;
     }
 
     if (args.len > 0 && parsed_sr->query_string == NULL) {
@@ -92,7 +94,7 @@ ngx_http_echo_exec_echo_subrequest_async(ngx_http_request_t *r,
     }
 
     rc = ngx_http_subrequest(r, parsed_sr->location, parsed_sr->query_string,
-            &sr, NULL, 0);
+                             &sr, NULL, 0);
 
     if (rc != NGX_OK) {
         return NGX_ERROR;
@@ -123,7 +125,6 @@ ngx_http_echo_exec_echo_subrequest(ngx_http_request_t *r,
     dd_enter();
 
     rc = ngx_http_echo_parse_subrequest_spec(r, computed_args, &parsed_sr);
-
     if (rc != NGX_OK) {
         return rc;
     }
@@ -134,9 +135,10 @@ ngx_http_echo_exec_echo_subrequest(ngx_http_request_t *r,
     if (ngx_http_parse_unsafe_uri(r, parsed_sr->location, &args, &flags)
         != NGX_OK)
     {
-        ctx->headers_sent = 1;
-
-        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
+                       "echo_subrequest sees unsafe uri: \"%V\"",
+                       parsed_sr->location);
+        return NGX_ERROR;
     }
 
     if (args.len > 0 && parsed_sr->query_string == NULL) {
@@ -160,7 +162,7 @@ ngx_http_echo_exec_echo_subrequest(ngx_http_request_t *r,
     psr = ngx_palloc(r->pool, sizeof(ngx_http_post_subrequest_t));
 
     if (psr == NULL) {
-        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        return NGX_ERROR;
     }
 
     psr->handler = ngx_http_echo_post_subrequest;
@@ -211,15 +213,12 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
     }
 
     parsed_sr = *parsed_sr_ptr;
-
     computed_arg_elts = computed_args->elts;
-
     method_name = &computed_arg_elts[0];
-
-    parsed_sr->location     = &computed_arg_elts[1];
+    parsed_sr->location = &computed_arg_elts[1];
 
     if (parsed_sr->location->len == 0) {
-        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        return NGX_ERROR;
     }
 
     expecting_opt = 1;
@@ -231,7 +230,7 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
             if (to_write == NULL) {
                 ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
                         "echo_subrequest_async: to_write should NOT be NULL");
-                return NGX_HTTP_INTERNAL_SERVER_ERROR;
+                return NGX_ERROR;
             }
 
             *to_write = arg;
@@ -264,23 +263,23 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
         }
 
         ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
-                "Unknown option for echo_subrequest_async: %V", arg);
+                      "unknown option for echo_subrequest_async: %V", arg);
 
-        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        return NGX_ERROR;
     }
 
     if (body_str != NULL && body_str->len) {
         rb = ngx_pcalloc(r->pool, sizeof(ngx_http_request_body_t));
 
         if (rb == NULL) {
-            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+            return NGX_ERROR;
         }
 
         parsed_sr->content_length_n = body_str->len;
 
         b = ngx_calloc_buf(r->pool);
         if (b == NULL) {
-            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+            return NGX_ERROR;
         }
 
         b->temporary = 1;
@@ -290,7 +289,7 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
 
         rb->bufs = ngx_alloc_chain_link(r->pool);
         if (rb->bufs == NULL) {
-            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+            return NGX_ERROR;
         }
 
         rb->bufs->buf = b;
@@ -303,20 +302,20 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
         dd("body_file defined %.*s", (int) body_file->len, body_file->data);
 
         body_file->data = ngx_http_echo_rebase_path(r->pool, body_file->data,
-                body_file->len, &len);
+                                                    body_file->len, &len);
 
         if (body_file->data == NULL) {
-            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+            return NGX_ERROR;
         }
 
         body_file->len = len;
 
         dd("after rebase, the path becomes %.*s", (int) body_file->len,
-                body_file->data);
+           body_file->data);
 
         rb = ngx_pcalloc(r->pool, sizeof(ngx_http_request_body_t));
         if (rb == NULL) {
-            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+            return NGX_ERROR;
         }
 
         clcf = ngx_http_get_module_loc_conf(r, ngx_http_core_module);
@@ -336,10 +335,10 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
             != NGX_OK)
         {
             ngx_log_error(NGX_LOG_ERR, r->connection->log, of.err,
-                    "%s \"%V\" failed",
-                    of.failed, body_file);
+                          "%s \"%V\" failed",
+                          of.failed, body_file);
 
-            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+            return NGX_ERROR;
         }
 
         dd("file content size: %d", (int) of.size);
@@ -348,12 +347,12 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
 
         b = ngx_pcalloc(r->pool, sizeof(ngx_buf_t));
         if (b == NULL) {
-            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+            return NGX_ERROR;
         }
 
         b->file = ngx_pcalloc(r->pool, sizeof(ngx_file_t));
         if (b->file == NULL) {
-            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+            return NGX_ERROR;
         }
 
         b->file_pos = 0;
@@ -373,7 +372,7 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
 
         rb->bufs = ngx_alloc_chain_link(r->pool);
         if (rb->bufs == NULL) {
-            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+            return NGX_ERROR;
         }
 
         rb->bufs->buf = b;
@@ -417,18 +416,19 @@ ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr,
                                         * sizeof(ngx_http_variable_value_t));
 
     if (sr->variables == NULL) {
-        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        return NGX_ERROR;
     }
 
     body = parsed_sr->request_body;
     if (body) {
         sr->request_body = body;
 
-        rc = ngx_http_echo_set_content_length_header(sr,
-                body->buf ? ngx_buf_size(body->buf) : 0);
+        rc = ngx_http_echo_set_content_length_header(sr, body->buf ?
+                                                     ngx_buf_size(body->buf)
+                                                     : 0);
 
         if (rc != NGX_OK) {
-            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+            return NGX_ERROR;
         }
     }
 
@@ -662,11 +662,11 @@ ngx_http_echo_exec_exec(ngx_http_request_t *r,
     args.data = NULL;
     args.len = 0;
 
-    if (ngx_http_parse_unsafe_uri(r, uri, &args, &flags)
-        != NGX_OK)
-    {
-        ctx->headers_sent = 1;
-        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+    if (ngx_http_parse_unsafe_uri(r, uri, &args, &flags) != NGX_OK) {
+        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
+                       "echo_exec sees unsafe uri: \"%V\"",
+                       uri);
+        return NGX_ERROR;
     }
 
     if (args.len > 0 && user_args == NULL) {

@@ -4,7 +4,9 @@ use lib 'lib';
 
 use Test::Nginx::Socket;
 
-plan tests => 2 * blocks() + 1;
+repeat_each(2);
+
+plan tests => repeat_each() * (2 * blocks() + 2);
 
 #$Test::Nginx::LWP::LogLevel = 'debug';
 
@@ -303,7 +305,12 @@ post main
     }
 --- request
     GET /unsafe
---- response_body_like: 500 Internal Server Error
+--- ignore_response
+--- error_log
+echo_location sees unsafe uri: "/../foo"
+--- no_error_log
+[error]
+[alert]
 
 
 

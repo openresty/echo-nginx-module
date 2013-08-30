@@ -32,7 +32,7 @@ ngx_http_echo_exec_echo_location_async(ngx_http_request_t *r,
     location = computed_arg_elts[0];
 
     if (location.len == 0) {
-        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        return NGX_ERROR;
     }
 
     if (computed_args->nelts > 1) {
@@ -45,8 +45,10 @@ ngx_http_echo_exec_echo_location_async(ngx_http_request_t *r,
     args.len = 0;
 
     if (ngx_http_parse_unsafe_uri(r, &location, &args, &flags) != NGX_OK) {
-        ctx->headers_sent = 1;
-        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
+                       "echo_location_async sees unsafe uri: \"%V\"",
+                       &location);
+        return NGX_ERROR;
     }
 
     if (args.len > 0 && url_args == NULL) {
@@ -92,11 +94,12 @@ ngx_http_echo_exec_echo_location(ngx_http_request_t *r,
     location = computed_arg_elts[0];
 
     if (location.len == 0) {
-        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        return NGX_ERROR;
     }
 
     if (computed_args->nelts > 1) {
         url_args = &computed_arg_elts[1];
+
     } else {
         url_args = NULL;
     }
@@ -105,8 +108,10 @@ ngx_http_echo_exec_echo_location(ngx_http_request_t *r,
     args.len = 0;
 
     if (ngx_http_parse_unsafe_uri(r, &location, &args, &flags) != NGX_OK) {
-        ctx->headers_sent = 1;
-        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
+                       "echo_location sees unsafe uri: \"%V\"",
+                       &location);
+        return NGX_ERROR;
     }
 
     if (args.len > 0 && url_args == NULL) {
@@ -121,9 +126,8 @@ ngx_http_echo_exec_echo_location(ngx_http_request_t *r,
     sr_ctx = ngx_http_echo_create_ctx(r);
 
     psr = ngx_palloc(r->pool, sizeof(ngx_http_post_subrequest_t));
-
     if (psr == NULL) {
-        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        return NGX_ERROR;
     }
 
     psr->handler = ngx_http_echo_post_subrequest;
@@ -167,7 +171,7 @@ ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr)
                                 * sizeof(ngx_http_variable_value_t));
 
     if (sr->variables == NULL) {
-        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        return NGX_ERROR;
     }
 
     return NGX_OK;

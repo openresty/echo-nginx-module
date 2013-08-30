@@ -4,7 +4,9 @@ use lib 'lib';
 
 use Test::Nginx::Socket;
 
-plan tests => 2 * blocks();
+repeat_each(2);
+
+plan tests => repeat_each() * (2 * blocks());
 
 $ENV{TEST_NGINX_HTML_DIR} = html_dir;
 $ENV{TEST_NGINX_CLIENT_PORT} ||= server_port();
@@ -412,7 +414,11 @@ content length: 5
     }
 --- request
     GET /unsafe
---- response_body_like: 500 Internal Server Error
+--- ignore_response
+--- error_log
+echo_subrequest sees unsafe uri: "/../foo"
+--- no_error_log
+[error]
 
 
 
@@ -579,7 +585,11 @@ Haha
 Hello, world
 --- request
     GET /main
---- response_body_like: 500 Internal Server Error
+--- ignore_response
+--- error_log eval
+qr/open\(\) ".*?" failed/
+--- no_error_log
+[alert]
 
 
 

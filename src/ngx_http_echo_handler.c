@@ -128,10 +128,16 @@ ngx_http_echo_handler(ngx_http_request_t *r)
     }
 
     if (rc == NGX_ERROR) {
-        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        return rc;
     }
 
+    ctx = ngx_http_get_module_ctx(r, ngx_http_echo_module);
+
     if (rc >= NGX_HTTP_SPECIAL_RESPONSE) {
+        if (ctx && ctx->headers_sent) {
+            return NGX_ERROR;
+        }
+
         return rc;
     }
 
@@ -144,7 +150,6 @@ ngx_http_echo_handler(ngx_http_request_t *r)
     dd("%d", r->connection->destroyed);
     dd("%d", r->done);
 
-    ctx = ngx_http_get_module_ctx(r, ngx_http_echo_module);
     if (ctx) {
         dd("mark busy %d for %.*s", (int) ctx->next_handler_cmd,
            (int) r->uri.len,

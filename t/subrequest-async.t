@@ -5,7 +5,7 @@ use Test::Nginx::Socket;
 
 repeat_each(2);
 
-plan tests => repeat_each() * (blocks() * 2);
+plan tests => repeat_each() * (blocks() * 2 + 1);
 
 #$Test::Nginx::LWP::LogLevel = 'debug';
 
@@ -399,7 +399,12 @@ content length: 5
     }
 --- request
     GET /unsafe
---- response_body_like: 500 Internal Server Error
+--- ignore_response
+--- error_log
+echo_subrequest_async sees unsafe uri: "/../foo"
+--- no_error_log
+[error]
+[alert]
 
 
 
@@ -480,7 +485,12 @@ Haha
 Hello, world
 --- request
     GET /main
---- response_body_like: 500 Internal Server Error
+--- ignore_response
+--- error_log eval
+qr/open\(\) ".*?" failed/
+--- no_error_log
+[alert]
+
 
 
 
