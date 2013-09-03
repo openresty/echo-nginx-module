@@ -493,7 +493,6 @@ qr/open\(\) ".*?" failed/
 
 
 
-
 === TEST 25: POST subrequest with file body (absolute paths in vars)
 --- config
     location /main {
