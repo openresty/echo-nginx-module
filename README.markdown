@@ -18,7 +18,7 @@ This module is production ready.
 Version
 =======
 
-This document describes ngx_echo [v0.46](https://github.com/agentzh/echo-nginx-module/tags) released on 6 August 2013.
+This document describes ngx_echo [v0.47](https://github.com/agentzh/echo-nginx-module/tags) released on 2 September 2013.
 
 Synopsis
 ========
@@ -1372,12 +1372,12 @@ You're recommended to install this module (as well as the Nginx core and many ot
 Alternatively, you can install this module manually with the Nginx source:
 
 Grab the nginx source code from [nginx.org](http://nginx.org/), for example,
-the version 1.4.1 (see [nginx compatibility](http://wiki.nginx.org/HttpEchoModule#Compatibility)), and then build the source with this module:
+the version 1.4.2 (see [nginx compatibility](http://wiki.nginx.org/HttpEchoModule#Compatibility)), and then build the source with this module:
 
 
-    $ wget 'http://sysoev.ru/nginx/nginx-1.4.1.tar.gz'
-    $ tar -xzvf nginx-1.4.1.tar.gz
-    $ cd nginx-1.4.1/
+    $ wget 'http://nginx.org/download/nginx-1.4.2.tar.gz'
+    $ tar -xzvf nginx-1.4.2.tar.gz
+    $ cd nginx-1.4.2/
     
     # Here we assume you would install you nginx under /opt/nginx/.
     $ ./configure --prefix=/opt/nginx \
@@ -1396,7 +1396,8 @@ Compatibility
 
 The following versions of Nginx should work with this module:
 
-* **1.4.x**                       (last tested: 1.4.1)
+* **1.5.x**                       (last tested: 1.5.4)
+* **1.4.x**                       (last tested: 1.4.2)
 * **1.3.x**                       (last tested: 1.3.7)
 * **1.2.x**                       (last tested: 1.2.9)
 * **1.1.x**                       (last tested: 1.1.5)
