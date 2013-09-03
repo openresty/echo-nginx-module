@@ -5,7 +5,9 @@
 
 #include "ngx_http_echo_handler.h"
 #include "ngx_http_echo_filter.h"
+#include "ngx_http_echo_echo.h"
 #include "ngx_http_echo_request_info.h"
+#include "ngx_http_echo_var.h"
 
 #include <nginx.h>
 #include <ngx_config.h>
@@ -15,6 +17,8 @@
 static void * ngx_http_echo_create_loc_conf(ngx_conf_t *cf);
 static char * ngx_http_echo_merge_loc_conf(ngx_conf_t *cf, void *parent,
     void *child);
+static void *ngx_http_echo_create_main_conf(ngx_conf_t *cf);
+static ngx_int_t ngx_http_echo_post_config(ngx_conf_t *cf);
 
 /* config directive handlers */
 static char * ngx_http_echo_echo(ngx_conf_t *cf, ngx_command_t *cmd,
@@ -59,17 +63,17 @@ static char * ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
 
 
 static ngx_http_module_t ngx_http_echo_module_ctx = {
-    ngx_http_echo_handler_init,    /* preconfiguration */
-    ngx_http_echo_filter_init,     /* postconfiguration */
+    NULL,                           /* preconfiguration */
+    ngx_http_echo_post_config,      /* postconfiguration */
 
-    NULL,                          /* create main configuration */
-    NULL,                          /* init main configuration */
+    ngx_http_echo_create_main_conf, /* create main configuration */
+    NULL,                           /* init main configuration */
 
-    NULL,                          /* create server configuration */
-    NULL,                          /* merge server configuration */
+    NULL,                           /* create server configuration */
+    NULL,                           /* merge server configuration */
 
-    ngx_http_echo_create_loc_conf, /* create location configuration */
-    ngx_http_echo_merge_loc_conf   /* merge location configuration */
+    ngx_http_echo_create_loc_conf,  /* create location configuration */
+    ngx_http_echo_merge_loc_conf    /* merge location configuration */
 };
 
 
@@ -289,7 +293,10 @@ ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
     ngx_http_echo_cmd_t             *echo_cmd;
     ngx_http_core_loc_conf_t        *clcf;
     ngx_http_script_compile_t        sc;
+    ngx_http_echo_main_conf_t       *emcf;
     ngx_http_echo_arg_template_t    *arg;
+
+    emcf = ngx_http_conf_get_module_main_conf(cf, ngx_http_echo_module);
 
     /* cmds_ptr points to ngx_http_echo_loc_conf_t's
      * handler_cmds, before_body_cmds, or after_body_cmds
@@ -315,7 +322,7 @@ ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
 
         } else {
             dd("filter used = 1");
-            ngx_http_echo_filter_used = 1;
+            emcf->filter_used = 1;
         }
     }
 
@@ -609,4 +616,37 @@ ngx_http_echo_echo_exec(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 {
     return ngx_http_echo_helper(echo_opcode_echo_exec, echo_handler_cmd,
                                 cf, cmd, conf);
+}
+
+
+static void *
+ngx_http_echo_create_main_conf(ngx_conf_t *cf)
+{
+    ngx_http_echo_main_conf_t    *emcf;
+
+    emcf = ngx_pcalloc(cf->pool, sizeof(ngx_http_echo_main_conf_t));
+    if (emcf == NULL) {
+        return NULL;
+    }
+
+    return emcf;
+}
+
+
+static ngx_int_t
+ngx_http_echo_post_config(ngx_conf_t *cf)
+{
+    ngx_int_t         rc;
+
+    rc = ngx_http_echo_filter_init(cf);
+    if (rc != NGX_OK) {
+        return rc;
+    }
+
+    rc = ngx_http_echo_echo_init(cf);
+    if (rc != NGX_OK) {
+        return rc;
+    }
+
+    return ngx_http_echo_add_variables(cf);
 }

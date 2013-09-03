@@ -10,7 +10,6 @@
 #include <ngx_log.h>
 
 
-unsigned ngx_http_echo_filter_used;
 
 ngx_http_output_header_filter_pt ngx_http_echo_next_header_filter;
 
@@ -27,9 +26,13 @@ static ngx_int_t ngx_http_echo_exec_filter_cmds(ngx_http_request_t *r,
 
 
 ngx_int_t
-ngx_http_echo_filter_init (ngx_conf_t *cf)
+ngx_http_echo_filter_init(ngx_conf_t *cf)
 {
-    if (ngx_http_echo_filter_used) {
+    ngx_http_echo_main_conf_t       *emcf;
+
+    emcf = ngx_http_conf_get_module_main_conf(cf, ngx_http_echo_module);
+
+    if (emcf->filter_used) {
         dd("top header filter: %ld",
                 (unsigned long) ngx_http_top_header_filter);
 

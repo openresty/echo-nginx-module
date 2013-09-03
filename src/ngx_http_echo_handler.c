@@ -19,24 +19,6 @@
 #include <ngx_log.h>
 
 
-ngx_int_t
-ngx_http_echo_handler_init(ngx_conf_t *cf)
-{
-    ngx_int_t         rc;
-
-#if 1
-    ngx_http_echo_filter_used = 0;
-#endif
-
-    rc = ngx_http_echo_echo_init(cf);
-    if (rc != NGX_OK) {
-        return rc;
-    }
-
-    return ngx_http_echo_add_variables(cf);
-}
-
-
 void
 ngx_http_echo_wev_handler(ngx_http_request_t *r)
 {
