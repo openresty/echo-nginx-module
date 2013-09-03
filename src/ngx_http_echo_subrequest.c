@@ -678,11 +678,9 @@ ngx_http_echo_exec_exec(ngx_http_request_t *r,
     if (uri->data[0] == '@') {
 
         if (user_args && user_args->len > 0) {
-
-            ngx_log_error(NGX_LOG_ALERT, r->connection->log, 0,
-                    "query strings %V ignored when exec'ing named location %V",
-                    user_args, uri);
-
+            ngx_log_error(NGX_LOG_WARN, r->connection->log, 0,
+                          "querystring %V ignored when exec'ing named "
+                          "location %V", user_args, uri);
         }
 
 #if 1

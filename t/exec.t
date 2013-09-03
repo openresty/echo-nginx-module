@@ -3,8 +3,9 @@
 use lib 'lib';
 use Test::Nginx::Socket;
 
-#repeat_each(2);
-plan tests => repeat_each() * 2 * blocks();
+repeat_each(2);
+
+plan tests => repeat_each() * (2 * blocks() + 1);
 
 #$Test::Nginx::LWP::LogLevel = 'debug';
 
@@ -91,6 +92,8 @@ bar
     GET /main
 --- response_body
 a: []
+--- error_log
+querystring a=32 ignored when exec'ing named location @bar
 
 
 
