@@ -10,7 +10,7 @@ This module is production ready.
 
 = Version =
 
-This document describes ngx_echo [https://github.com/agentzh/echo-nginx-module/tags v0.47] released on 2 September 2013.
+This document describes ngx_echo [https://github.com/agentzh/echo-nginx-module/tags v0.48] released on 15 September 2013.
 
 = Synopsis =
 
