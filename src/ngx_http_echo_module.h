@@ -121,7 +121,6 @@ typedef struct {
 
     ngx_uint_t       counter;
 
-    unsigned         headers_sent:1;
     unsigned         before_body_sent:1;
     unsigned         skip_filter:1;
 

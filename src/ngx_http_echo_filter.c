@@ -84,8 +84,6 @@ ngx_http_echo_header_filter(ngx_http_request_t *r)
             return NGX_ERROR;
         }
 
-        ctx->headers_sent = 1;
-
         ngx_http_set_ctx(r, ctx, ngx_http_echo_module);
     }
 

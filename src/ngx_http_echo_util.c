@@ -132,7 +132,7 @@ ngx_http_echo_send_header_if_needed(ngx_http_request_t* r,
 {
     ngx_http_echo_loc_conf_t    *elcf;
 
-    if (!ctx->headers_sent) {
+    if (!r->header_sent) {
         elcf = ngx_http_get_module_loc_conf(r, ngx_http_echo_module);
 
         r->headers_out.status = (ngx_uint_t) elcf->status;
@@ -144,7 +144,6 @@ ngx_http_echo_send_header_if_needed(ngx_http_request_t* r,
         ngx_http_clear_content_length(r);
         ngx_http_clear_accept_ranges(r);
 
-        ctx->headers_sent = 1;
         return ngx_http_send_header(r);
     }
 

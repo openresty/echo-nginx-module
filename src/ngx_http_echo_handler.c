@@ -116,7 +116,7 @@ ngx_http_echo_handler(ngx_http_request_t *r)
     ctx = ngx_http_get_module_ctx(r, ngx_http_echo_module);
 
     if (rc >= NGX_HTTP_SPECIAL_RESPONSE) {
-        if (ctx && ctx->headers_sent) {
+        if (ctx && r->header_sent) {
             return NGX_ERROR;
         }
 
