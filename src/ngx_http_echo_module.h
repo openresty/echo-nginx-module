@@ -87,7 +87,7 @@ typedef struct {
 
 
 typedef struct {
-    ngx_int_t       filter_used;
+    ngx_int_t       requires_filter;
 } ngx_http_echo_main_conf_t;
 
 

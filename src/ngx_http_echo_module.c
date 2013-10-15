@@ -322,7 +322,7 @@ ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
 
         } else {
             dd("filter used = 1");
-            emcf->filter_used = 1;
+            emcf->requires_filter = 1;
         }
     }
 
@@ -628,6 +628,10 @@ ngx_http_echo_create_main_conf(ngx_conf_t *cf)
     if (emcf == NULL) {
         return NULL;
     }
+
+    /* set by ngx_pcalloc:
+     *      hmcf->requires_filter = 0;
+     */
 
     return emcf;
 }

@@ -25,16 +25,28 @@ static ngx_int_t ngx_http_echo_exec_filter_cmds(ngx_http_request_t *r,
     ngx_http_echo_ctx_t *ctx, ngx_array_t *cmds, ngx_uint_t *iterator);
 
 
+static volatile ngx_cycle_t  *ngx_http_echo_prev_cycle = NULL;
+
+
 ngx_int_t
 ngx_http_echo_filter_init(ngx_conf_t *cf)
 {
+    int                              multi_http_blocks;
     ngx_http_echo_main_conf_t       *emcf;
 
     emcf = ngx_http_conf_get_module_main_conf(cf, ngx_http_echo_module);
 
-    if (emcf->filter_used) {
+    if (ngx_http_echo_prev_cycle != ngx_cycle) {
+        ngx_http_echo_prev_cycle = ngx_cycle;
+        multi_http_blocks = 0;
+
+    } else {
+        multi_http_blocks = 1;
+    }
+
+    if (multi_http_blocks || emcf->requires_filter) {
         dd("top header filter: %ld",
-                (unsigned long) ngx_http_top_header_filter);
+           (unsigned long) ngx_http_top_header_filter);
 
         ngx_http_echo_next_header_filter = ngx_http_top_header_filter;
         ngx_http_top_header_filter = ngx_http_echo_header_filter;
@@ -55,7 +67,8 @@ ngx_http_echo_header_filter(ngx_http_request_t *r)
     ngx_http_echo_loc_conf_t    *conf;
     ngx_http_echo_ctx_t         *ctx;
 
-    dd("We're in the header filter...");
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
+                   "echo header filter, uri \"%V?%V\"", &r->uri, &r->args);
 
     ctx = ngx_http_get_module_ctx(r, ngx_http_echo_module);
 
@@ -104,6 +117,9 @@ ngx_http_echo_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
     unsigned                     last;
     ngx_chain_t                 *cl;
     ngx_buf_t                   *b;
+
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
+                   "echo body filter, uri \"%V?%V\"", &r->uri, &r->args);
 
     if (in == NULL || r->header_only) {
         return ngx_http_echo_next_body_filter(r, in);
