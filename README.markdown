@@ -77,19 +77,22 @@ This document describes ngx_echo [v0.48](https://github.com/agentzh/echo-nginx-m
 Synopsis
 ========
 
+```nginx
 
       location /hello {
         echo "hello, world!";
       }
+```
 
-
+```nginx
 
       location /hello {
         echo -n "hello, ";
         echo "world!";
       }
+```
 
-
+```nginx
 
       location /timed_hello {
         echo_reset_timer;
@@ -98,8 +101,9 @@ Synopsis
         echo hiya igor;
         echo "'hiya igor' takes about $echo_timer_elapsed sec.";
       }
+```
 
-
+```nginx
 
       location /echo_with_sleep {
         echo hello;
@@ -107,8 +111,9 @@ Synopsis
         echo_sleep   2.5;  # in sec
         echo world;
       }
+```
 
-
+```nginx
 
       # in the following example, accessing /echo yields
       #   hello
@@ -126,8 +131,9 @@ Synopsis
       location /echo/more {
           echo blah;
       }
+```
 
-
+```nginx
 
       # the output of /main might be
       #   hello
@@ -151,8 +157,9 @@ Synopsis
           echo_sleep 1;
           echo world;
       }
+```
 
-
+```nginx
 
       # the output of /main might be
       #   hello
@@ -176,8 +183,9 @@ Synopsis
           echo_sleep 1;
           echo world;
       }
+```
 
-
+```nginx
 
       # Accessing /dup gives
       #   ------ END ------
@@ -187,15 +195,17 @@ Synopsis
         echo_duplicate 3 "--";
         echo;
       }
+```
 
-
+```nginx
 
       # /bighello will generate 1000,000,000 hello's.
       location /bighello {
         echo_duplicate 1000_000_000 'hello';
       }
+```
 
-
+```nginx
 
       # echo back the client request
       location /echoback {
@@ -206,8 +216,9 @@ Synopsis
         
         echo_request_body;
       }
+```
 
-
+```nginx
 
       # GET /multi will yields
       #   querystring: foo=Foo
@@ -231,8 +242,9 @@ Synopsis
           echo "content length: $http_content_length";
           echo '///';
       }
+```
 
-
+```nginx
 
       # GET /merge?/foo.js&/bar/blah.js&/yui/baz.js will merge the .js resources together
       location /merge {
@@ -243,8 +255,9 @@ Synopsis
               echo;
           echo_end;
       }
+```
 
-
+```nginx
 
       # accessing /if?val=abc yields the "hit" output
       # while /if?val=bcd yields "miss":
@@ -256,7 +269,7 @@ Synopsis
           }
           echo $res;
       }
-
+```
 
 [Back to TOC](#table-of-contents)
 
@@ -300,15 +313,17 @@ Every content handler directive supports variable interpolation in its arguments
 
 The MIME type set by the [standard default_type directive](http://nginx.org/en/docs/http/ngx_http_core_module.html#default_type) is respected by this module, as in:
 
+```nginx
 
       location /hello {
         default_type text/plain;
         echo hello;
       }
-
+```
 
 Then on the client side:
 
+```bash
 
       $ curl -I 'http://localhost/echo'
       HTTP/1.1 200 OK
@@ -316,10 +331,11 @@ Then on the client side:
       Date: Sat, 17 Oct 2009 03:40:19 GMT
       Content-Type: text/plain
       Connection: keep-alive
-
+```
 
 Since the [v0.22](#v022) release, all of the directives are allowed in the [rewrite module](http://nginx.org/en/docs/http/ngx_http_rewrite_module.html)'s [if](http://nginx.org/en/docs/http/ngx_http_rewrite_module.html#if) directive block, for instance:
 
+```nginx
 
     location ^~ /if {
         set $res miss;
@@ -329,7 +345,7 @@ Since the [v0.22](#v022) release, all of the directives are allowed in the [rewr
         }
         echo $res;
     }
-
+```
 
 [Back to TOC](#table-of-contents)
 
@@ -347,88 +363,98 @@ Sends arguments joined by spaces, along with a trailing newline, out to the clie
 
 Note that the data might be buffered by Nginx's underlying buffer. To force the output data flushed immediately, use the [echo_flush](#echo_flush) command just after `echo`, as in
 
+```nginx
 
        echo hello world;
        echo_flush;
-
+```
 
 When no argument is specified, *echo* emits the trailing newline alone, just like the *echo* command in shell.
 
 Variables may appear in the arguments. An example is
 
+```nginx
 
        echo The current request uri is $request_uri;
-
+```
 
 where [$request_uri](http://nginx.org/en/docs/http/ngx_http_core_module.html#var_request_uri) is a variable exposed by the [ngx_http_core_module](http://nginx.org/en/docs/http/ngx_http_core_module.html).
 
 This command can be used multiple times in a single location configuration, as in
 
+```nginx
 
     location /echo {
         echo hello;
         echo world;
     }
-
+```
 
 The output on the client side looks like this
 
+```bash
 
     $ curl 'http://localhost/echo'
     hello
     world
-
+```
 
 Special characters like newlines (`\n`) and tabs (`\t`) can be escaped using C-style escaping sequences. But a notable exception is the dollar sign (`$`). As of Nginx 0.8.20, there's still no clean way to esacpe this characters. (A work-around might be to use a `$echo_dollor` variable that is always evaluated to the constant `$` character. This feature will possibly be introduced in a future version of this module.)
 
 As of the echo [v0.28](#v028) release, one can suppress the trailing newline character in the output by using the `-n` option, as in
 
+```nginx
 
     location /echo {
         echo -n "hello, ";
         echo "world";
     }
-
+```
 
 Accessing `/echo` gives
 
+```bash
 
     $ curl 'http://localhost/echo'
     hello, world
-
+```
 
 Leading `-n` in variable values won't take effect and will be emitted literally, as in
 
+```nginx
 
     location /echo {
         set $opt -n;
         echo $opt "hello,";
         echo "world";
     }
-
+```
 
 This gives the following output
 
+```bash
 
     $ curl 'http://localhost/echo'
     -n hello,
     world
-
+```
 
 One can output leading `-n` literals and other options using the special `--` option like this
 
+```nginx
 
     location /echo {
         echo -- -n is an option;
     }
-
+```
 
 which yields
 
+```bash
 
     $ curl 'http://localhost/echo'
     -n is an option
-
+```
 
 [Back to TOC](#table-of-contents)
 
@@ -446,26 +472,29 @@ Outputs duplication of a string indicated by the second argument, using the time
 
 For instance,
 
+```nginx
 
       location /dup {
           echo_duplicate 3 "abc";
       }
-
+```
 
 will lead to an output of `"abcabcabc"`.
 
 Underscores are allowed in the count number, just like in Perl. For example, to emit 1000,000,000 instances of `"hello, world"`:
 
+```nginx
 
       location /many_hellos {
           echo_duplicate 1000_000_000 "hello, world";
       }
-
+```
 
 The `count` argument could be zero, but not negative. The second `string` argument could be an empty string ("") likewise.
 
 Unlike the [echo](#echo) directive, no trailing newline is appended to the result. So it's possible to "abuse" this directive as a no-trailing-newline version of [echo](#echo) by using "count" 1, as in
 
+```nginx
 
       location /echo_art {
           echo_duplicate 2 '---';
@@ -473,13 +502,14 @@ Unlike the [echo](#echo) directive, no trailing newline is appended to the resul
           echo_duplicate 2 '---';
           echo;  # we want a trailing newline here...
       }
-
+```
 
 You get
 
+```bash
 
       ------ END ------
-
+```
 
 This directive was first introduced in [version 0.11](#v011).
 
@@ -503,6 +533,7 @@ This directive does not take any argument.
 
 Consider the following example:
 
+```nginx
 
       location /flush {
          echo hello;
@@ -512,12 +543,13 @@ Consider the following example:
          echo_sleep 1;
          echo world;
       }
-
+```
 
 Then on the client side, using curl to access `/flush`, you'll see the "hello" line immediately, but only after 1 second, the last "world" line. Without calling `echo_flush` in the example above, you'll most likely see no output until 1 second is elapsed due to the internal buffering of Nginx.
 
 This directive will fail to flush the output buffer in case of subrequests get involved. Consider the following example:
 
+```nginx
 
       location /main {
           echo_location_async /sub;
@@ -527,12 +559,13 @@ This directive will fail to flush the output buffer in case of subrequests get i
       location /sub {
           echo_sleep 1;
       }
-
+```
 
 Then the client won't see "hello" appear even if `echo_flush` has been executed before the subrequest to `/sub` has actually started executing. The outputs of `/main` that are sent *after* [echo_location_async](#echo_location_async) will be postponed and buffered firmly.
 
 This does *not* apply to outputs sent before the subrequest initiated. For a modified version of the example given above:
 
+```nginx
 
       location /main {
           echo hello;
@@ -542,7 +575,7 @@ This does *not* apply to outputs sent before the subrequest initiated. For a mod
       location /sub {
           echo_sleep 1;
       }
-
+```
 
 The client will immediately see "hello" before `/sub` enters sleeping.
 
@@ -568,12 +601,13 @@ The period might takes three digits after the decimal point and must be greater 
 
 An example is
 
+```nginx
 
        location /echo_after_sleep {
            echo_sleep 1.234;
            echo resumed!;
        }
-
+```
 
 Behind the scene, it sets up a per-request "sleep" ngx_event_t object, and adds a timer using that custom event to the Nginx event model and just waits for a timeout on that event. Because the "sleep" event is per-request, this directive can work in parallel subrequests.
 
@@ -613,6 +647,7 @@ Reset the timer begin time to *now*, i.e., the time when this command is execute
 
 The timer begin time is default to the starting time of the current request and can be overridden by this directive, potentially multiple times in a single location. For example:
 
+```nginx
 
       location /timed_sleep {
           echo_sleep 0.03;
@@ -623,15 +658,16 @@ The timer begin time is default to the starting time of the current request and 
           echo_sleep 0.02;
           echo "$echo_timer_elapsed sec elapsed.";
       }
-
+```
 
 The output on the client side might be
 
+```bash
 
     $ curl 'http://localhost/timed_sleep'
     0.032 sec elapsed.
     0.020 sec elapsed.
-
+```
 
 The actual figures you get on your side may vary a bit due to your system's current activities.
 
@@ -659,6 +695,7 @@ This directive does not generate any output itself, just like [echo_sleep](#echo
 
 Here's an example for echo'ing back the original HTTP client request (both headers and body are included):
 
+```nginx
 
       location /echoback {
         echo_duplicate 1 $echo_client_request_headers;
@@ -666,10 +703,11 @@ Here's an example for echo'ing back the original HTTP client request (both heade
         echo_read_request_body;
         echo $request_body;
       }
-
+```
 
 The content of `/echoback` looks like this on my side (I was using Perl's LWP utility to access this location on the server):
 
+```bash
 
       $ (echo hello; echo world) | lwp-request -m POST 'http://localhost/echoback'
       POST /echoback HTTP/1.1
@@ -682,7 +720,7 @@ The content of `/echoback` looks like this on my side (I was using Perl's LWP ut
       
       hello
       world
-
+```
 
 Because `/echoback` is the main request, [$request_body](http://nginx.org/en/docs/http/ngx_http_core_module.html#var_request_body) holds the original client request body.
 
@@ -708,6 +746,7 @@ As of Nginx 0.8.20, the `location` argument does *not* support named location, d
 
 A very simple example is
 
+```nginx
 
     location /main {
         echo_location_async /sub;
@@ -716,17 +755,19 @@ A very simple example is
     location /sub {
         echo hello;
     }
-
+```
 
 Accessing `/main` gets
 
+```bash
 
       hello
       world
-
+```
 
 Calling multiple locations in parallel is also possible:
 
+```nginx
 
     location /main {
         echo_reset_timer;
@@ -742,10 +783,11 @@ Calling multiple locations in parallel is also possible:
         echo_sleep 1; # sleeps 1 sec
         echo world;
     }
-
+```
 
 Accessing `/main` yields
 
+```bash
 
       $ time curl 'http://localhost/main'
       hello
@@ -755,7 +797,7 @@ Accessing `/main` yields
       real  0m2.006s
       user  0m0.000s
       sys   0m0.004s
-
+```
 
 You can see that the main handler `/main` does *not* wait the subrequests `/sub1` and `/sub2` to complete and quickly goes on, hence the "0.000 sec" timing result. The whole request, however takes approximately 2 sec in total to complete because `/sub1` and `/sub2` run in parallel (or "concurrently" to be more accurate).
 
@@ -763,6 +805,7 @@ If you use [echo_blocking_sleep](#echo_blocking_sleep) in the previous example i
 
 Locations can also take an optional querystring argument, for instance
 
+```nginx
 
     location /main {
         echo_location_async /sub 'foo=Foo&bar=Bar';
@@ -770,14 +813,15 @@ Locations can also take an optional querystring argument, for instance
     location /sub {
         echo $arg_foo $arg_bar;
     }
-
+```
 
 Accessing `/main` yields
 
+```bash
 
       $ curl 'http://localhost/main'
       Foo Bar
-
+```
 
 Querystrings is *not* allowed to be concatenated onto the `location` argument with "?" directly, for example, `/sub?foo=Foo&bar=Bar` is an invalid location, and shouldn't be fed as the first argument to this directive.
 
@@ -785,9 +829,10 @@ Due to an unknown bug in Nginx (it still exists in Nginx 0.8.20), the [standard 
 
 If calling this directive without SSI module enabled, you'll get truncated response without contents of any subrequests and get an alert message in your Nginx's `error.log`, like this:
 
+```nginx
 
       [alert] 24212#0: *1 the http output chain is empty, client: 127.0.0.1, ...
-
+```
 
 Technically speaking, this directive is an example that Nginx content handler issues one or more subrequests directly. AFAIK, the [fancyindex module](https://connectical.com/projects/ngx-fancyindex/wiki) also does such kind of things ;)
 
@@ -795,15 +840,17 @@ Nginx named locations like `@foo` is *not* supported here.
 
 This directive is logically equivalent to the GET version of [echo_subrequest_async](#echo_subrequest_async). For example,
 
+```nginx
 
       echo_location_async /foo 'bar=Bar';
-
+```
 
 is logically equivalent to
 
+```nginx
 
       echo_subrequest_async GET /foo -q 'bar=Bar';
-
+```
 
 But calling this directive is slightly faster than calling [echo_subrequest_async](#echo_subrequest_async) using `GET` because we don't have to parse the HTTP method names like `GET` and options like `-q`.
 
@@ -827,6 +874,7 @@ The final response body is almost always equivalent to the case when [echo_locat
 
 Consider the following example:
 
+```nginx
 
     location /main {
         echo_reset_timer;
@@ -842,10 +890,11 @@ Consider the following example:
         echo_sleep 1;
         echo world;
     }
-
+```
 
 The location `/main` above will take for total 3 sec to complete (compared to 2 sec if [echo_location_async](#echo_location_async) is used instead here). Here's the result in action on my machine:
 
+```bash
 
       $ curl 'http://localhost/main'
       hello
@@ -855,19 +904,21 @@ The location `/main` above will take for total 3 sec to complete (compared to 2 
       real  0m3.027s
       user  0m0.020s
       sys   0m0.004s
-
+```
 
 This directive is logically equivalent to the GET version of [echo_subrequest](#echo_subrequest). For example,
 
+```nginx
 
       echo_location /foo 'bar=Bar';
-
+```
 
 is logically equivalent to
 
+```nginx
 
       echo_subrequest GET /foo -q 'bar=Bar';
-
+```
 
 But calling this directive is slightly faster than calling [echo_subrequest](#echo_subrequest) using `GET` because we don't have to parse the HTTP method names like `GET` and options like `-q`.
 
@@ -897,6 +948,7 @@ This directive is very much like a generalized version of the [echo_location_asy
 
 Here's a small example demonstrating its usage:
 
+```nginx
 
     location /multi {
         # body defined as string
@@ -911,10 +963,11 @@ Here's a small example demonstrating its usage:
         echo "content length: $http_content_length";
         echo '///';
     }
-
+```
 
 Then on the client side:
 
+```bash
 
       $ echo -n hello > /tmp/hello.txt
       $ curl 'http://localhost/multi'
@@ -928,10 +981,11 @@ Then on the client side:
       body: hello
       content length: 5
       ///
-
+```
 
 Here's more funny example using the standard [proxy module](#httpproxymodule) to handle the subrequest:
 
+```nginx
 
     location /main {
         echo_subrequest_async POST /sub -b 'hello, world';
@@ -948,15 +1002,16 @@ Here's more funny example using the standard [proxy module](#httpproxymodule) to
         
         echo "body: $echo_request_body.";
     }
-
+```
 
 Then on the client side, we can see that
 
+```bash
 
       $ curl 'http://localhost/main'
       method: POST.
       body: hello, world.
-
+```
 
 Nginx named locations like `@foo` is *not* supported here.
 
@@ -1000,22 +1055,24 @@ echo_foreach_split
 
 Split the second argument `string` using the delimiter specified in the first argument, and then iterate through the resulting items. For instance:
 
+```nginx
 
       location /loop {
         echo_foreach_split ',' $arg_list;
           echo "item: $echo_it";
         echo_end;
       }
-
+```
 
 Accessing /main yields
 
+```bash
 
       $ curl 'http://localhost/loop?list=cat,dog,mouse'
       item: cat
       item: dog
       item: mouse
-
+```
 
 As seen in the previous example, this directive should always be accompanied by an [echo_end](#echo_end) directive.
 
@@ -1023,22 +1080,25 @@ Parallel `echo_foreach_split` loops are allowed, but nested ones are currently f
 
 The `delimiter` argument could contain *multiple* arbitrary characters, like
 
+```nginx
 
       echo_foreach_split '-a-' 'cat-a-dog-a-mouse';
         echo $echo_it;
       echo_end;
-
+```
 
 Logically speaking, this looping structure is just the `foreach` loop combined with a `split` function call in Perl (using the previous example):
 
+```perl
 
        foreach (split ',', $arg_list) {
            print "item $_\n";
        }
-
+```
 
 People will also find it useful in merging multiple `.js` or `.css` resources into a whole. Here's an example:
 
+```nginx
 
       location /merge {
           default_type 'text/javascript';
@@ -1049,13 +1109,14 @@ People will also find it useful in merging multiple `.js` or `.css` resources in
               echo;
           echo_end;
       }
-
+```
 
 Then accessing /merge to merge the `.js` resources specified in the query string:
 
+```bash
 
       $ curl 'http://localhost/merge?/foo/bar.js&/yui/blah.js&/baz.js'
-
+```
 
 One can also use third-party Nginx cache module to cache the merged response generated by the `/merge` location in the previous example.
 
@@ -1093,11 +1154,12 @@ Outputs the contents of the request body previous read.
 
 Behind the scene, it's implemented roughly like this:
 
+```C
 
       if (r->request_body && r->request_body->bufs) {
           return ngx_http_output_filter(r, r->request_body->bufs);
       }
-
+```
 
 Unlike the [$echo_request_body](#echo_request_body) and $request_body variables, this directive will show the whole request body even if some parts or all parts of it are saved in temporary files on the disk.
 
@@ -1123,6 +1185,7 @@ echo_exec
 
 Does an internal redirect to the location specified. An optional query string can be specified for normal locations, as in
 
+```nginx
 
       location /foo {
           echo_exec /bar weight=5;
@@ -1130,10 +1193,11 @@ Does an internal redirect to the location specified. An optional query string ca
       location /bar {
           echo $arg_weight;
       }
-
+```
 
 Or equivalently
 
+```nginx
 
       location /foo {
           echo_exec /bar?weight=5;
@@ -1141,10 +1205,11 @@ Or equivalently
       location /bar {
           echo $arg_weight;
       }
-
+```
 
 Named locations are also supported. Here's an example:
 
+```nginx
 
       location /foo {
           echo_exec @bar;
@@ -1154,7 +1219,7 @@ Named locations are also supported. Here's an example:
           #  due to a potential bug in nginx.
           echo $echo_request_uri;
       }
-
+```
 
 But query string (if any) will always be ignored for named location redirects due to a limitation in the `ngx_http_named_location` function.
 
@@ -1180,12 +1245,13 @@ Specify the default response status code. Default to `200`. This directive is de
 
 Here is an example,
 
+```nginx
 
     location = /bad {
         echo_status 404;
         echo "Something is missing...";
     }
-
+```
 
 then we get a response like this:
 
@@ -1227,6 +1293,7 @@ It's the filter version of the [echo](#echo) directive, and prepends its output 
 
 An example is
 
+```nginx
 
     location /echo {
         echo_before_body hello;
@@ -1235,35 +1302,38 @@ An example is
     location /echo/more {
         echo world
     }
-
+```
 
 Accessing `/echo` from the client side yields
 
+```bash
 
       hello
       world
-
+```
 
 In the previous sample, we borrow the [standard proxy module](http://nginx.org/en/docs/http/ngx_http_proxy_module.html) to serve as the underlying content handler that generates the "main contents".
 
 Multiple instances of this filter directive are also allowed, as in:
 
+```nginx
 
     location /echo {
         echo_before_body hello;
         echo_before_body world;
         echo !;
     }
-
+```
 
 On the client side, the output is like
 
+```bash
 
       $ curl 'http://localhost/echo'
       hello
       world
       !
-
+```
 
 In this example, we also use the [content handler directives](#content-handler-directives) provided by this module as the underlying content handler.
 
@@ -1287,6 +1357,7 @@ It's very much like the [echo_before_body](#echo_before_body) directive, but *ap
 
 Here's a simple example:
 
+```nginx
 
     location /echo {
         echo_after_body hello;
@@ -1295,7 +1366,7 @@ Here's a simple example:
     location /echo/more {
         echo world
     }
-
+```
 
 Accessing `/echo` from the client side yields
 
@@ -1306,6 +1377,7 @@ Accessing `/echo` from the client side yields
 
 Multiple instances are allowed, as in:
 
+```nginx
 
     location /echo {
         echo_after_body hello;
@@ -1313,7 +1385,7 @@ Multiple instances are allowed, as in:
         echo i;
         echo say;
     }
-
+```
 
 The output on the client side while accessing the `/echo` location looks like
 
@@ -1397,15 +1469,17 @@ Just as the name suggests, it will always take the main request (or the client r
 
 A simple example is below:
 
+```nginx
 
       location /echoback {
          echo "headers are:"
          echo $echo_client_request_headers;
       }
-
+```
 
 Accessing `/echoback` yields
 
+```bash
 
       $ curl 'http://localhost/echoback'
       headers are
@@ -1413,7 +1487,7 @@ Accessing `/echoback` yields
       User-Agent: curl/7.18.2 (i486-pc-linux-gnu) libcurl/7.18.2 OpenSSL/0.9.8g
       Host: localhost:1984
       Accept: */*
-
+```
 
 Behind the scene, it recovers `r->main->header_in` (or the large header buffers, if any) on the C level and does not construct the headers itself by traversing parsed results in the request object.
 
@@ -1450,6 +1524,7 @@ It is a counter that always generate the current counting number, starting from 
 
 Consider the following example
 
+```Nginx
 
     location /main {
         echo "main pre: $echo_incr";
@@ -1460,7 +1535,7 @@ Consider the following example
     location /sub {
         echo "sub: $echo_incr";
     }
-
+```
 
 Accessing `/main` yields
 
@@ -1494,6 +1569,7 @@ Alternatively, you can install this module manually with the Nginx source:
 Grab the nginx source code from [nginx.org](http://nginx.org/), for example,
 the version 1.4.2 (see [nginx compatibility](#compatibility)), and then build the source with this module:
 
+```bash
 
     $ wget 'http://nginx.org/download/nginx-1.4.2.tar.gz'
     $ tar -xzvf nginx-1.4.2.tar.gz
@@ -1505,7 +1581,7 @@ the version 1.4.2 (see [nginx compatibility](#compatibility)), and then build th
      
     $ make -j2
     $ make install
-
+```
 
 Download the latest version of the release tarball of this module from [echo-nginx-module file list](https://github.com/agentzh/echo-nginx-module/tags).
 
@@ -1607,9 +1683,10 @@ This module comes with a Perl-driven test suite. The [test cases](https://github
 
 To run it on your side:
 
+```bash
 
     $ PATH=/path/to/your/nginx-with-echo-module:$PATH prove -r t
-
+```
 
 You need to terminate any Nginx processes before running the test suite if you have changed the Nginx server binary.
 
@@ -1626,15 +1703,17 @@ TODO
 * Add directives *echo_read_client_request_body* and *echo_request_headers*.
 * Add new directive *echo_log* to use Nginx's logging facility directly from the config file and specific loglevel can be specified, as in
 
+```nginx
 
       echo_log debug "I am being called.";
-
+```
 
 * Add support for options `-h` and `-t` to [echo_subrequest_async](#echo_subrequest_async) and [echo_subrequest](#echo_subrequest). For example
 
+```nginx
 
       echo_subrequest POST /sub -q 'foo=Foo&bar=Bar' -b 'hello' -t 'text/plan' -h 'X-My-Header: blah blah'
-
+```
 
 * Add options to control whether a subrequest should inherit cached variables from its parent request (i.e. the current request that is calling the subrequest in question). Currently none of the subrequests issued by this module inherit the cached variables from the parent request.
 * Add new variable *$echo_active_subrequests* to show `r->main->count - 1`.
@@ -1642,47 +1721,52 @@ TODO
 * Add new varaible *$echo_request_headers* to accompany the existing [$echo_client_request_headers](#echo_client_request_headers) variable.
 * Add new directive *echo_foreach*, as in
 
+```nginx
 
       echo_foreach 'cat' 'dog' 'mouse';
         echo_location_async "/animals/$echo_it";
       echo_end;
-
+```
 
 * Add new directive *echo_foreach_range*, as in
 
+```nginx
 
       echo_foreach_range '[1..100]' '[a-zA-z0-9]';
         echo_location_async "/item/$echo_it";
       echo_end;
-
+```
 
 * Add new directive *echo_repeat*, as in
 
+```nginx
 
       echo_repeat 10 $i {
           echo "Page $i";
           echo_location "/path/to/page/$i";
       }
-
+```
 
 This is just another way of saying
 
+```nginx
 
       echo_foreach_range $i [1..10];
           echo "Page $i";
           echo_location "/path/to/page/$i";
       echo_end;
-
+```
 
 Thanks Marcus Clyne for providing this idea.
 
 * Add new variable $echo_random which always returns a random non-negative integer with the lower/upper limit specified by the new directives `echo_random_min` and `echo_random_max`. For example,
 
+```nginx
 
       echo_random_min  10
       echo_random_max  200
       echo "random number: $echo_random";
-
+```
 
 Thanks Marcus Clyne for providing this idea.
 
