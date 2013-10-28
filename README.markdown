@@ -72,7 +72,7 @@ This module is production ready.
 Version
 =======
 
-This document describes ngx_echo [v0.48](https://github.com/agentzh/echo-nginx-module/tags) released on 15 September 2013.
+This document describes ngx_echo [v0.49](https://github.com/agentzh/echo-nginx-module/tags) released on 27 October 2013.
 
 Synopsis
 ========
@@ -1595,7 +1595,7 @@ Compatibility
 The following versions of Nginx should work with this module:
 
 * **1.5.x**                       (last tested: 1.5.4)
-* **1.4.x**                       (last tested: 1.4.2)
+* **1.4.x**                       (last tested: 1.4.3)
 * **1.3.x**                       (last tested: 1.3.7)
 * **1.2.x**                       (last tested: 1.2.9)
 * **1.1.x**                       (last tested: 1.1.5)
