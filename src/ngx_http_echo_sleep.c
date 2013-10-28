@@ -1,9 +1,14 @@
-/* Copyright (C) agentzh */
+
+/*
+ * Copyright (C) Yichun Zhang (agentzh)
+ */
+
 
 #ifndef DDEBUG
 #define DDEBUG 0
 #endif
 #include "ddebug.h"
+
 
 #include "ngx_http_echo_sleep.h"
 #include "ngx_http_echo_handler.h"
@@ -11,10 +16,10 @@
 #include <nginx.h>
 #include <ngx_log.h>
 
+
 /* event handler for echo_sleep */
 
 static void ngx_http_echo_post_sleep(ngx_http_request_t *r);
-
 static void ngx_http_echo_sleep_cleanup(void *data);
 
 
@@ -85,7 +90,7 @@ ngx_http_echo_post_sleep(ngx_http_request_t *r)
     dd("timed out? %d", ctx->sleep.timedout);
     dd("timer set? %d", ctx->sleep.timer_set);
 
-    if ( ! ctx->sleep.timedout ) {
+    if (!ctx->sleep.timedout) {
         dd("HERE reached!");
         return;
     }
@@ -201,4 +206,3 @@ ngx_http_echo_sleep_cleanup(void *data)
 
     dd("cleanup: timer not set");
 }
-
