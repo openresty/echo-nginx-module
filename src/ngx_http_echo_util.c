@@ -1,7 +1,14 @@
+
+/*
+ * Copyright (C) Yichun Zhang (agentzh)
+ */
+
+
 #ifndef DDEBUG
 #define DDEBUG 0
 #endif
 #include "ddebug.h"
+
 
 #include "ngx_http_echo_util.h"
 #include "ngx_http_echo_sleep.h"
