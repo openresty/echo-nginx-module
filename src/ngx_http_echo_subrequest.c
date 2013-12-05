@@ -351,7 +351,7 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
 
         dd("file content size: %d", (int) of.size);
 
-        parsed_sr->content_length_n = of.size;
+        parsed_sr->content_length_n = (ssize_t) of.size;
 
         b = ngx_pcalloc(r->pool, sizeof(ngx_buf_t));
         if (b == NULL) {
@@ -557,8 +557,6 @@ ngx_http_echo_parse_method_name(ngx_str_t **method_name_ptr)
         return NGX_HTTP_UNKNOWN;
         break;
     }
-
-    return NGX_HTTP_UNKNOWN;
 }
 
 
@@ -746,10 +744,7 @@ ngx_http_echo_set_content_length_header(ngx_http_request_t *r, off_t len)
 
     h->value.len = ngx_sprintf(h->value.data, "%O", len) - h->value.data;
 
-    h->hash = ngx_hash(ngx_hash(ngx_hash(ngx_hash(ngx_hash(ngx_hash(ngx_hash(
-            ngx_hash(ngx_hash(ngx_hash(ngx_hash(ngx_hash(
-            ngx_hash('c', 'o'), 'n'), 't'), 'e'), 'n'), 't'), '-'), 'l'), 'e'),
-            'n'), 'g'), 't'), 'h');
+    h->hash = ngx_http_echo_content_length_hash;
 
     dd("r content length: %.*s",
             (int)r->headers_in.content_length->value.len,

@@ -7,6 +7,9 @@
 #include "ngx_http_echo_sleep.h"
 
 
+ngx_uint_t  ngx_http_echo_content_length_hash = 0;
+
+
 ngx_http_echo_ctx_t *
 ngx_http_echo_create_ctx(ngx_http_request_t *r)
 {

@@ -8,6 +8,7 @@
 #include "ngx_http_echo_echo.h"
 #include "ngx_http_echo_request_info.h"
 #include "ngx_http_echo_var.h"
+#include "ngx_http_echo_util.h"
 
 #include <nginx.h>
 #include <ngx_config.h>
@@ -651,6 +652,9 @@ ngx_http_echo_post_config(ngx_conf_t *cf)
     if (rc != NGX_OK) {
         return rc;
     }
+
+    ngx_http_echo_content_length_hash =
+                                  ngx_http_echo_hash_literal("content-length");
 
     return ngx_http_echo_add_variables(cf);
 }
