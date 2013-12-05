@@ -1,7 +1,14 @@
+
+/*
+ * Copyright (C) Yichun Zhang (agentzh)
+ */
+
+
 #ifndef DDEBUG
 #define DDEBUG 0
 #endif
 #include "ddebug.h"
+
 
 #include "ngx_http_echo_util.h"
 #include "ngx_http_echo_subrequest.h"
@@ -10,6 +17,7 @@
 
 
 #define ngx_http_echo_method_name(m) { sizeof(m) - 1, (u_char *) m " " }
+
 
 ngx_str_t  ngx_http_echo_content_length_header_key =
         ngx_string("Content-Length");
@@ -33,11 +41,11 @@ ngx_str_t  ngx_http_echo_proppatch_method =
 
 
 typedef struct ngx_http_echo_subrequest_s {
-    ngx_uint_t                  method;
+    ngx_uint_t                   method;
     ngx_str_t                   *method_name;
     ngx_str_t                   *location;
     ngx_str_t                   *query_string;
-    ssize_t                     content_length_n;
+    ssize_t                      content_length_n;
     ngx_http_request_body_t     *request_body;
 } ngx_http_echo_subrequest_t;
 
@@ -55,11 +63,11 @@ ngx_int_t
 ngx_http_echo_exec_echo_subrequest_async(ngx_http_request_t *r,
     ngx_http_echo_ctx_t *ctx, ngx_array_t *computed_args)
 {
-    ngx_int_t                       rc;
+    ngx_int_t                        rc;
     ngx_http_echo_subrequest_t      *parsed_sr;
     ngx_http_request_t              *sr; /* subrequest object */
-    ngx_str_t                       args;
-    ngx_uint_t                      flags = 0;
+    ngx_str_t                        args;
+    ngx_uint_t                       flags = 0;
 
     dd_enter();
 
@@ -790,4 +798,3 @@ ngx_http_echo_set_content_length_header(ngx_http_request_t *r, off_t len)
 
     return NGX_OK;
 }
-
