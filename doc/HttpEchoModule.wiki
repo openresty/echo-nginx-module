@@ -868,7 +868,7 @@ The <code>-f</code> option to define a file path for the body was introduced in 
 See also the [[#echo_subrequest|echo_subrequest]] and [[#echo_location_async|echo_location_async]] directives.
 
 == echo_subrequest ==
-'''syntax:''' ''echo_subrequest_async <HTTP_method> <location> [-q <url_args>] [-b <request_body>] [-f <request_body_path>]''
+'''syntax:''' ''echo_subrequest <HTTP_method> <location> [-q <url_args>] [-b <request_body>] [-f <request_body_path>]''
 
 '''default:''' ''no''
 

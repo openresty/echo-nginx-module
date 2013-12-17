@@ -1025,7 +1025,7 @@ See also the [echo_subrequest](#echo_subrequest) and [echo_location_async](#echo
 
 echo_subrequest
 ---------------
-**syntax:** *echo_subrequest_async &lt;HTTP_method&gt; &lt;location&gt; [-q &lt;url_args&gt;] [-b &lt;request_body&gt;] [-f &lt;request_body_path&gt;]*
+**syntax:** *echo_subrequest &lt;HTTP_method&gt; &lt;location&gt; [-q &lt;url_args&gt;] [-b &lt;request_body&gt;] [-f &lt;request_body_path&gt;]*
 
 **default:** *no*
 
