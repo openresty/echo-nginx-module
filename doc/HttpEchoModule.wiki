@@ -919,7 +919,8 @@ Parallel <code>echo_foreach_split</code> loops are allowed, but nested ones are 
 The <code>delimiter</code> argument could contain ''multiple'' arbitrary characters, like
 
 <geshi lang="nginx">
-  echo_foreach_split '-a-' 'cat-a-dog-a-mouse';
+  # this outputs "cat\ndog\nmouse\n"
+  echo_foreach_split -- '-a-' 'cat-a-dog-a-mouse';
     echo $echo_it;
   echo_end;
 </geshi>
@@ -1535,4 +1536,3 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * The standard [[HttpAdditionModule|addition filter module]].
 * The standard [[HttpProxyModule|proxy module]].
 * The [http://openresty.org ngx_openresty] bundle.
-

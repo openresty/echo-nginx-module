@@ -1082,7 +1082,8 @@ The `delimiter` argument could contain *multiple* arbitrary characters, like
 
 ```nginx
 
-  echo_foreach_split '-a-' 'cat-a-dog-a-mouse';
+  # this outputs "cat\ndog\nmouse\n"
+  echo_foreach_split -- '-a-' 'cat-a-dog-a-mouse';
     echo $echo_it;
   echo_end;
 ```
@@ -1823,4 +1824,3 @@ See Also
 * The standard [addition filter module](http://nginx.org/en/docs/http/ngx_http_addition_module.html).
 * The standard [proxy module](http://nginx.org/en/docs/http/ngx_http_proxy_module.html).
 * The [ngx_openresty](http://openresty.org) bundle.
-
