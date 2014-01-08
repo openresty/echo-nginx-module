@@ -236,11 +236,48 @@ ngx_int_t
 ngx_http_echo_exec_echo_request_body(ngx_http_request_t *r,
     ngx_http_echo_ctx_t *ctx)
 {
-    if (r->request_body && r->request_body->bufs) {
-        return ngx_http_echo_send_chain_link(r, ctx, r->request_body->bufs);
+    ngx_buf_t       *b;
+    ngx_chain_t     *out, *cl, **ll;
+
+    if (r->request_body == NULL || r->request_body->bufs == NULL) {
+        return NGX_OK;
     }
 
-    return NGX_OK;
+    out = NULL;
+    ll = &out;
+
+    for (cl = r->request_body->bufs; cl; cl = cl->next) {
+        if (ngx_buf_special(cl->buf)) {
+            /* we do not want to create zero-size bufs */
+            continue;
+        }
+
+        *ll = ngx_alloc_chain_link(r->pool);
+        if (*ll == NULL) {
+            return NGX_ERROR;
+        }
+
+        b = ngx_alloc_buf(r->pool);
+        if (b == NULL) {
+            return NGX_ERROR;
+        }
+
+        (*ll)->buf = b;
+        (*ll)->next = NULL;
+
+        ngx_memcpy(b, cl->buf, sizeof(ngx_buf_t));
+        b->tag = (ngx_buf_tag_t) &ngx_http_echo_exec_echo_request_body;
+        b->last_buf = 0;
+        b->last_in_chain = 0;
+
+        ll = &(*ll)->next;
+    }
+
+    if (out == NULL) {
+        return NGX_OK;
+    }
+
+    return ngx_http_echo_send_chain_link(r, ctx, out);
 }
 
 
