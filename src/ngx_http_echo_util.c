@@ -108,10 +108,6 @@ ngx_http_echo_send_chain_link(ngx_http_request_t* r,
         return rc;
     }
 
-    if (rc == NGX_ERROR) {
-        return NGX_HTTP_INTERNAL_SERVER_ERROR;
-    }
-
     if (in == NULL) {
 
 #if defined(nginx_version) && nginx_version <= 8004
