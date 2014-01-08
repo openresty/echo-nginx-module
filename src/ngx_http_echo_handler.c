@@ -65,7 +65,7 @@ ngx_http_echo_wev_handler(ngx_http_request_t *r)
 
     dd("rc: %d", (int) rc);
 
-    if (rc == NGX_DONE) {
+    if (rc == NGX_ERROR || rc == NGX_DONE) {
         ngx_http_finalize_request(r, rc);
         return;
     }
@@ -105,11 +105,11 @@ ngx_http_echo_handler(ngx_http_request_t *r)
 
     dd("run cmds returned %d", (int) rc);
 
-    if (rc == NGX_OK || rc == NGX_DONE || rc == NGX_DECLINED) {
-        return rc;
-    }
-
-    if (rc == NGX_ERROR) {
+    if (rc == NGX_ERROR
+        || rc == NGX_OK
+        || rc == NGX_DONE
+        || rc == NGX_DECLINED)
+    {
         return rc;
     }
 
@@ -302,23 +302,30 @@ read_request_body:
 
             rc = ngx_http_echo_exec_echo_read_request_body(r, ctx);
 
-#if defined(nginx_version) && nginx_version >= 8011
-            /* XXX read_client_request_body always increments the counter */
+            if (rc == NGX_ERROR) {
+                return NGX_ERROR;
+            }
+
+            if (rc >= NGX_HTTP_SPECIAL_RESPONSE) {
+#if (nginx_version >= 8011 && nginx_version < 1002006)                       \
+    || (nginx_version >= 1003000 && nginx_version < 1003009)
+                r->main->count--;
+#endif
+                return rc;
+            }
+
+#if nginx_version >= 8011
             r->main->count--;
 #endif
-
             dd("read request body: %d", (int) rc);
 
             if (rc == NGX_OK) {
                 continue;
             }
 
+            /* rc == NGX_AGAIN */
             ctx->wait_read_request_body = 1;
-
-            /* r->write_event_handler = ngx_http_request_empty_handler; */
-
-            return rc;
-            break;
+            return NGX_AGAIN;
 
         case echo_opcode_echo_foreach_split:
             rc = ngx_http_echo_exec_echo_foreach_split(r, ctx, computed_args);
