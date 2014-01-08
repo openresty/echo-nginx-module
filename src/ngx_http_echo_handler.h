@@ -6,8 +6,6 @@
 
 void ngx_http_echo_wev_handler(ngx_http_request_t *r);
 
-ngx_int_t ngx_http_echo_handler_init(ngx_conf_t *cf);
-
 ngx_int_t ngx_http_echo_handler(ngx_http_request_t *r);
 
 ngx_int_t ngx_http_echo_run_cmds(ngx_http_request_t *r);
