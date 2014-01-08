@@ -18,12 +18,13 @@
 
 static void ngx_http_echo_post_read_request_body(ngx_http_request_t *r);
 
+
 ngx_int_t
-ngx_http_echo_exec_echo_read_request_body(
-    ngx_http_request_t* r, ngx_http_echo_ctx_t *ctx)
+ngx_http_echo_exec_echo_read_request_body(ngx_http_request_t* r,
+    ngx_http_echo_ctx_t *ctx)
 {
     return ngx_http_read_client_request_body(r,
-            ngx_http_echo_post_read_request_body);
+                                        ngx_http_echo_post_read_request_body);
 }
 
 
