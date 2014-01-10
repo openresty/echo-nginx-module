@@ -72,7 +72,7 @@ This module is production ready.
 Version
 =======
 
-This document describes ngx_echo [v0.50](https://github.com/agentzh/echo-nginx-module/tags) released on 14 December 2013.
+This document describes ngx_echo [v0.51](https://github.com/agentzh/echo-nginx-module/tags) released on 10 January 2014.
 
 Synopsis
 ========
@@ -1568,13 +1568,13 @@ You're recommended to install this module (as well as the Nginx core and many ot
 Alternatively, you can install this module manually with the Nginx source:
 
 Grab the nginx source code from [nginx.org](http://nginx.org/), for example,
-the version 1.4.4 (see [nginx compatibility](#compatibility)), and then build the source with this module:
+the version 1.5.8 (see [nginx compatibility](#compatibility)), and then build the source with this module:
 
 ```bash
 
-$ wget 'http://nginx.org/download/nginx-1.4.4.tar.gz'
-$ tar -xzvf nginx-1.4.4.tar.gz
-$ cd nginx-1.4.4/
+$ wget 'http://nginx.org/download/nginx-1.5.8.tar.gz'
+$ tar -xzvf nginx-1.5.8.tar.gz
+$ cd nginx-1.5.8/
 
 # Here we assume you would install you nginx under /opt/nginx/.
 $ ./configure --prefix=/opt/nginx \
@@ -1595,7 +1595,7 @@ Compatibility
 
 The following versions of Nginx should work with this module:
 
-* **1.5.x**                       (last tested: 1.5.4)
+* **1.5.x**                       (last tested: 1.5.8)
 * **1.4.x**                       (last tested: 1.4.4)
 * **1.3.x**                       (last tested: 1.3.7)
 * **1.2.x**                       (last tested: 1.2.9)
@@ -1792,7 +1792,7 @@ This wiki page is also maintained by the author himself, and everybody is encour
 Copyright & License
 ===================
 
-Copyright (c) 2009-2013, Yichun "agentzh" Zhang (章亦春) <agentzh@gmail.com>, CloudFlare Inc.
+Copyright (c) 2009-2014, Yichun "agentzh" Zhang (章亦春) <agentzh@gmail.com>, CloudFlare Inc.
 
 This module is licensed under the terms of the BSD license.
 
