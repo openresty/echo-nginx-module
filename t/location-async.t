@@ -206,16 +206,16 @@ a%20b Bar
     location /main {
         echo_location_async /sub%31 'foo=Foo&bar=Bar';
     }
-    location /sub1 {
-        echo 'sub1';
-    }
     location /sub%31 {
         echo 'sub%31';
+    }
+    location /sub1 {
+        echo 'sub1';
     }
 --- request
     GET /main
 --- response_body
-sub%31
+sub1
 
 
 
