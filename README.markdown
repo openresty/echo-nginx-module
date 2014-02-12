@@ -1015,6 +1015,17 @@ Then on the client side, we can see that
 
 Nginx named locations like `@foo` is *not* supported here.
 
+This directive takes several options:
+
+
+    -q <url_args>        Specify the URL arguments (or URL querystring) for the subrequest.
+
+    -f <path>            Specify the path for the file whose content will be serve as the
+                         subrequest's request body.
+
+    -b <data>            Specify the request body data
+
+
 This directive was first introduced in the [release v0.15](#v015).
 
 The `-f` option to define a file path for the body was introduced in the [release v0.35](#v035).
@@ -1824,3 +1835,4 @@ See Also
 * The standard [addition filter module](http://nginx.org/en/docs/http/ngx_http_addition_module.html).
 * The standard [proxy module](http://nginx.org/en/docs/http/ngx_http_proxy_module.html).
 * The [ngx_openresty](http://openresty.org) bundle.
+

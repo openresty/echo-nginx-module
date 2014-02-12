@@ -861,6 +861,17 @@ Then on the client side, we can see that
 
 Nginx named locations like <code>@foo</code> is ''not'' supported here.
 
+This directive takes several options:
+
+<geshi lang="text">
+    -q <url_args>        Specify the URL arguments (or URL querystring) for the subrequest.
+
+    -f <path>            Specify the path for the file whose content will be serve as the
+                         subrequest's request body.
+
+    -b <data>            Specify the request body data
+</geshi>
+
 This directive was first introduced in the [[#v0.15|release v0.15]].
 
 The <code>-f</code> option to define a file path for the body was introduced in the [[#v0.35|release v0.35]].
@@ -1536,3 +1547,4 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * The standard [[HttpAdditionModule|addition filter module]].
 * The standard [[HttpProxyModule|proxy module]].
 * The [http://openresty.org ngx_openresty] bundle.
+
