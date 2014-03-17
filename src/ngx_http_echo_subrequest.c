@@ -409,6 +409,10 @@ ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr,
     sr->method = parsed_sr->method;
     sr->method_name = *(parsed_sr->method_name);
 
+    if (sr->method == NGX_HTTP_HEAD) {
+        sr->header_only = 1;
+    }
+
     r = sr->parent;
 
     sr->header_in = r->header_in;

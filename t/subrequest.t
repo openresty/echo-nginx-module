@@ -689,3 +689,18 @@ hi(world people);
 sub method: POST
 sub body: request_body=test&test=3
 
+
+
+=== TEST 33: HEAD subrequest
+--- config
+    location /main {
+        echo_subrequest HEAD /sub;
+        echo_subrequest HEAD /sub;
+    }
+    location /sub {
+        echo hello;
+    }
+--- request
+    GET /main
+--- response_body
+

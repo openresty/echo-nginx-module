@@ -587,3 +587,18 @@ hi(world people);
     HEAD /main
 --- response_body
 
+
+
+=== TEST 30: HEAD subrequest
+--- config
+    location /main {
+        echo_subrequest_async HEAD /sub;
+        echo_subrequest_async HEAD /sub;
+    }
+    location /sub {
+        echo hello;
+    }
+--- request
+    GET /main
+--- response_body
+
