@@ -72,7 +72,7 @@ This module is production ready.
 Version
 =======
 
-This document describes ngx_echo [v0.51](https://github.com/agentzh/echo-nginx-module/tags) released on 10 January 2014.
+This document describes ngx_echo [v0.52](https://github.com/agentzh/echo-nginx-module/tags) released on 20 March 2014.
 
 Synopsis
 ========
@@ -1579,13 +1579,13 @@ You're recommended to install this module (as well as the Nginx core and many ot
 Alternatively, you can install this module manually with the Nginx source:
 
 Grab the nginx source code from [nginx.org](http://nginx.org/), for example,
-the version 1.5.8 (see [nginx compatibility](#compatibility)), and then build the source with this module:
+the version 1.5.11 (see [nginx compatibility](#compatibility)), and then build the source with this module:
 
 ```bash
 
-$ wget 'http://nginx.org/download/nginx-1.5.8.tar.gz'
-$ tar -xzvf nginx-1.5.8.tar.gz
-$ cd nginx-1.5.8/
+$ wget 'http://nginx.org/download/nginx-1.5.11.tar.gz'
+$ tar -xzvf nginx-1.5.11.tar.gz
+$ cd nginx-1.5.11/
 
 # Here we assume you would install you nginx under /opt/nginx/.
 $ ./configure --prefix=/opt/nginx \
@@ -1606,7 +1606,7 @@ Compatibility
 
 The following versions of Nginx should work with this module:
 
-* **1.5.x**                       (last tested: 1.5.8)
+* **1.5.x**                       (last tested: 1.5.11)
 * **1.4.x**                       (last tested: 1.4.4)
 * **1.3.x**                       (last tested: 1.3.7)
 * **1.2.x**                       (last tested: 1.2.9)
@@ -1835,4 +1835,3 @@ See Also
 * The standard [addition filter module](http://nginx.org/en/docs/http/ngx_http_addition_module.html).
 * The standard [proxy module](http://nginx.org/en/docs/http/ngx_http_proxy_module.html).
 * The [ngx_openresty](http://openresty.org) bundle.
-
