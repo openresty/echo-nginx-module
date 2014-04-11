@@ -167,6 +167,10 @@ ngx_http_echo_exec_echo(ngx_http_request_t *r,
         }
     } /* end for */
 
+    if (cl && cl->buf == NULL) {
+        cl = cl->next;
+    }
+
     if (opts && opts->nelts > 0) {
         opt = opts->elts;
         if (opt[0].len == 1 && opt[0].data[0] == 'n') {
@@ -175,10 +179,6 @@ ngx_http_echo_exec_echo(ngx_http_request_t *r,
     }
 
     /* append the newline character */
-
-    if (cl && cl->buf == NULL) {
-        cl = cl->next;
-    }
 
     newline_buf = ngx_calloc_buf(r->pool);
 

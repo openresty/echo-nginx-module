@@ -369,3 +369,16 @@ foo bar baz"]
 --- response_body eval
 ["hello\nworld\n","hello\nworld\n"]
 
+
+
+=== TEST 26: empty arg after -n (github issue #33)
+--- config
+    location = /t {
+        set $empty "";
+        echo -n $empty hello world;
+    }
+--- request
+    GET /t
+--- response_body chop
+ hello world
+
