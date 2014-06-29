@@ -6,7 +6,7 @@ use Test::Nginx::Socket;
 
 repeat_each(2);
 
-plan tests => repeat_each() * (2 * blocks());
+plan tests => repeat_each() * (2 * blocks() + 1);
 
 $ENV{TEST_NGINX_HTML_DIR} = html_dir;
 $ENV{TEST_NGINX_CLIENT_PORT} ||= server_port();
@@ -703,4 +703,23 @@ sub body: request_body=test&test=3
 --- request
     GET /main
 --- response_body
+
+
+
+=== TEST 34: method name as an nginx variable (github issue #34)
+--- config
+  location ~ ^/delay/(?<delay>[0-9.]+)/(?<originalURL>.*)$ {
+      # echo_blocking_sleep $delay;
+      echo_subrequest '$echo_request_method' '/$originalURL' -q '$args';
+  }
+
+  location /api {
+      echo "args: $args";
+  }
+--- request
+    GET /delay/0.343/api/?a=b
+--- response_body
+args: a=b
+--- no_error_log
+[error]
 

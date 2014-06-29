@@ -69,9 +69,14 @@ ngx_http_echo_eval_cmd_args(ngx_http_request_t *r,
                     opt->len = raw->len - 1;
                     opt->data = raw->data + 1;
 
+                    dd("pushing opt: %.*s", (int) opt->len, opt->data);
+
                     continue;
                 }
             }
+
+        } else {
+            expecting_opts = 0;
         }
 
         arg = ngx_array_push(computed_args);
@@ -85,11 +90,14 @@ ngx_http_echo_eval_cmd_args(ngx_http_request_t *r,
 
         } else {
             if (ngx_http_script_run(r, arg, value[i].lengths->elts,
-                        0, value[i].values->elts) == NULL)
+                                    0, value[i].values->elts)
+                == NULL)
             {
                 return NGX_HTTP_INTERNAL_SERVER_ERROR;
             }
         }
+
+        dd("pushed arg: %.*s", (int) arg->len, arg->data);
     }
 
     return NGX_OK;
