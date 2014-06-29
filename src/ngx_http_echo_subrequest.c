@@ -271,7 +271,7 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
         }
 
         ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
-                      "unknown option for echo_subrequest_async: %V", arg);
+                      "unknown option for echo_subrequest*: %V", arg);
 
         return NGX_ERROR;
     }
