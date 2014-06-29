@@ -1633,9 +1633,9 @@ Modules that use this module for testing
 
 The following modules take advantage of this `echo` module in their test suite:
 
-* The [memc](http://github.com/agentzh/memc-nginx-module) module that supports almost the whole memcached TCP protocol.
+* The [memc](http://github.com/openresty/memc-nginx-module) module that supports almost the whole memcached TCP protocol.
 * The [chunkin](http://github.com/agentzh/chunkin-nginx-module) module that adds HTTP 1.1 chunked input support to Nginx.
-* The [headers_more](http://github.com/agentzh/headers-more-nginx-module) module that allows you to add, set, and clear input and output headers under the conditions that you specify.
+* The [headers_more](http://github.com/openresty/headers-more-nginx-module) module that allows you to add, set, and clear input and output headers under the conditions that you specify.
 * The `echo` module itself.
 
 Please mail me other modules that use `echo` in any form and I'll add them to the list above :)
