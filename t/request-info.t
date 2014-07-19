@@ -635,3 +635,111 @@ Connection: Close\r
 --- no_error_log
 [error]
 
+
+
+=== TEST 28: ngx_proxy/ngx_fastcgi/etc change r->header_end to point to their own buffers (exclusive LF in the request data)
+--- config
+    location = /t {
+        proxy_buffering off;
+        proxy_pass http://127.0.0.1:$server_port/bad;
+        proxy_intercept_errors on;
+        error_page 500 = /500;
+    }
+
+    location = /bad {
+        return 500;
+    }
+
+    location = /500 {
+        internal;
+        echo -n $echo_client_request_headers;
+    }
+--- raw_request eval
+"GET /t HTTP/1.1
+Host: localhost
+Connection: close
+Content-Length: 5
+
+hello"
+--- response_body eval
+"GET /t HTTP/1.1
+Host: localhost
+Connection: close
+Content-Length: 5
+
+"
+--- no_error_log
+[error]
+
+
+
+=== TEST 29: ngx_proxy/ngx_fastcgi/etc change r->header_end to point to their own buffers (mixed LF and CRLF in the request data)
+--- config
+    location = /t {
+        proxy_buffering off;
+        proxy_pass http://127.0.0.1:$server_port/bad;
+        proxy_intercept_errors on;
+        error_page 500 = /500;
+    }
+
+    location = /bad {
+        return 500;
+    }
+
+    location = /500 {
+        internal;
+        echo -n $echo_client_request_headers;
+    }
+--- raw_request eval
+"GET /t HTTP/1.1\r
+Host: localhost
+Connection: close\r
+Content-Length: 5\r
+
+hello"
+--- response_body eval
+"GET /t HTTP/1.1\r
+Host: localhost
+Connection: close\r
+Content-Length: 5\r
+
+"
+--- no_error_log
+[error]
+
+
+
+=== TEST 30: ngx_proxy/ngx_fastcgi/etc change r->header_end to point to their own buffers (another way of mixing LF and CRLF in the request data)
+--- config
+    location = /t {
+        proxy_buffering off;
+        proxy_pass http://127.0.0.1:$server_port/bad;
+        proxy_intercept_errors on;
+        error_page 500 = /500;
+    }
+
+    location = /bad {
+        return 500;
+    }
+
+    location = /500 {
+        internal;
+        echo -n $echo_client_request_headers;
+    }
+--- raw_request eval
+"GET /t HTTP/1.1\r
+Host: localhost
+Connection: close\r
+Content-Length: 5
+\r
+hello"
+--- response_body eval
+"GET /t HTTP/1.1\r
+Host: localhost
+Connection: close\r
+Content-Length: 5
+\r
+"
+--- no_error_log
+[error]
+
