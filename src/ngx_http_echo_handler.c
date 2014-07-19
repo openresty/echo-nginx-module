@@ -1,7 +1,14 @@
+
+/*
+ * Copyright (C) Yichun Zhang (agentzh)
+ */
+
+
 #ifndef DDEBUG
 #define DDEBUG 0
 #endif
 #include "ddebug.h"
+
 
 #include "ngx_http_echo_filter.h"
 #include "ngx_http_echo_handler.h"
@@ -298,6 +305,7 @@ ngx_http_echo_run_cmds(ngx_http_request_t *r)
         case echo_opcode_echo_read_request_body:
 
 read_request_body:
+
             ctx->wait_read_request_body = 0;
 
             rc = ngx_http_echo_exec_echo_read_request_body(r, ctx);
