@@ -195,7 +195,7 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
         first = b;
 
         if (mr->header_in == b) {
-            size += mr->header_end + 2 - mr->request_line.data;
+            size += mr->header_in->pos - mr->request_line.data;
 
         } else {
             /* the subsequent part of the header is in the large header
@@ -231,13 +231,17 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
             }
 
             if (b == mr->header_in) {
-                size += mr->header_end + 2 - b->start;
+                size += mr->header_in->pos - b->start;
                 break;
             }
 
             size += b->pos - b->start;
         }
     }
+
+
+    size++;  /* plus the null terminator, as required by the later
+                ngx_strstr() call */
 
     v->data = ngx_palloc(r->pool, size);
     if (v->data == NULL) {
@@ -249,7 +253,7 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
     b = c->buffer;
     if (first == b) {
         if (mr->header_in == b) {
-            pos = mr->header_end + 2;
+            pos = mr->header_in->pos;
 
         } else {
             pos = b->pos;
@@ -287,7 +291,7 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
             p = last;
 
             if (b == mr->header_in) {
-                pos = mr->header_end + 2;
+                pos = mr->header_in->pos;
 
             } else {
                 pos = b->pos;
@@ -333,6 +337,8 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
         }
     }
 
+    *last++ = '\0';
+
     if (last - v->data > (ssize_t) size) {
         ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
                       "buffer error when evaluating "
@@ -340,6 +346,16 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
                       (ngx_int_t) (last - v->data - size));
 
         return NGX_ERROR;
+    }
+
+    /* strip the leading part (if any) of the request body in our header.
+     * the first part of the request body could slip in because nginx core's
+     * ngx_http_request_body_length_filter and etc can move r->header_in->pos
+     * in case that some of the body data has been preread into r->header_in.
+     */
+    p = (u_char *) ngx_strstr(v->data, CRLF CRLF);
+    if (p) {
+        last = p + sizeof(CRLF CRLF) - 1;
     }
 
     v->len = last - v->data;
