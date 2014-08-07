@@ -50,6 +50,7 @@ Table of Contents
     * [$echo_response_status](#echo_response_status)
 * [Installation](#installation)
 * [Compatibility](#compatibility)
+* [Known Issues](#known-issues)
 * [Modules that use this module for testing](#modules-that-use-this-module-for-testing)
 * [Community](#community)
     * [English Mailing List](#english-mailing-list)
@@ -825,15 +826,6 @@ Accessing `/main` yields
 
 Querystrings is *not* allowed to be concatenated onto the `location` argument with "?" directly, for example, `/sub?foo=Foo&bar=Bar` is an invalid location, and shouldn't be fed as the first argument to this directive.
 
-Due to an unknown bug in Nginx (it still exists in Nginx 0.8.20), the [standard SSI module](http://nginx.org/en/docs/http/ngx_http_ssi_module.html) is required to ensure that the contents of the subrequests issued by this directive are correctly merged into the output chains of the main one. Fortunately, the SSI module is enabled by default during Nginx's `configure` process.
-
-If calling this directive without SSI module enabled, you'll get truncated response without contents of any subrequests and get an alert message in your Nginx's `error.log`, like this:
-
-```nginx
-
-  [alert] 24212#0: *1 the http output chain is empty, client: 127.0.0.1, ...
-```
-
 Technically speaking, this directive is an example that Nginx content handler issues one or more subrequests directly. AFAIK, the [fancyindex module](https://connectical.com/projects/ngx-fancyindex/wiki) also does such kind of things ;)
 
 Nginx named locations like `@foo` is *not* supported here.
@@ -853,6 +845,8 @@ is logically equivalent to
 ```
 
 But calling this directive is slightly faster than calling [echo_subrequest_async](#echo_subrequest_async) using `GET` because we don't have to parse the HTTP method names like `GET` and options like `-q`.
+
+There is a known issue with this directive when disabling the standard [standard SSI module](http://nginx.org/en/docs/http/ngx_http_ssi_module.html). See [Known Issues](#known-issues) for more details.
 
 This directive is first introduced in [version 0.09](#v009) of this module and requires at least Nginx 0.7.46.
 
@@ -1031,6 +1025,8 @@ This directive was first introduced in the [release v0.15](#v015).
 The `-f` option to define a file path for the body was introduced in the [release v0.35](#v035).
 
 See also the [echo_subrequest](#echo_subrequest) and [echo_location_async](#echo_location_async) directives.
+
+There is a known issue with this directive when disabling the standard [standard SSI module](http://nginx.org/en/docs/http/ngx_http_ssi_module.html). See [Known Issues](#known-issues) for more details.
 
 [Back to TOC](#table-of-contents)
 
@@ -1629,6 +1625,20 @@ If you find that any particular version of Nginx above 0.7.21 does not work with
 
 [Back to TOC](#table-of-contents)
 
+Known Issues
+============
+
+Due to an unknown bug in Nginx (it still exists in Nginx 1.7.4), the [standard SSI module](http://nginx.org/en/docs/http/ngx_http_ssi_module.html) is required to ensure that the contents of the subrequests issued by [echo_locatoin_async](#echo_location_async) and [echo_subrequest_async](#echo_subrequest_async) are correctly merged into the output chains of the main one. Fortunately, the SSI module is enabled by default during Nginx's `configure` process.
+
+If calling this directive without SSI module enabled, you'll get truncated response without contents of any subrequests and get an alert message in your Nginx's `error.log`, like this:
+
+```nginx
+
+  [alert] 24212#0: *1 the http output chain is empty, client: 127.0.0.1, ...
+```
+
+[Back to TOC](#table-of-contents)
+
 Modules that use this module for testing
 ========================================
 
@@ -1836,3 +1846,4 @@ See Also
 * The standard [addition filter module](http://nginx.org/en/docs/http/ngx_http_addition_module.html).
 * The standard [proxy module](http://nginx.org/en/docs/http/ngx_http_proxy_module.html).
 * The [ngx_openresty](http://openresty.org) bundle.
+

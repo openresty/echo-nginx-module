@@ -688,14 +688,6 @@ Accessing <code>/main</code> yields
 
 Querystrings is ''not'' allowed to be concatenated onto the <code>location</code> argument with "?" directly, for example, <code>/sub?foo=Foo&bar=Bar</code> is an invalid location, and shouldn't be fed as the first argument to this directive.
 
-Due to an unknown bug in Nginx (it still exists in Nginx 0.8.20), the [[HttpSsiModule|standard SSI module]] is required to ensure that the contents of the subrequests issued by this directive are correctly merged into the output chains of the main one. Fortunately, the SSI module is enabled by default during Nginx's <code>configure</code> process.
-
-If calling this directive without SSI module enabled, you'll get truncated response without contents of any subrequests and get an alert message in your Nginx's <code>error.log</code>, like this:
-
-<geshi lang="nginx">
-  [alert] 24212#0: *1 the http output chain is empty, client: 127.0.0.1, ...
-</geshi>
-
 Technically speaking, this directive is an example that Nginx content handler issues one or more subrequests directly. AFAIK, the [https://connectical.com/projects/ngx-fancyindex/wiki fancyindex module] also does such kind of things ;)
 
 Nginx named locations like <code>@foo</code> is ''not'' supported here.
@@ -713,6 +705,8 @@ is logically equivalent to
 </geshi>
 
 But calling this directive is slightly faster than calling [[#echo_subrequest_async|echo_subrequest_async]] using <code>GET</code> because we don't have to parse the HTTP method names like <code>GET</code> and options like <code>-q</code>.
+
+There is a known issue with this directive when disabling the standard [[HttpSsiModule|standard SSI module]]. See [[#Known Issues|Known Issues]] for more details.
 
 This directive is first introduced in [[#v0.09|version 0.09]] of this module and requires at least Nginx 0.7.46.
 
@@ -877,6 +871,8 @@ This directive was first introduced in the [[#v0.15|release v0.15]].
 The <code>-f</code> option to define a file path for the body was introduced in the [[#v0.35|release v0.35]].
 
 See also the [[#echo_subrequest|echo_subrequest]] and [[#echo_location_async|echo_location_async]] directives.
+
+There is a known issue with this directive when disabling the standard [[HttpSsiModule|standard SSI module]]. See [[#Known Issues|Known Issues]] for more details.
 
 == echo_subrequest ==
 '''syntax:''' ''echo_subrequest <HTTP_method> <location> [-q <url_args>] [-b <request_body>] [-f <request_body_path>]''
@@ -1386,6 +1382,16 @@ Earlier versions of Nginx like 0.6.x and 0.5.x will ''not'' work at all.
 
 If you find that any particular version of Nginx above 0.7.21 does not work with this module, please consider [[#Report Bugs|reporting a bug]].
 
+= Known Issues =
+
+Due to an unknown bug in Nginx (it still exists in Nginx 1.7.4), the [[HttpSsiModule|standard SSI module]] is required to ensure that the contents of the subrequests issued by [[#echo_location_async|echo_locatoin_async]] and [[#echo_subrequest_async|echo_subrequest_async]] are correctly merged into the output chains of the main one. Fortunately, the SSI module is enabled by default during Nginx's <code>configure</code> process.
+
+If calling this directive without SSI module enabled, you'll get truncated response without contents of any subrequests and get an alert message in your Nginx's <code>error.log</code>, like this:
+
+<geshi lang="nginx">
+  [alert] 24212#0: *1 the http output chain is empty, client: 127.0.0.1, ...
+</geshi>
+
 = Modules that use this module for testing =
 
 The following modules take advantage of this <code>echo</code> module in their test suite:
@@ -1548,3 +1554,4 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 * The standard [[HttpAdditionModule|addition filter module]].
 * The standard [[HttpProxyModule|proxy module]].
 * The [http://openresty.org ngx_openresty] bundle.
+
