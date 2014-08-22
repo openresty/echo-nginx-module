@@ -21,7 +21,7 @@ __DATA__
 "headers:
 GET /echo HTTP/1.1\r
 Host: localhost\r
-Connection: Close\r
+Connection: close\r
 \r
 "
 
@@ -38,7 +38,7 @@ Connection: Close\r
 --- response_body eval
 "GET /echo HTTP/1.1\r
 Host: localhost\r
-Connection: Close\r
+Connection: close\r
 \r
 ...these are the headers
 "
@@ -58,7 +58,7 @@ Connection: Close\r
 "headers are
 GET /echo HTTP/1.1\r
 Host: localhost\r
-Connection: Close\r
+Connection: close\r
 \r
 ...these are the headers
 "

@@ -21,7 +21,7 @@ __DATA__
 --- response_body eval
 "GET /echo HTTP/1.1\r
 Host: localhost\r
-Connection: Close\r
+Connection: close\r
 \r
 "
 --- no_error_log
@@ -40,11 +40,11 @@ Connection: Close\r
 --- response_body eval
 "GET /echo HTTP/1.1\r
 Host: localhost\r
-Connection: Close\r
+Connection: close\r
 \r
 GET /echo HTTP/1.1\r
 Host: localhost\r
-Connection: Close\r
+Connection: close\r
 \r
 "
 --- no_error_log
@@ -139,7 +139,7 @@ haha
 --- response_body eval
 "POST /echoback HTTP/1.1\r
 Host: localhost\r
-Connection: Close\r
+Connection: close\r
 Content-Length: 14\r
 \r
 body here
@@ -211,7 +211,7 @@ GET /t
 --- response_body eval
 qq{GET /t HTTP/1.1\r
 Host: localhost\r
-Connection: Close\r
+Connection: close\r
 \r
 }
 --- no_error_log
@@ -236,7 +236,7 @@ CORE::join "\n", map { "Header$_: value-$_" } 1..512
 --- response_body eval
 qq{GET /t HTTP/1.1\r
 Host: localhost\r
-Connection: Close\r
+Connection: close\r
 }
 .(CORE::join "\r\n", map { "Header$_: value-$_" } 1..512) . "\r\n\r\n"
 
@@ -418,7 +418,7 @@ hello
 --- response_body eval
 qq{POST /t HTTP/1.1\r
 Host: localhost\r
-Connection: Close\r
+Connection: close\r
 Content-Length: 5\r
 \r
 }
@@ -442,7 +442,7 @@ hello
 --- response_body eval
 qq{POST /main HTTP/1.1\r
 Host: localhost\r
-Connection: Close\r
+Connection: close\r
 Content-Length: 5\r
 \r
 }
@@ -469,7 +469,7 @@ CORE::join"\n", map { "Header$_: value-$_" } 1..512
 --- response_body eval
 qq{POST /t HTTP/1.1\r
 Host: localhost\r
-Connection: Close\r
+Connection: close\r
 }
 .(CORE::join "\r\n", map { "Header$_: value-$_" } 1..512) . "\r\nContent-Length: 5\r\n\r\n"
 
@@ -500,7 +500,7 @@ CORE::join"\n", map { "Header$_: value-$_" } 1..512
 --- response_body eval
 qq{POST /main HTTP/1.1\r
 Host: localhost\r
-Connection: Close\r
+Connection: close\r
 }
 .(CORE::join "\r\n", map { "Header$_: value-$_" } 1..512) . "\r\nContent-Length: 5\r\n\r\n"
 
@@ -526,7 +526,7 @@ $s
 --- response_body eval
 "GET /t HTTP/1.1\r
 Host: localhost\r
-Connection: Close\r
+Connection: close\r
 User-Agent: curl\r
 Bah: bah\r
 Accept: */*\r
@@ -551,7 +551,7 @@ hello
 --- response_body eval
 qq{POST /main HTTP/1.1\r
 Host: localhost\r
-Connection: Close\r
+Connection: close\r
 Content-Length: 5\r
 \r
 }
@@ -575,7 +575,7 @@ hello
 --- response_body eval
 qq{POST /main HTTP/1.1\r
 Host: localhost\r
-Connection: Close\r
+Connection: close\r
 Content-Length: 5\r
 \r
 }
@@ -599,7 +599,7 @@ hello
 --- response_body eval
 qq{POST /main HTTP/1.1\r
 Host: localhost\r
-Connection: Close\r
+Connection: close\r
 Content-Length: 5\r
 \r
 }
@@ -629,7 +629,7 @@ GET /t
 --- response_body eval
 "GET /t HTTP/1.1\r
 Host: localhost\r
-Connection: Close\r
+Connection: close\r
 \r
 "
 --- no_error_log
