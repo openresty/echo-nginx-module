@@ -209,16 +209,8 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
         } else {
             /* the subsequent part of the header is in the large header
              * buffers */
-#if 1
             p = b->pos;
             size += p - mr->request_line.data;
-
-            /* skip truncated header entries (if any) */
-            while (b->pos > b->start && b->pos[-1] != LF) {
-                b->pos--;
-                size--;
-            }
-#endif
         }
     }
 
@@ -270,6 +262,13 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
 
         last = ngx_copy(v->data, mr->request_line.data,
                         pos - mr->request_line.data);
+
+        if (mr->header_in != b) {
+            /* skip truncated header entries (if any) */
+            while (last > v->data && last[-1] != LF) {
+                last--;
+            }
+        }
 
         i = 0;
         for (p = v->data; p != last; p++) {
