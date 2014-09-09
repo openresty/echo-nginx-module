@@ -202,16 +202,7 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
            <= b->pos)
     {
         first = b;
-
-        if (mr->header_in == b) {
-            size += mr->header_in->pos - mr->request_line.data;
-
-        } else {
-            /* the subsequent part of the header is in the large header
-             * buffers */
-            p = b->pos;
-            size += p - mr->request_line.data;
-        }
+        size += b->pos - mr->request_line.data;
     }
 
     if (hc->nbusy) {
@@ -231,11 +222,6 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
                 first = b;
             }
 
-            if (b == mr->header_in) {
-                size += mr->header_in->pos - b->start;
-                break;
-            }
-
             size += b->pos - b->start;
         }
     }
@@ -253,17 +239,12 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
 
     b = c->buffer;
     if (first == b) {
-        if (mr->header_in == b) {
-            pos = mr->header_in->pos;
-
-        } else {
-            pos = b->pos;
-        }
+        pos = b->pos;
 
         last = ngx_copy(v->data, mr->request_line.data,
                         pos - mr->request_line.data);
 
-        if (mr->header_in != b) {
+        if (b != mr->header_in) {
             /* skip truncated header entries (if any) */
             while (last > v->data && last[-1] != LF) {
                 last--;
@@ -303,12 +284,7 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
 
             p = last;
 
-            if (b == mr->header_in) {
-                pos = mr->header_in->pos;
-
-            } else {
-                pos = b->pos;
-            }
+            pos = b->pos;
 
             if (b == first) {
                 dd("request line: %.*s", (int) mr->request_line.len,
