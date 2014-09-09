@@ -238,7 +238,10 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
     last = v->data;
 
     b = c->buffer;
+    found = 0;
+
     if (first == b) {
+        found = 1;
         pos = b->pos;
 
         last = ngx_copy(v->data, mr->request_line.data,
@@ -269,7 +272,6 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
     }
 
     if (hc->nbusy) {
-        found = (b == c->buffer);
         for (i = 0; i < hc->nbusy; i++) {
             b = hc->busy[i];
 
