@@ -73,7 +73,7 @@ This module is production ready.
 Version
 =======
 
-This document describes ngx_echo [v0.56](https://github.com/agentzh/echo-nginx-module/tags) released on 2 September 2014.
+This document describes ngx_echo [v0.57](https://github.com/agentzh/echo-nginx-module/tags) released on 21 November 2014.
 
 Synopsis
 ========
@@ -1575,13 +1575,13 @@ You're recommended to install this module (as well as the Nginx core and many ot
 Alternatively, you can install this module manually with the Nginx source:
 
 Grab the nginx source code from [nginx.org](http://nginx.org/), for example,
-the version 1.7.4 (see [nginx compatibility](#compatibility)), and then build the source with this module:
+the version 1.7.7 (see [nginx compatibility](#compatibility)), and then build the source with this module:
 
 ```bash
 
-$ wget 'http://nginx.org/download/nginx-1.7.4.tar.gz'
-$ tar -xzvf nginx-1.7.4.tar.gz
-$ cd nginx-1.7.4/
+$ wget 'http://nginx.org/download/nginx-1.7.7.tar.gz'
+$ tar -xzvf nginx-1.7.7.tar.gz
+$ cd nginx-1.7.7/
 
 # Here we assume you would install you nginx under /opt/nginx/.
 $ ./configure --prefix=/opt/nginx \
@@ -1602,7 +1602,7 @@ Compatibility
 
 The following versions of Nginx should work with this module:
 
-* **1.7.x**                       (last tested: 1.7.4)
+* **1.7.x**                       (last tested: 1.7.7)
 * **1.6.x**
 * **1.5.x**                       (last tested: 1.5.12)
 * **1.4.x**                       (last tested: 1.4.4)
@@ -1629,7 +1629,7 @@ If you find that any particular version of Nginx above 0.7.21 does not work with
 Known Issues
 ============
 
-Due to an unknown bug in Nginx (it still exists in Nginx 1.7.4), the [standard SSI module](http://nginx.org/en/docs/http/ngx_http_ssi_module.html) is required to ensure that the contents of the subrequests issued by [echo_locatoin_async](#echo_location_async) and [echo_subrequest_async](#echo_subrequest_async) are correctly merged into the output chains of the main one. Fortunately, the SSI module is enabled by default during Nginx's `configure` process.
+Due to an unknown bug in Nginx (it still exists in Nginx 1.7.7), the [standard SSI module](http://nginx.org/en/docs/http/ngx_http_ssi_module.html) is required to ensure that the contents of the subrequests issued by [echo_locatoin_async](#echo_location_async) and [echo_subrequest_async](#echo_subrequest_async) are correctly merged into the output chains of the main one. Fortunately, the SSI module is enabled by default during Nginx's `configure` process.
 
 If calling this directive without SSI module enabled, you'll get truncated response without contents of any subrequests and get an alert message in your Nginx's `error.log`, like this:
 
