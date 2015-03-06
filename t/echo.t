@@ -5,7 +5,7 @@ use Test::Nginx::Socket;
 
 repeat_each(2);
 
-plan tests => repeat_each() * (2 * blocks() + 5);
+plan tests => repeat_each() * (2 * blocks() + 6);
 
 #$Test::Nginx::LWP::LogLevel = 'debug';
 
@@ -381,4 +381,36 @@ foo bar baz"]
     GET /t
 --- response_body chop
  hello world
+
+
+
+=== TEST 27: image filter
+--- config
+    location = /gif {
+        empty_gif;
+    }
+
+    location = /t {
+        default_type image/gif;
+        image_filter resize 10 10;
+        set $gif1 '';
+        set $gif2 '';
+        rewrite_by_lua '
+            local res = ngx.location.capture("/gif")
+            local data = res.body
+            ngx.var.gif1 = string.sub(data, 1, #data - 1)
+            ngx.var.gif2 = string.sub(data, #data)
+        ';
+        echo -n $gif1;
+        echo -n $gif2;
+    }
+--- request
+    GET /t
+--- stap
+F(ngx_http_image_header_filter) {
+    println("image header filter")
+}
+--- stap_out
+image header filter
+--- response_body_like: .
 
