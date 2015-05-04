@@ -50,7 +50,6 @@ Table of Contents
     * [$echo_response_status](#echo_response_status)
 * [Installation](#installation)
 * [Compatibility](#compatibility)
-* [Known Issues](#known-issues)
 * [Modules that use this module for testing](#modules-that-use-this-module-for-testing)
 * [Community](#community)
     * [English Mailing List](#english-mailing-list)
@@ -846,8 +845,6 @@ is logically equivalent to
 
 But calling this directive is slightly faster than calling [echo_subrequest_async](#echo_subrequest_async) using `GET` because we don't have to parse the HTTP method names like `GET` and options like `-q`.
 
-There is a known issue with this directive when disabling the standard [standard SSI module](http://nginx.org/en/docs/http/ngx_http_ssi_module.html). See [Known Issues](#known-issues) for more details.
-
 This directive is first introduced in [version 0.09](#v009) of this module and requires at least Nginx 0.7.46.
 
 [Back to TOC](#table-of-contents)
@@ -1025,8 +1022,6 @@ This directive was first introduced in the [release v0.15](#v015).
 The `-f` option to define a file path for the body was introduced in the [release v0.35](#v035).
 
 See also the [echo_subrequest](#echo_subrequest) and [echo_location_async](#echo_location_async) directives.
-
-There is a known issue with this directive when disabling the standard [standard SSI module](http://nginx.org/en/docs/http/ngx_http_ssi_module.html). See [Known Issues](#known-issues) for more details.
 
 [Back to TOC](#table-of-contents)
 
@@ -1623,20 +1618,6 @@ In particular,
 Earlier versions of Nginx like 0.6.x and 0.5.x will *not* work at all.
 
 If you find that any particular version of Nginx above 0.7.21 does not work with this module, please consider [reporting a bug](#report-bugs).
-
-[Back to TOC](#table-of-contents)
-
-Known Issues
-============
-
-Due to an unknown bug in Nginx (it still exists in Nginx 1.7.7), the [standard SSI module](http://nginx.org/en/docs/http/ngx_http_ssi_module.html) is required to ensure that the contents of the subrequests issued by [echo_locatoin_async](#echo_location_async) and [echo_subrequest_async](#echo_subrequest_async) are correctly merged into the output chains of the main one. Fortunately, the SSI module is enabled by default during Nginx's `configure` process.
-
-If calling this directive without SSI module enabled, you'll get truncated response without contents of any subrequests and get an alert message in your Nginx's `error.log`, like this:
-
-```nginx
-
-   [alert] 24212#0: *1 the http output chain is empty, client: 127.0.0.1, ...
-```
 
 [Back to TOC](#table-of-contents)
 
