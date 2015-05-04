@@ -7,7 +7,6 @@ version=$1
 force=$2
 home=~
 
-  #--without-http_ssi_module \
             #--with-cc=gcc46 \
 
 ngx-build $force $version \
@@ -36,6 +35,7 @@ ngx-build $force $version \
           --with-select_module \
           --with-poll_module \
           --with-rtsig_module \
+          --without-http_ssi_module \
           --with-debug || exit 1
           #--add-module=$root/../lz-session-nginx-module \
           #--add-module=$home/work/ndk \
