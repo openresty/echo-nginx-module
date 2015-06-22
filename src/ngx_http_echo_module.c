@@ -22,50 +22,50 @@
 #include <ngx_log.h>
 
 /* config init handler */
-static void * ngx_http_echo_create_loc_conf(ngx_conf_t *cf);
-static char * ngx_http_echo_merge_loc_conf(ngx_conf_t *cf, void *parent,
+static void *ngx_http_echo_create_loc_conf(ngx_conf_t *cf);
+static char *ngx_http_echo_merge_loc_conf(ngx_conf_t *cf, void *parent,
     void *child);
 static void *ngx_http_echo_create_main_conf(ngx_conf_t *cf);
 static ngx_int_t ngx_http_echo_post_config(ngx_conf_t *cf);
 
 /* config directive handlers */
-static char * ngx_http_echo_echo(ngx_conf_t *cf, ngx_command_t *cmd,
+static char *ngx_http_echo_echo(ngx_conf_t *cf, ngx_command_t *cmd,
     void *conf);
-static char * ngx_http_echo_echo_request_body(ngx_conf_t *cf,
+static char *ngx_http_echo_echo_request_body(ngx_conf_t *cf,
     ngx_command_t *cmd, void *conf);
-static char * ngx_http_echo_echo_sleep(ngx_conf_t *cf, ngx_command_t *cmd,
+static char *ngx_http_echo_echo_sleep(ngx_conf_t *cf, ngx_command_t *cmd,
     void *conf);
-static char * ngx_http_echo_echo_flush(ngx_conf_t *cf, ngx_command_t *cmd,
+static char *ngx_http_echo_echo_flush(ngx_conf_t *cf, ngx_command_t *cmd,
     void *conf);
-static char * ngx_http_echo_echo_blocking_sleep(ngx_conf_t *cf,
+static char *ngx_http_echo_echo_blocking_sleep(ngx_conf_t *cf,
     ngx_command_t *cmd, void *conf);
-static char * ngx_http_echo_echo_reset_timer(ngx_conf_t *cf,
+static char *ngx_http_echo_echo_reset_timer(ngx_conf_t *cf,
     ngx_command_t *cmd, void *conf);
-static char * ngx_http_echo_echo_before_body(ngx_conf_t *cf,
+static char *ngx_http_echo_echo_before_body(ngx_conf_t *cf,
     ngx_command_t *cmd, void *conf);
-static char * ngx_http_echo_echo_after_body(ngx_conf_t *cf,
+static char *ngx_http_echo_echo_after_body(ngx_conf_t *cf,
     ngx_command_t *cmd, void *conf);
-static char * ngx_http_echo_echo_location_async(ngx_conf_t *cf,
+static char *ngx_http_echo_echo_location_async(ngx_conf_t *cf,
     ngx_command_t *cmd, void *conf);
-static char * ngx_http_echo_echo_location(ngx_conf_t *cf,
+static char *ngx_http_echo_echo_location(ngx_conf_t *cf,
     ngx_command_t *cmd, void *conf);
-static char * ngx_http_echo_echo_subrequest_async(ngx_conf_t *cf,
+static char *ngx_http_echo_echo_subrequest_async(ngx_conf_t *cf,
     ngx_command_t *cmd, void *conf);
-static char * ngx_http_echo_echo_subrequest(ngx_conf_t *cf,
+static char *ngx_http_echo_echo_subrequest(ngx_conf_t *cf,
     ngx_command_t *cmd, void *conf);
-static char * ngx_http_echo_echo_duplicate(ngx_conf_t *cf,
+static char *ngx_http_echo_echo_duplicate(ngx_conf_t *cf,
     ngx_command_t *cmd, void *conf);
-static char * ngx_http_echo_echo_read_request_body(ngx_conf_t *cf,
+static char *ngx_http_echo_echo_read_request_body(ngx_conf_t *cf,
     ngx_command_t *cmd, void *conf);
-static char * ngx_http_echo_echo_foreach_split(ngx_conf_t *cf,
+static char *ngx_http_echo_echo_foreach_split(ngx_conf_t *cf,
     ngx_command_t *cmd, void *conf);
-static char * ngx_http_echo_echo_end(ngx_conf_t *cf,
+static char *ngx_http_echo_echo_end(ngx_conf_t *cf,
     ngx_command_t *cmd, void *conf);
-static char * ngx_http_echo_echo_abort_parent(ngx_conf_t *cf,
+static char *ngx_http_echo_echo_abort_parent(ngx_conf_t *cf,
     ngx_command_t *cmd, void *conf);
-static char * ngx_http_echo_echo_exec(ngx_conf_t *cf,
+static char *ngx_http_echo_echo_exec(ngx_conf_t *cf,
     ngx_command_t *cmd, void *conf);
-static char * ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
+static char *ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
     ngx_http_echo_cmd_category_t cat,
     ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
 
