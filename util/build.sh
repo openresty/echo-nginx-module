@@ -34,7 +34,6 @@ ngx-build $force $version \
           --add-module=$root $opts \
           --with-select_module \
           --with-poll_module \
-          --with-rtsig_module \
           --without-http_ssi_module \
           --with-debug || exit 1
           #--add-module=$root/../lz-session-nginx-module \
