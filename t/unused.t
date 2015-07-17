@@ -60,6 +60,9 @@ echo body filter, uri "/echo?blah"
 
 
 === TEST 3: (after) filters used (multiple http {} blocks)
+This test case won't run with nginx 1.9.3+ since duplicate http {} blocks
+have been prohibited since then.
+--- SKIP
 --- http_config
     postpone_output 1;
 --- config
@@ -87,6 +90,9 @@ echo body filter, uri "/echo?blah"
 
 
 === TEST 4: (before) filters used (multiple http {} blocks)
+This test case won't run with nginx 1.9.3+ since duplicate http {} blocks
+have been prohibited since then.
+--- SKIP
 --- http_config
     postpone_output 1;
 --- config
