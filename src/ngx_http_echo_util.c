@@ -40,11 +40,11 @@ ngx_http_echo_eval_cmd_args(ngx_http_request_t *r,
     ngx_http_echo_cmd_t *cmd, ngx_array_t *computed_args,
     ngx_array_t *opts)
 {
+    unsigned                         expecting_opts = 1;
     ngx_uint_t                       i;
     ngx_array_t                     *args = cmd->args;
     ngx_str_t                       *arg, *raw, *opt;
     ngx_http_echo_arg_template_t    *value;
-    ngx_flag_t                       expecting_opts = 1;
 
     value = args->elts;
 

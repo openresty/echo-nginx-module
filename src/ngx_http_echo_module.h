@@ -1,4 +1,8 @@
-/* Copyright (C) by agentzh */
+
+/*
+ * Copyright (C) Yichun Zhang (agentzh)
+ */
+
 
 #ifndef NGX_HTTP_ECHO_MODULE_H
 #define NGX_HTTP_ECHO_MODULE_H

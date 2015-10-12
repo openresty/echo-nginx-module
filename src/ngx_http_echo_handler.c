@@ -164,7 +164,6 @@ ngx_http_echo_run_cmds(ngx_http_request_t *r)
     ngx_http_echo_cmd_t         *cmd_elts;
     ngx_array_t                 *opts = NULL;
 
-
     elcf = ngx_http_get_module_loc_conf(r, ngx_http_echo_module);
     cmds = elcf->handler_cmds;
     if (cmds == NULL) {
@@ -351,7 +350,6 @@ read_request_body:
             ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
                           "unknown opcode: %d", cmd->opcode);
             return NGX_HTTP_INTERNAL_SERVER_ERROR;
-            break;
         }
 
         if (rc == NGX_ERROR || rc >= NGX_HTTP_SPECIAL_RESPONSE) {

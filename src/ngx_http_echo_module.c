@@ -17,9 +17,11 @@
 #include "ngx_http_echo_var.h"
 #include "ngx_http_echo_util.h"
 
+
 #include <nginx.h>
 #include <ngx_config.h>
 #include <ngx_log.h>
+
 
 /* config init handler */
 static void *ngx_http_echo_create_loc_conf(ngx_conf_t *cf);
@@ -344,7 +346,7 @@ ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
 
     args_ptr = &echo_cmd->args;
     *args_ptr = ngx_array_create(cf->pool, 1,
-            sizeof(ngx_http_echo_arg_template_t));
+                                 sizeof(ngx_http_echo_arg_template_t));
 
     if (*args_ptr == NULL) {
         return NGX_CONF_ERROR;

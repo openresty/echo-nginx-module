@@ -94,7 +94,6 @@ ngx_http_echo_exec_echo(ngx_http_request_t *r,
     ngx_chain_t *cl  = NULL; /* the head of the chain link */
     ngx_chain_t **ll = &cl;  /* always point to the address of the last link */
 
-
     dd_enter();
 
     if (computed_args == NULL) {
