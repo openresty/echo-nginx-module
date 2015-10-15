@@ -172,6 +172,7 @@ ngx_http_echo_exec_echo(ngx_http_request_t *r,
 
     if (opts && opts->nelts > 0) {
         opt = opts->elts;
+        /* FIXME handle other unrecognized options here */
         if (opt[0].len == 1 && opt[0].data[0] == 'n') {
             goto done;
         }

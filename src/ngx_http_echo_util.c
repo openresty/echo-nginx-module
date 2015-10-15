@@ -136,6 +136,7 @@ ngx_http_echo_send_chain_link(ngx_http_request_t* r,
         return NGX_OK;
     }
 
+    /* FIXME we should udpate chains to recycle chain links and bufs */
     return ngx_http_output_filter(r, in);
 }
 
