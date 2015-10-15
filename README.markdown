@@ -1,8 +1,3 @@
-<!---
-Don't edit this file manually! Instead you should generate it by using:
-    wiki2markdown.pl doc/HttpEchoModule.wiki
--->
-
 Name
 ====
 
@@ -13,6 +8,7 @@ Name
 Table of Contents
 =================
 
+* [Name](#name)
 * [Status](#status)
 * [Version](#version)
 * [Synopsis](#synopsis)
@@ -72,7 +68,7 @@ This module is production ready.
 Version
 =======
 
-This document describes ngx_echo [v0.58](https://github.com/agentzh/echo-nginx-module/tags) released on 22 June 2015.
+This document describes ngx_echo [v0.58](https://github.com/openresty/echo-nginx-module/tags) released on 22 June 2015.
 
 Synopsis
 ========
@@ -1586,7 +1582,7 @@ the version 1.7.10 (see [nginx compatibility](#compatibility)), and then build t
  $ make install
 ```
 
-Download the latest version of the release tarball of this module from [echo-nginx-module file list](https://github.com/agentzh/echo-nginx-module/tags).
+Download the latest version of the release tarball of this module from [echo-nginx-module file list](https://github.com/openresty/echo-nginx-module/tags).
 
 Also, this module is included and enabled by default in the [ngx_openresty bundle](http://openresty.org).
 
@@ -1659,7 +1655,7 @@ Report Bugs
 
 Although a lot of effort has been put into testing and code tuning, there must be some serious bugs lurking somewhere in this module. So whenever you are bitten by any quirks, please don't hesitate to
 
-1. create a ticket on the [issue tracking interface](https://github.com/agentzh/echo-nginx-module/issues) provided by GitHub,
+1. create a ticket on the [issue tracking interface](https://github.com/openresty/echo-nginx-module/issues) provided by GitHub,
 1. or send a bug report, questions, or even patches to the [OpenResty Community](#community).
 
 [Back to TOC](#table-of-contents)
@@ -1667,7 +1663,7 @@ Although a lot of effort has been put into testing and code tuning, there must b
 Source Repository
 =================
 
-Available on github at [agentzh/echo-nginx-module](https://github.com/agentzh/echo-nginx-module).
+Available on github at [openresty/echo-nginx-module](https://github.com/openresty/echo-nginx-module).
 
 [Back to TOC](#table-of-contents)
 
@@ -1683,8 +1679,8 @@ The changes of every release of this module can be obtained from the ngx_openres
 Test Suite
 ==========
 
-This module comes with a Perl-driven test suite. The [test cases](https://github.com/agentzh/echo-nginx-module/tree/master/t/) are
-[declarative](https://github.com/agentzh/echo-nginx-module/blob/master/t/echo.t) too. Thanks to the [Test::Nginx](http://search.cpan.org/perldoc?Test::Nginx) module in the Perl world.
+This module comes with a Perl-driven test suite. The [test cases](https://github.com/openresty/echo-nginx-module/tree/master/t/) are
+[declarative](https://github.com/openresty/echo-nginx-module/blob/master/t/echo.t) too. Thanks to the [Test::Nginx](http://search.cpan.org/perldoc?Test::Nginx) module in the Perl world.
 
 To run it on your side:
 
@@ -1796,7 +1792,7 @@ This wiki page is also maintained by the author himself, and everybody is encour
 Copyright & License
 ===================
 
-Copyright (c) 2009-2014, Yichun "agentzh" Zhang (章亦春) <agentzh@gmail.com>, CloudFlare Inc.
+Copyright (c) 2009-2015, Yichun "agentzh" Zhang (章亦春) <agentzh@gmail.com>, CloudFlare Inc.
 
 This module is licensed under the terms of the BSD license.
 
@@ -1828,4 +1824,6 @@ See Also
 * The standard [addition filter module](http://nginx.org/en/docs/http/ngx_http_addition_module.html).
 * The standard [proxy module](http://nginx.org/en/docs/http/ngx_http_proxy_module.html).
 * The [ngx_openresty](http://openresty.org) bundle.
+
+[Back to TOC](#table-of-contents)
 
