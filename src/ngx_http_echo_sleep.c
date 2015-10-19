@@ -135,7 +135,7 @@ ngx_http_echo_sleep_event_handler(ngx_event_t *ev)
      * and delete our timer and then quit. */
 
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, c->log, 0,
-            "echo sleep handler: \"%V?%V\"", &r->uri, &r->args);
+                   "echo sleep event handler: \"%V?%V\"", &r->uri, &r->args);
 
     /*
     if (r->done) {
