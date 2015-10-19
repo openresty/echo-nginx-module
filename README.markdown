@@ -464,7 +464,7 @@ echo_duplicate
 
 **phase:** *content*
 
-Outputs duplication of a string indicated by the second argument, using the times specified in the first argument.
+Outputs duplication of a string indicated by the second argument, using the count specified in the first argument.
 
 For instance,
 
@@ -475,7 +475,7 @@ For instance,
    }
 ```
 
-will lead to an output of `"abcabcabc"`.
+will lead to the output of `"abcabcabc"`.
 
 Underscores are allowed in the count number, just like in Perl. For example, to emit 1000,000,000 instances of `"hello, world"`:
 
@@ -503,9 +503,10 @@ Unlike the [echo](#echo) directive, no trailing newline is appended to the resul
 You get
 
 ```bash
-
    ------ END ------
 ```
+
+But use of the `-n` option in [echo](#echo) is more appropriate for this purpose.
 
 This directive was first introduced in [version 0.11](#v011).
 
