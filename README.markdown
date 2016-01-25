@@ -1562,7 +1562,7 @@ This directive was first introduced in the [v0.23 release](#v023).
 Installation
 ============
 
-You're recommended to install this module (as well as the Nginx core and many other goodies) via the [ngx_openresty bundle](http://openresty.org). See [the detailed instructions](http://openresty.org/#Installation) for downloading and installing ngx_openresty into your system. This is the easiest and most safe way to set things up.
+You're recommended to install this module (as well as the Nginx core and many other goodies) via the [OpenResty bundle](http://openresty.org). See [the detailed instructions](http://openresty.org/#Installation) for downloading and installing OpenResty into your system. This is the easiest and most safe way to set things up.
 
 Alternatively, you can install this module manually with the Nginx source:
 
@@ -1585,7 +1585,7 @@ the version 1.7.10 (see [nginx compatibility](#compatibility)), and then build t
 
 Download the latest version of the release tarball of this module from [echo-nginx-module file list](https://github.com/openresty/echo-nginx-module/tags).
 
-Also, this module is included and enabled by default in the [ngx_openresty bundle](http://openresty.org).
+Also, this module is included and enabled by default in the [OpenResty bundle](http://openresty.org).
 
 [Back to TOC](#table-of-contents)
 
@@ -1671,7 +1671,7 @@ Available on github at [openresty/echo-nginx-module](https://github.com/openrest
 Changes
 =======
 
-The changes of every release of this module can be obtained from the ngx_openresty bundle's change logs:
+The changes of every release of this module can be obtained from the OpenResty bundle's change logs:
 
 <http://openresty.org/#Changes>
 
@@ -1824,7 +1824,7 @@ See Also
 * The original [blog post](http://agentzh.blogspot.com/2009/10/hacking-on-nginx-echo-module.html) about this module's initial development.
 * The standard [addition filter module](http://nginx.org/en/docs/http/ngx_http_addition_module.html).
 * The standard [proxy module](http://nginx.org/en/docs/http/ngx_http_proxy_module.html).
-* The [ngx_openresty](http://openresty.org) bundle.
+* The [OpenResty](http://openresty.org) bundle.
 
 [Back to TOC](#table-of-contents)
 
