@@ -1585,6 +1585,14 @@ the version 1.9.7 (see [nginx compatibility](#compatibility)), and then build th
 
 Download the latest version of the release tarball of this module from [echo-nginx-module file list](https://github.com/openresty/echo-nginx-module/tags).
 
+Starting from NGINX 1.9.11, you can also compile this module as a dynamic module, by using the `--add-dynamic-module=PATH` option instead of `--add-module=PATH` on the
+`./configure` command line above. And then you can explicitly load the module in your `nginx.conf` via the [load_module](http://nginx.org/en/docs/ngx_core_module.html#load_module)
+directive, for example,
+
+```nginx
+load_module /path/to/modules/ngx_http_echo_module.so;
+```
+
 Also, this module is included and enabled by default in the [OpenResty bundle](http://openresty.org).
 
 [Back to TOC](#table-of-contents)
