@@ -33,7 +33,7 @@ install:
 
 script:
   - cd nginx-${NGINX_VERSION}/
-  -  ./configure --with-debug --with-select_module --with-poll_module --with-http_stub_status_module --with-http_image_filter_module --with-http_addition_module --add-module=../ngx_devel_kit --add-module=../set-misc-nginx-module --add-module=../nginx-eval-module --add-module=../xss-nginx-module --add-module=../rds-json-nginx-module --add-module=../headers-more-nginx-module --add-module=../lua-nginx-module  --add-module=.. > build.log 2>&1 || cat build.log
+  -  ./configure --without-http_ssi_module --with-debug --with-select_module --with-poll_module --with-http_stub_status_module --with-http_image_filter_module --add-module=../ngx_devel_kit --add-module=../set-misc-nginx-module --add-module=../nginx-eval-module --add-module=../xss-nginx-module --add-module=../rds-json-nginx-module --add-module=../headers-more-nginx-module --add-module=../lua-nginx-module  --add-module=.. > build.log 2>&1 || cat build.log
   - make -j2 > build.log 2>&1 || cat build.log
   - export PATH=$PATH:`pwd`/objs
   - cd ..

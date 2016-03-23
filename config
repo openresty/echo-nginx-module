@@ -30,6 +30,13 @@ ECHO_DEPS="                                                                 \
         $ngx_addon_dir/src/ngx_http_echo_foreach.h                          \
         "
 
+# nginx won't have HTTP_POSTPONE_FILTER_MODULE & HTTP_POSTPONE_FILTER_SRCS
+# defined since 1.9.11
+if test -z "$HTTP_POSTPONE_FILTER_MODULE"; then
+    HTTP_POSTPONE_FILTER_MODULE=ngx_http_postpone_filter_module
+    HTTP_POSTPONE_FILTER_SRCS=src/http/ngx_http_postpone_filter_module.c
+fi
+
 # This module depends upon the postpone filter being activated
 if [ $HTTP_POSTPONE != YES ]; then
     HTTP_FILTER_MODULES="$HTTP_FILTER_MODULES $HTTP_POSTPONE_FILTER_MODULE"
