@@ -1589,6 +1589,11 @@ Starting from NGINX 1.9.11, you can also compile this module as a dynamic module
 `./configure` command line above. And then you can explicitly load the module in your `nginx.conf` via the [load_module](http://nginx.org/en/docs/ngx_core_module.html#load_module)
 directive, for example,
 
+This module also depends on the ngx_http_postpone_filter_module, which cannot be enabled directly. You must ensure at least one of the built-in nginx modules which depends upon
+the postpone module is enabled to pull in that dependency. As of version 1.9 that means you must enable one of the http_ssi, http_slice or http_addition modules.
+
+Those include: ngx_http_ssi_module,, ngx_http_slice_module, 
+
 ```nginx
 load_module /path/to/modules/ngx_http_echo_module.so;
 ```
