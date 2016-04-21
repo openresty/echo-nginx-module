@@ -1,0 +1,40 @@
+sudo: required
+dist: trusty
+
+os: linux
+
+language: c
+
+compiler:
+  - gcc
+  - clang
+
+env:
+  global:
+    - LUAJIT_LIB=/usr/lib64/libluajit-5.1.so
+    - LUAJIT_INC=/usr/include/luajit-2.0
+  matrix:
+    - NGINX_VERSION=1.9.15
+    - NGINX_VERSION=1.8.1
+    
+before_install:
+  - sudo apt-get install -qq -y cpanminus libluajit-5.1-dev libgd-dev
+  - sudo cpanm -v --notest Test::Nginx > build.log 2>&1 || cat build.log
+  
+install:
+  - wget http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz && tar -xzf nginx-${NGINX_VERSION}.tar.gz
+  - git clone https://github.com/simpl/ngx_devel_kit.git
+  - git clone https://github.com/openresty/set-misc-nginx-module.git
+  - git clone https://github.com/openresty/xss-nginx-module.git
+  - git clone https://github.com/openresty/rds-json-nginx-module.git
+  - git clone https://github.com/openresty/headers-more-nginx-module.git
+  - git clone https://github.com/openresty/lua-nginx-module.git
+  - git clone https://github.com/openresty/nginx-eval-module.git
+    
+script:
+  - cd nginx-${NGINX_VERSION}/
+  -  ./configure --with-debug --with-select_module --with-poll_module --with-http_stub_status_module --with-http_image_filter_module --with-http_addition_module --add-module=../ngx_devel_kit --add-module=../set-misc-nginx-module --add-module=../nginx-eval-module --add-module=../xss-nginx-module --add-module=../rds-json-nginx-module --add-module=../headers-more-nginx-module --add-module=../lua-nginx-module  --add-module=.. > build.log 2>&1 || cat build.log
+  - make -j2 > build.log 2>&1 || cat build.log
+  - export PATH=$PATH:`pwd`/objs
+  - cd ..
+  - prove -lv t
