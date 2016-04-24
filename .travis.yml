@@ -19,7 +19,7 @@ env:
 
 before_install:
   - sudo apt-get install -qq -y cpanminus libluajit-5.1-dev libgd-dev
-  - sudo cpanm -v --notest Test::Nginx > build.log 2>&1 || cat build.log
+  - sudo cpanm -v --notest Test::Nginx > build.log 2>&1 || (cat build.log && exit 1)
 
 install:
   - wget http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz && tar -xzf nginx-${NGINX_VERSION}.tar.gz
@@ -33,8 +33,8 @@ install:
 
 script:
   - cd nginx-${NGINX_VERSION}/
-  -  ./configure --without-http_ssi_module --with-debug --with-select_module --with-poll_module --with-http_stub_status_module --with-http_image_filter_module --add-module=../ngx_devel_kit --add-module=../set-misc-nginx-module --add-module=../nginx-eval-module --add-module=../xss-nginx-module --add-module=../rds-json-nginx-module --add-module=../headers-more-nginx-module --add-module=../lua-nginx-module  --add-module=.. > build.log 2>&1 || cat build.log
-  - make -j2 > build.log 2>&1 || cat build.log
+  -  ./configure --without-http_ssi_module --with-debug --with-select_module --with-poll_module --with-http_stub_status_module --with-http_image_filter_module --add-module=../ngx_devel_kit --add-module=../set-misc-nginx-module --add-module=../nginx-eval-module --add-module=../xss-nginx-module --add-module=../rds-json-nginx-module --add-module=../headers-more-nginx-module --add-module=../lua-nginx-module  --add-module=.. > build.log 2>&1 || (cat build.log && exit 1)
+  - make -j2 > build.log 2>&1 || (cat build.log && exit 1)
   - export PATH=$PATH:`pwd`/objs
   - cd ..
   - prove -lv t
