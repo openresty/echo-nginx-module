@@ -287,14 +287,12 @@ ngx_http_echo_exec_echo_duplicate(ngx_http_request_t *r,
 {
     ngx_str_t                   *computed_arg;
     ngx_str_t                   *computed_arg_elts;
-    ssize_t                     i, count;
+    ssize_t                      i, count;
     ngx_str_t                   *str;
     u_char                      *p;
-    ngx_int_t                   rc;
-
+    ngx_int_t                    rc;
     ngx_buf_t                   *buf;
     ngx_chain_t                 *cl;
-
 
     dd_enter();
 

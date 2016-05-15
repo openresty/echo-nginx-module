@@ -14,7 +14,7 @@ ngx_http_echo_it_variable(ngx_http_request_t *r,
     ngx_http_variable_value_t *v, uintptr_t data)
 {
     ngx_http_echo_ctx_t         *ctx;
-    ngx_uint_t                  i;
+    ngx_uint_t                   i;
     ngx_array_t                 *choices;
     ngx_str_t                   *choice_elts, *choice;
 
@@ -156,8 +156,8 @@ ngx_http_echo_exec_echo_end(ngx_http_request_t *r,
 {
     if (ctx->foreach == NULL) {
         ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
-                     "Found a echo_end that has no corresponding echo_foreach "
-                     "before it.");
+                      "Found a echo_end that has no corresponding echo_foreach "
+                      "before it.");
         return NGX_ERROR;
     }
 

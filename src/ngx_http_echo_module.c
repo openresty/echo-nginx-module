@@ -311,7 +311,7 @@ ngx_http_echo_helper(ngx_http_echo_opcode_t opcode,
     /* cmds_ptr points to ngx_http_echo_loc_conf_t's
      * handler_cmds, before_body_cmds, or after_body_cmds
      * array, depending on the actual offset */
-    cmds_ptr = (ngx_array_t**)(((u_char*)conf) + cmd->offset);
+    cmds_ptr = (ngx_array_t **) (((u_char *) conf) + cmd->offset);
 
     if (*cmds_ptr == NULL) {
         *cmds_ptr = ngx_array_create(cf->pool, 1,

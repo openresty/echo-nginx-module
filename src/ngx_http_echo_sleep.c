@@ -39,13 +39,13 @@ ngx_http_echo_exec_echo_sleep(ngx_http_request_t *r,
 
     if (delay == NGX_ERROR) {
         ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
-                   "invalid sleep duration \"%V\"", &computed_arg_elts[0]);
+                      "invalid sleep duration \"%V\"", &computed_arg_elts[0]);
 
         return NGX_HTTP_BAD_REQUEST;
     }
 
     dd("adding timer with delay %lu ms, r:%.*s", (unsigned long) delay,
-            (int) r->uri.len, r->uri.data);
+       (int) r->uri.len, r->uri.data);
 
     ngx_add_timer(&ctx->sleep, (ngx_msec_t) delay);
 
@@ -172,7 +172,7 @@ ngx_http_echo_exec_echo_blocking_sleep(ngx_http_request_t *r,
 
     if (delay == NGX_ERROR) {
         ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
-                   "invalid sleep duration \"%V\"", &computed_arg_elts[0]);
+                      "invalid sleep duration \"%V\"", &computed_arg_elts[0]);
         return NGX_HTTP_BAD_REQUEST;
     }
 
@@ -188,7 +188,7 @@ static void
 ngx_http_echo_sleep_cleanup(void *data)
 {
     ngx_http_request_t      *r = data;
-    ngx_http_echo_ctx_t         *ctx;
+    ngx_http_echo_ctx_t     *ctx;
 
     dd("echo sleep cleanup");
 

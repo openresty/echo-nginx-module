@@ -105,7 +105,7 @@ ngx_http_echo_eval_cmd_args(ngx_http_request_t *r,
 
 
 ngx_int_t
-ngx_http_echo_send_chain_link(ngx_http_request_t* r,
+ngx_http_echo_send_chain_link(ngx_http_request_t *r,
     ngx_http_echo_ctx_t *ctx, ngx_chain_t *in)
 {
     ngx_int_t        rc;
@@ -142,7 +142,7 @@ ngx_http_echo_send_chain_link(ngx_http_request_t* r,
 
 
 ngx_int_t
-ngx_http_echo_send_header_if_needed(ngx_http_request_t* r,
+ngx_http_echo_send_header_if_needed(ngx_http_request_t *r,
     ngx_http_echo_ctx_t *ctx)
 {
     ngx_int_t                    rc;

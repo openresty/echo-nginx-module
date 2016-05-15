@@ -165,7 +165,7 @@ ngx_http_echo_exec_echo_subrequest(ngx_http_request_t *r,
      */
 
     dd("creating sr ctx for %.*s: %p", (int) parsed_sr->location->len,
-            parsed_sr->location->data, sr_ctx);
+       parsed_sr->location->data, sr_ctx);
 
     psr = ngx_palloc(r->pool, sizeof(ngx_http_post_subrequest_t));
 
@@ -177,7 +177,7 @@ ngx_http_echo_exec_echo_subrequest(ngx_http_request_t *r,
     psr->data = sr_ctx;
 
     rc = ngx_http_subrequest(r, parsed_sr->location, parsed_sr->query_string,
-            &sr, psr, 0);
+                             &sr, psr, 0);
 
     if (rc != NGX_OK) {
         return NGX_ERROR;
@@ -263,10 +263,10 @@ ngx_http_echo_parse_subrequest_spec(ngx_http_request_t *r,
             }
 
             if (ngx_strncmp("-f", arg->data, arg->len) == 0) {
-              dd("found option -f");
-              to_write = &body_file;
-              expecting_opt = 0;
-              continue;
+                dd("found option -f");
+                to_write = &body_file;
+                expecting_opt = 0;
+                continue;
             }
         }
 
@@ -425,7 +425,7 @@ ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr,
     /* we do not inherit the parent request's variables */
     cmcf = ngx_http_get_module_main_conf(sr, ngx_http_core_module);
     sr->variables = ngx_pcalloc(sr->pool, cmcf->variables.nelts
-                                        * sizeof(ngx_http_variable_value_t));
+                                * sizeof(ngx_http_variable_value_t));
 
     if (sr->variables == NULL) {
         return NGX_ERROR;
@@ -453,7 +453,7 @@ ngx_http_echo_adjust_subrequest(ngx_http_request_t *sr,
 static ngx_int_t
 ngx_http_echo_parse_method_name(ngx_str_t **method_name_ptr)
 {
-    const ngx_str_t* method_name = *method_name_ptr;
+    const ngx_str_t     *method_name = *method_name_ptr;
 
     switch (method_name->len) {
     case 3:
@@ -688,7 +688,7 @@ ngx_http_echo_exec_exec(ngx_http_request_t *r,
 #endif
 
         dd("named location: %.*s, c:%d", (int) uri->len, uri->data,
-                (int) r->main->count);
+           (int) r->main->count);
 
         return ngx_http_named_location(r, uri);
     }
@@ -709,7 +709,9 @@ ngx_http_echo_set_content_length_header(ngx_http_request_t *r, off_t len)
     r->headers_in.content_length_n = len;
 
     if (ngx_list_init(&r->headers_in.headers, r->pool, 20,
-                sizeof(ngx_table_elt_t)) != NGX_OK) {
+                      sizeof(ngx_table_elt_t))
+        != NGX_OK)
+    {
         return NGX_ERROR;
     }
 
@@ -740,7 +742,7 @@ ngx_http_echo_set_content_length_header(ngx_http_request_t *r, off_t len)
     h->hash = ngx_http_echo_content_length_hash;
 
     dd("r content length: %.*s",
-            (int)r->headers_in.content_length->value.len,
+       (int) r->headers_in.content_length->value.len,
             r->headers_in.content_length->value.data);
 
     pr = r->parent;
@@ -766,9 +768,10 @@ ngx_http_echo_set_content_length_header(ngx_http_request_t *r, off_t len)
             i = 0;
         }
 
-        if (header[i].key.len == sizeof("Content-Length") - 1 &&
-                ngx_strncasecmp(header[i].key.data, (u_char *) "Content-Length",
-                sizeof("Content-Length") - 1) == 0)
+        if (header[i].key.len == sizeof("Content-Length") - 1
+            && ngx_strncasecmp(header[i].key.data, (u_char *) "Content-Length",
+                               sizeof("Content-Length") - 1)
+               == 0)
         {
             continue;
         }

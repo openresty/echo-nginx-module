@@ -93,7 +93,7 @@ ngx_http_echo_wev_handler(ngx_http_request_t *r)
         dd("finalizing with rc %d", (int) rc);
 
         dd("finalize request %.*s with %d", (int) r->uri.len, r->uri.data,
-                (int) rc);
+           (int) rc);
 
         ngx_http_finalize_request(r, rc);
     }
@@ -181,7 +181,7 @@ ngx_http_echo_run_cmds(ngx_http_request_t *r)
     }
 
     dd("exec handler: %.*s: %i", (int) r->uri.len, r->uri.data,
-            (int) ctx->next_handler_cmd);
+       (int) ctx->next_handler_cmd);
 
     cmd_elts = cmds->elts;
 
@@ -214,7 +214,9 @@ ngx_http_echo_run_cmds(ngx_http_request_t *r)
         }
 
         /* do command dispatch based on the opcode */
+
         switch (cmd->opcode) {
+
         case echo_opcode_echo_sync:
             rc = ngx_http_echo_exec_echo_sync(r, ctx);
             break;
