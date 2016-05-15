@@ -37,4 +37,4 @@ script:
   - make -j2 > build.log 2>&1 || (cat build.log && exit 1)
   - export PATH=$PATH:`pwd`/objs
   - cd ..
-  - prove -lv t
+  - prove -r t
