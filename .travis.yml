@@ -15,7 +15,7 @@ env:
     - LUAJIT_INC=/usr/include/luajit-2.0
   matrix:
     - NGINX_VERSION=1.9.15
-    - NGINX_VERSION=1.8.1
+    - NGINX_VERSION=1.10.0
 
 before_install:
   - sudo apt-get install -qq -y cpanminus libluajit-5.1-dev libgd-dev
