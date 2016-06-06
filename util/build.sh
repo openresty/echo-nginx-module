@@ -31,6 +31,7 @@ ngx-build $force $version \
           --add-module=$root/../headers-more-nginx-module \
           --add-module=$root/../lua-nginx-module \
           --add-module=$root $opts \
+          --with-http_v2_module \
           --with-select_module \
           --with-poll_module \
           --without-http_ssi_module \

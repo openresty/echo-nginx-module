@@ -187,6 +187,14 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
     hc = r->main->http_connection;
     c = mr->connection;
 
+#if (NGX_HTTP_V2)
+    /* TODO */
+    if (mr->stream) {
+        v->not_found = 1;
+        return NGX_OK;
+    }
+#endif
+
     size = 0;
     b = c->buffer;
 
