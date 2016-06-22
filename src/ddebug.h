@@ -30,7 +30,7 @@ dd(const char * fmt, ...) {
 
 #       define dd_enter() dd_enter_helper(r, __func__)
 
-static void ngx_inline
+static ngx_inline void
 dd_enter_helper(ngx_http_request_t *r, const char *func) {
     ngx_http_posted_request_t       *pr;
 
