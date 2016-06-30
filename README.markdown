@@ -452,6 +452,8 @@ which yields
  -n is an option
 ```
 
+Use this form when you want to output anything leading with a dash (`-`).
+
 [Back to TOC](#table-of-contents)
 
 echo_duplicate
