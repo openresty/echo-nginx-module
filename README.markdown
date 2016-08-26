@@ -1493,6 +1493,8 @@ Accessing `/echoback` yields
 
 Behind the scene, it recovers `r->main->header_in` (or the large header buffers, if any) on the C level and does not construct the headers itself by traversing parsed results in the request object.
 
+This varible is always evaluated to an empty value in HTTP/2 requests for now due to the current implementation.
+
 This variable was first introduced in [version 0.15](#v015).
 
 [Back to TOC](#table-of-contents)
