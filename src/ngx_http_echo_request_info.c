@@ -17,6 +17,9 @@
 
 
 static void ngx_http_echo_post_read_request_body(ngx_http_request_t *r);
+#if nginx_version >= 1011011
+void ngx_http_echo_request_headers_cleanup(void *data);
+#endif
 
 
 ngx_int_t
@@ -179,6 +182,11 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
     ngx_int_t                    i, j;
     ngx_buf_t                   *b, *first = NULL;
     unsigned                     found;
+#if nginx_version >= 1011011
+    ngx_buf_t                  **bb;
+    ngx_chain_t                 *cl;
+    ngx_http_echo_main_conf_t   *emcf;
+#endif
     ngx_connection_t            *c;
     ngx_http_request_t          *mr;
     ngx_http_connection_t       *hc;
@@ -193,6 +201,10 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
         v->not_found = 1;
         return NGX_OK;
     }
+#endif
+
+#if nginx_version >= 1011011
+    emcf = ngx_http_get_module_main_conf(r, ngx_http_echo_module);
 #endif
 
     size = 0;
@@ -215,8 +227,35 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
 
     if (hc->nbusy) {
         b = NULL;
+
+#if nginx_version >= 1011011
+        if (hc->nbusy > emcf->busy_buf_ptr_count) {
+            if (emcf->busy_buf_ptrs) {
+                ngx_free(emcf->busy_buf_ptrs);
+            }
+
+            emcf->busy_buf_ptrs = ngx_alloc(hc->nbusy * sizeof(ngx_buf_t *),
+                                            r->connection->log);
+
+            if (emcf->busy_buf_ptrs == NULL) {
+                return NGX_ERROR;
+            }
+
+            emcf->busy_buf_ptr_count = hc->nbusy;
+        }
+
+        bb = emcf->busy_buf_ptrs;
+        for (cl = hc->busy; cl; cl = cl->next) {
+            *bb++ = cl->buf;
+        }
+
+        bb = emcf->busy_buf_ptrs;
+        for (i = hc->nbusy; i > 0; i--) {
+            b = bb[i - 1];
+#else
         for (i = 0; i < hc->nbusy; i++) {
             b = hc->busy[i];
+#endif
 
             if (first == NULL) {
                 if (mr->request_line.data >= b->pos
@@ -280,8 +319,15 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
     }
 
     if (hc->nbusy) {
+
+#if nginx_version >= 1011011
+        bb = emcf->busy_buf_ptrs;
+        for (i = hc->nbusy; i > 0; i--) {
+            b = bb[i - 1];
+#else
         for (i = 0; i < hc->nbusy; i++) {
             b = hc->busy[i];
+#endif
 
             if (!found) {
                 if (b != first) {
@@ -456,5 +502,21 @@ ngx_http_echo_response_status_variable(ngx_http_request_t *r,
 
     return NGX_OK;
 }
+
+
+#if nginx_version >= 1011011
+void
+ngx_http_echo_request_headers_cleanup(void *data)
+{
+    ngx_http_echo_main_conf_t  *emcf;
+
+    emcf = (ngx_http_echo_main_conf_t *) data;
+
+    if (emcf->busy_buf_ptrs) {
+        ngx_free(emcf->busy_buf_ptrs);
+        emcf->busy_buf_ptrs = NULL;
+    }
+}
+#endif
 
 /* vi:set ft=c ts=4 sw=4 et fdm=marker: */
