@@ -284,9 +284,9 @@ People will also find it useful in real-world applications that need to
 
 This is a special dual-role module that can *lazily* serve as a content handler or register itself as an output filter only upon demand. By default, this module does not do anything at all.
 
-Technially, this module has also demonstrated the following techniques that might be helpful for module writers:
+Technically, this module has also demonstrated the following techniques that might be helpful for module writers:
 
-1. Issue parallel subreqeusts directly from content handler.
+1. Issue parallel subrequests directly from content handler.
 1. Issue chained subrequests directly from content handler, by passing continuation along the subrequest chain.
 1. Issue subrequests with all HTTP 1.1 methods and even an optional faked HTTP request body.
 1. Interact with the Nginx event model directly from content handler using custom events and timers, and resume the content handler back if necessary.
