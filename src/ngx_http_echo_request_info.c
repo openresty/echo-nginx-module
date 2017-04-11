@@ -180,7 +180,9 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
     ngx_buf_t                   *b, *first = NULL;
     unsigned                     found;
 #if defined(nginx_version) && nginx_version >= 1011011
+    ngx_buf_t                  **bb;
     ngx_chain_t                 *cl;
+    ngx_http_echo_main_conf_t   *emcf;
 #endif
     ngx_connection_t            *c;
     ngx_http_request_t          *mr;
@@ -196,6 +198,10 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
         v->not_found = 1;
         return NGX_OK;
     }
+#endif
+
+#if defined(nginx_version) && nginx_version >= 1011011
+    emcf = ngx_http_get_module_main_conf(r, ngx_http_echo_module);
 #endif
 
     size = 0;
@@ -220,9 +226,29 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
         b = NULL;
 
 #if defined(nginx_version) && nginx_version >= 1011011
-         for (cl = hc->busy; cl; /* void */) {
-             b = cl->buf;
-             cl = cl->next;
+        if (hc->nbusy > emcf->prealloc_nbusy) {
+            if (emcf->busy_bufs_ptrs) {
+                ngx_free(emcf->busy_bufs_ptrs);
+            }
+
+            emcf->busy_bufs_ptrs = ngx_alloc(hc->nbusy * sizeof(ngx_buf_t *),
+                                             r->connection->log);
+
+            if (emcf->busy_bufs_ptrs == NULL) {
+                return NGX_ERROR;
+            }
+
+            emcf->prealloc_nbusy = hc->nbusy;
+        }
+
+        bb = emcf->busy_bufs_ptrs;
+        for (cl = hc->busy; cl; cl = cl->next) {
+            *bb++ = cl->buf;
+        }
+
+        bb = emcf->busy_bufs_ptrs;
+        for (i = hc->nbusy; i > 0; i--) {
+            b = bb[i - 1];
 #else
         for (i = 0; i < hc->nbusy; i++) {
             b = hc->busy[i];
@@ -292,9 +318,9 @@ ngx_http_echo_client_request_headers_variable(ngx_http_request_t *r,
     if (hc->nbusy) {
 
 #if defined(nginx_version) && nginx_version >= 1011011
-         for (cl = hc->busy; cl; /* void */) {
-             b = cl->buf;
-             cl = cl->next;
+        bb = emcf->busy_bufs_ptrs;
+        for (i = hc->nbusy; i > 0; i--) {
+            b = bb[i - 1];
 #else
         for (i = 0; i < hc->nbusy; i++) {
             b = hc->busy[i];
