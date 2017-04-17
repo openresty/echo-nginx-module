@@ -29,5 +29,8 @@ ngx_int_t ngx_http_echo_request_uri_variable(ngx_http_request_t *r,
 ngx_int_t ngx_http_echo_response_status_variable(ngx_http_request_t *r,
     ngx_http_variable_value_t *v, uintptr_t data);
 
+#if nginx_version >= 1011011
+void ngx_http_echo_request_headers_cleanup(void *data);
+#endif
 
 #endif /* ECHO_REQUEST_INFO_H */

@@ -92,9 +92,9 @@ typedef struct {
 
 typedef struct {
     ngx_int_t       requires_filter;
-#if defined(nginx_version) && nginx_version >= 1011011
-    ngx_buf_t     **busy_bufs_ptrs;
-    ngx_int_t       prealloc_nbusy;
+#if nginx_version >= 1011011
+    ngx_buf_t     **busy_buf_ptrs;
+    ngx_int_t       busy_buf_ptr_count;
 #endif
 } ngx_http_echo_main_conf_t;
 

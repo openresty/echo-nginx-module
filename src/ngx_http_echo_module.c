@@ -632,6 +632,9 @@ ngx_http_echo_echo_exec(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 static void *
 ngx_http_echo_create_main_conf(ngx_conf_t *cf)
 {
+#if nginx_version >= 1011011
+    ngx_pool_cleanup_t           *cln;
+#endif
     ngx_http_echo_main_conf_t    *emcf;
 
     emcf = ngx_pcalloc(cf->pool, sizeof(ngx_http_echo_main_conf_t));
@@ -642,6 +645,16 @@ ngx_http_echo_create_main_conf(ngx_conf_t *cf)
     /* set by ngx_pcalloc:
      *      hmcf->requires_filter = 0;
      */
+
+#if nginx_version >= 1011011
+    cln = ngx_pool_cleanup_add(cf->pool, 0);
+    if (cln == NULL) {
+        return NULL;
+    }
+
+    cln->data = emcf;
+    cln->handler = ngx_http_echo_request_headers_cleanup;
+#endif
 
     return emcf;
 }
