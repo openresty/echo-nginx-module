@@ -51,10 +51,16 @@ if test -n "$ngx_module_link"; then
     ngx_module_deps="$ECHO_DEPS"
     ngx_module_srcs="$ECHO_SRCS"
     ngx_module_libs=
+    ngx_module_order="$ngx_module_name ngx_http_lua_module"
 
     . auto/module
 else
     HTTP_AUX_FILTER_MODULES="$HTTP_AUX_FILTER_MODULES $ngx_addon_name"
     NGX_ADDON_SRCS="$NGX_ADDON_SRCS $ECHO_SRCS"
     NGX_ADDON_DEPS="$NGX_ADDON_DEPS $ECHO_DEPS"
+fi
+
+if [ $ngx_module_link != DYNAMIC ]; then
+    HTTP_AUX_FILTER_MODULES=$(echo $HTTP_AUX_FILTER_MODULES \
+        | sed "s/ngx_http_lua_module $ngx_addon_name/$ngx_addon_name ngx_http_lua_module/")
 fi
