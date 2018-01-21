@@ -11,7 +11,7 @@
 #include "ngx_http_echo_module.h"
 
 
-#define ngx_http_echo_strcmp_const(a, b) \
+#define ngx_http_echo_strcmp_const(a, b)                                     \
     ngx_strncmp(a, b, sizeof(b) - 1)
 
 
