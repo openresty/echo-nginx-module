@@ -59,7 +59,7 @@ typedef struct {
 
     /* fields "lengths" and "values" are set by
      * the function ngx_http_script_compile,
-     * iff the argument value indeed contains
+     * if the argument value indeed contains
      * nginx variables like "$foo" */
     ngx_array_t     *lengths;
     ngx_array_t     *values;
