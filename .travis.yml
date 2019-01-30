@@ -11,14 +11,16 @@ compiler:
 
 env:
   global:
-    - LUAJIT_LIB=/usr/lib64/libluajit-5.1.so
-    - LUAJIT_INC=/usr/include/luajit-2.0
+    - LUAJIT_PREFIX=/opt/luajit21
+    - LUAJIT_LIB=$LUAJIT_PREFIX/lib
+    - LUAJIT_INC=$LUAJIT_PREFIX/include/luajit-2.1
+    - LD_LIBRARY_PATH=$LUAJIT_LIB:$LD_LIBRARY_PATH
   matrix:
     - NGINX_VERSION=1.9.15
     - NGINX_VERSION=1.10.0
 
 before_install:
-  - sudo apt-get install -qq -y cpanminus libluajit-5.1-dev libgd-dev
+  - sudo apt-get install -qq -y cpanminus libgd-dev
   - sudo cpanm -v --notest Test::Nginx > build.log 2>&1 || (cat build.log && exit 1)
 
 install:
@@ -30,8 +32,13 @@ install:
   - git clone https://github.com/openresty/headers-more-nginx-module.git
   - git clone https://github.com/openresty/lua-nginx-module.git
   - git clone https://github.com/openresty/nginx-eval-module.git
+  - git clone -b v2.1-agentzh https://github.com/openresty/luajit2.git luajit2
 
 script:
+  - cd luajit2/
+  - make -j$JOBS CCDEBUG=-g Q= PREFIX=$LUAJIT_PREFIX CC=$CC XCFLAGS='-DLUA_USE_APICHECK -DLUA_USE_ASSERT -msse4.2' > build.log 2>&1 || (cat build.log && exit 1)
+  - sudo make install PREFIX=$LUAJIT_PREFIX > build.log 2>&1 || (cat build.log && exit 1)
+  - cd ..
   - cd nginx-${NGINX_VERSION}/
   -  ./configure --without-http_ssi_module --with-debug --with-select_module --with-poll_module --with-http_stub_status_module --with-http_image_filter_module --add-module=../ngx_devel_kit --add-module=../set-misc-nginx-module --add-module=../nginx-eval-module --add-module=../xss-nginx-module --add-module=../rds-json-nginx-module --add-module=../headers-more-nginx-module --add-module=../lua-nginx-module  --add-module=.. > build.log 2>&1 || (cat build.log && exit 1)
   - make -j2 > build.log 2>&1 || (cat build.log && exit 1)
