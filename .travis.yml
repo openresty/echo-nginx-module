@@ -31,6 +31,8 @@ install:
   - git clone https://github.com/openresty/rds-json-nginx-module.git
   - git clone https://github.com/openresty/headers-more-nginx-module.git
   - git clone https://github.com/openresty/lua-nginx-module.git
+  - git clone https://github.com/openresty/lua-resty-core.git ../lua-resty-core
+  - git clone https://github.com/openresty/lua-resty-lrucache.git ../lua-resty-lrucache
   - git clone https://github.com/openresty/nginx-eval-module.git
   - git clone -b v2.1-agentzh https://github.com/openresty/luajit2.git luajit2
 
