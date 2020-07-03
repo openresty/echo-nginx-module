@@ -68,7 +68,7 @@ This module is production ready.
 Version
 =======
 
-This document describes ngx_echo [v0.61](https://github.com/openresty/echo-nginx-module/tags) released on 8 August 2017.
+This document describes ngx_echo [v0.62](https://github.com/openresty/echo-nginx-module/tags) released on 2 July, 2020.
 
 Synopsis
 ========
