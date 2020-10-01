@@ -2,11 +2,11 @@
 
 use lib 'lib';
 
-use Test::Nginx::Socket 'no_plan';
+use Test::Nginx::Socket;
 
-# repeat_each(2);
+repeat_each(2);
 
-# plan tests => repeat_each() * (2 * blocks() + 1);
+plan tests => repeat_each() * (2 * blocks() + 1);
 
 $ENV{TEST_NGINX_HTML_DIR} = html_dir;
 $ENV{TEST_NGINX_CLIENT_PORT} ||= server_port();
@@ -157,7 +157,6 @@ took 0\.0(?:2[5-9]|3[0-6]) sec for total\.$
 ^hello
 world
 took 0\.0(?:2[5-9]|3[0-6]) sec for total\.$
---- ONLY
 
 
 
