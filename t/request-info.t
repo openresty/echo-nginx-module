@@ -353,6 +353,7 @@ $headers}]
 
 
 === TEST 17: small header, multi-line header
+multi-line header is not supported since 1.21
 --- config
     location /t {
         echo -n $echo_client_request_headers;
@@ -381,6 +382,7 @@ Foo: bar baz\r
 
 
 === TEST 18: large header, multi-line header
+multi-line header is not supported since 1.21
 --- config
     client_header_buffer_size 10;
     large_client_header_buffers 50 567;
