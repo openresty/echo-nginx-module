@@ -5,7 +5,7 @@ use Test::Nginx::Socket;
 
 repeat_each(2);
 
-plan tests => repeat_each() * (3 * blocks() + 15);
+plan tests => repeat_each() * (3 * blocks() + 14);
 
 run_tests();
 
@@ -353,6 +353,7 @@ $headers}]
 
 
 === TEST 17: small header, multi-line header
+multi-line header is not supported since 1.21
 --- config
     location /t {
         echo -n $echo_client_request_headers;
@@ -375,10 +376,13 @@ Foo: bar baz\r
 }
 --- no_error_log
 [error]
+--- skip_nginx
+3: >= 1.21.1
 
 
 
 === TEST 18: large header, multi-line header
+multi-line header is not supported since 1.21
 --- config
     client_header_buffer_size 10;
     large_client_header_buffers 50 567;
@@ -403,6 +407,8 @@ Connection: close\r
 
 --- no_error_log
 [error]
+--- skip_nginx
+3: >= 1.21.1
 
 
 
@@ -839,3 +845,26 @@ Foo: bar\r
 [error]
 --- timeout: 5
 
+
+
+=== TEST 34: invalid header line started with whitespace since nginx 1.21.1
+--- config
+    client_header_buffer_size 10;
+    large_client_header_buffers 50 567;
+    location /t {
+        echo -n $echo_client_request_headers;
+    }
+
+--- raw_request eval
+my $headers = (CORE::join "\r\n", map { "Header$_: value-$_\r\n hello $_ world blah blah" } 1..512) . "\r\n\r\n";
+
+qq{GET /t HTTP/1.1\r
+Host: localhost\r
+Connection: close\r
+$headers}
+
+--- error_code: 400
+--- no_error_log
+[error]
+--- skip_nginx
+2: < 1.21.1
