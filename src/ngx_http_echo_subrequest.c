@@ -640,7 +640,7 @@ ngx_http_echo_exec_exec(ngx_http_request_t *r,
     ngx_str_t                       *uri;
     ngx_str_t                       *user_args;
     ngx_str_t                        args;
-    ngx_uint_t                       flags;
+    ngx_uint_t                       flags = 0;
     ngx_str_t                       *computed_arg;
 
     computed_arg = computed_args->elts;
