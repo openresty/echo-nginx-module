@@ -89,6 +89,10 @@ ngx_http_echo_exec_echo_location(ngx_http_request_t *r,
     ngx_uint_t                           flags = 0;
     ngx_http_echo_ctx_t                 *sr_ctx;
 
+    if (computed_args == NULL) {
+        return NGX_ERROR;
+    }
+
     computed_arg_elts = computed_args->elts;
 
     location = computed_arg_elts[0];
