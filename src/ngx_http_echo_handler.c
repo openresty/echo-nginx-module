@@ -213,6 +213,10 @@ ngx_http_echo_run_cmds(ngx_http_request_t *r)
             }
         }
 
+        if (computed_args == NULL) {
+            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        }
+
         /* do command dispatch based on the opcode */
 
         switch (cmd->opcode) {
