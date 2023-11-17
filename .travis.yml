@@ -16,7 +16,7 @@ env:
     - LD_LIBRARY_PATH=$LUAJIT_LIB:$LD_LIBRARY_PATH
   matrix:
     - NGINX_VERSION=1.21.4
-    - NGINX_VERSION=1.25.1
+    - NGINX_VERSION=1.25.3
 
 before_install:
   - sudo apt-get install -qq -y cpanminus libgd-dev ca-certificates
