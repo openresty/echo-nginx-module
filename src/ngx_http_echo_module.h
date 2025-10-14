@@ -123,7 +123,11 @@ typedef struct {
 
     ngx_http_echo_foreach_ctx_t   *foreach;
 
+#if (defined freenginx && nginx_version >= 1029000)
+    ngx_msec_t       timer_begin;
+#else
     ngx_time_t       timer_begin;
+#endif
 
     ngx_event_t      sleep;
 
