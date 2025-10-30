@@ -19,6 +19,9 @@ ngx_http_echo_timer_elapsed_variable(ngx_http_request_t *r,
     ngx_http_echo_ctx_t     *ctx;
     ngx_msec_int_t           ms;
     u_char                  *p;
+#if !(defined freenginx && nginx_version >= 1029000)
+    ngx_time_t              *tp;
+#endif
     size_t                   size;
 
     ctx = ngx_http_get_module_ctx(r, ngx_http_echo_module);
@@ -52,7 +55,6 @@ ngx_http_echo_timer_elapsed_variable(ngx_http_request_t *r,
 #if (defined freenginx && nginx_version >= 1029000)
     ms = (ngx_msec_int_t) (ngx_current_msec - ctx->timer_begin);
 #else
-    ngx_time_t              *tp;
 
     tp = ngx_timeofday();
 
