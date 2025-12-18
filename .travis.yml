@@ -19,7 +19,7 @@ env:
     - LUAJIT_INC=$LUAJIT_PREFIX/include/luajit-2.1
     - LD_LIBRARY_PATH=$LUAJIT_LIB:$LD_LIBRARY_PATH
   matrix:
-    - NGINX_VERSION=1.29.2
+    - NGINX_VERSION=1.29.4
     #- NGINX_VERSION=1.21.4
 
 before_install:
@@ -37,7 +37,7 @@ install:
   - git clone https://github.com/openresty/openresty.git ../openresty
   - git clone https://github.com/openresty/lua-resty-core.git ../lua-resty-core
   - git clone https://github.com/openresty/lua-resty-lrucache.git ../lua-resty-lrucache
-  - git clone https://github.com/openresty/nginx-eval-module.git ../nginx-eval-module.git
+  - git clone https://github.com/openresty/nginx-eval-module.git ../nginx-eval-module
   - git clone -b v2.1-agentzh https://github.com/openresty/luajit2.git ../luajit2
 
 script:
