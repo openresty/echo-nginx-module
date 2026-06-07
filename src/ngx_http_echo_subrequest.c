@@ -159,6 +159,9 @@ ngx_http_echo_exec_echo_subrequest(ngx_http_request_t *r,
     }
 
     sr_ctx = ngx_http_echo_create_ctx(r);
+    if (sr_ctx == NULL) {
+        return NGX_ERROR;
+    }
 
     /* set by ngx_http_echo_create_ctx
      *  sr_ctx->run_post_subrequest = 0

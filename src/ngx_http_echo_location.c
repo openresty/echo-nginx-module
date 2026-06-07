@@ -128,6 +128,9 @@ ngx_http_echo_exec_echo_location(ngx_http_request_t *r,
     }
 
     sr_ctx = ngx_http_echo_create_ctx(r);
+    if (sr_ctx == NULL) {
+        return NGX_ERROR;
+    }
 
     psr = ngx_palloc(r->pool, sizeof(ngx_http_post_subrequest_t));
     if (psr == NULL) {
