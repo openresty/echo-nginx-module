@@ -1568,6 +1568,25 @@ Installation
 
 You're recommended to install this module (as well as the Nginx core and many other goodies) via the [OpenResty bundle](http://openresty.org). See [the detailed instructions](http://openresty.org/#Installation) for downloading and installing OpenResty into your system. This is the easiest and most safe way to set things up.
 
+Pre-built packages for this module are also freely available from the GetPageSpeed repository for Ubuntu and Debian:
+
+```bash
+# Install the repository keyring
+sudo install -d -m 0755 /etc/apt/keyrings
+curl -fsSL https://extras.getpagespeed.com/deb-archive-keyring.gpg \
+  | sudo tee /etc/apt/keyrings/getpagespeed.gpg >/dev/null
+
+# Add the repository (Ubuntu example - replace 'ubuntu' and 'jammy' for your distro)
+echo "deb [signed-by=/etc/apt/keyrings/getpagespeed.gpg] https://extras.getpagespeed.com/ubuntu jammy main" \
+  | sudo tee /etc/apt/sources.list.d/getpagespeed-extras.list
+
+# Install nginx and the module
+sudo apt-get update
+sudo apt-get install nginx nginx-module-echo
+```
+
+The module is automatically enabled after installation. Supported distributions include Debian 12/13 and Ubuntu 20.04/22.04/24.04 (both amd64 and arm64). See [the complete setup instructions](https://apt-nginx-extras.getpagespeed.com/apt-setup/).
+
 Alternatively, you can install this module manually with the Nginx source:
 
 Grab the nginx source code from [nginx.org](http://nginx.org/), for example,
@@ -1848,4 +1867,3 @@ See Also
 * The [OpenResty](http://openresty.org) bundle.
 
 [Back to TOC](#table-of-contents)
-
