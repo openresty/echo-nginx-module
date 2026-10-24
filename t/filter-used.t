@@ -56,4 +56,3 @@ F(ngx_http_echo_header_filter) {
 --- stap_out
 --- response_body
 world
-

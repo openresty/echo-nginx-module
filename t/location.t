@@ -564,4 +564,3 @@ hi(world people);
 --- request
     HEAD /main
 --- response_body
-

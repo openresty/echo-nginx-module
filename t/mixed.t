@@ -79,4 +79,3 @@ Connection: close\r
 --- response_body
 hello
 ------ END ------
-

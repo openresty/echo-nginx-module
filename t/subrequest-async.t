@@ -601,4 +601,3 @@ hi(world people);
 --- request
     GET /main
 --- response_body
-

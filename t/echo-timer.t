@@ -104,4 +104,3 @@ elapsed 0\.0(2[6-9]|3[0-6]) sec\.$
     GET /timer
 --- response_body_like chop
 ^0(\.0\d*)$
-

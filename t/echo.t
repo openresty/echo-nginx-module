@@ -413,4 +413,3 @@ F(ngx_http_image_header_filter) {
 --- stap_out
 image header filter
 --- response_body_like: .
-

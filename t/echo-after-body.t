@@ -258,4 +258,3 @@ world!
 --- log_level: notice
 --- error_log
 lua: eof found in body
-

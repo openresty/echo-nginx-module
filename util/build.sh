@@ -36,9 +36,4 @@ ngx-build $force $version \
           --with-poll_module \
           --without-http_ssi_module \
           --with-debug || exit 1
-          #--add-module=$root/../lz-session-nginx-module \
-          #--add-module=$home/work/ndk \
-          #--add-module=$home/work/ndk/examples/http/set_var \
-          #--add-module=$root/../eval-nginx-module \
-          #--add-module=/home/agentz/work/nginx_eval_module-1.0.1 \
 

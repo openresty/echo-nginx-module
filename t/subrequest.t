@@ -722,4 +722,3 @@ sub body: request_body=test&test=3
 args: a=b
 --- no_error_log
 [error]
-
