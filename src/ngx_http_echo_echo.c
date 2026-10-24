@@ -320,6 +320,12 @@ ngx_http_echo_exec_echo_duplicate(ngx_http_request_t *r,
         return NGX_OK;
     }
 
+    if ((size_t) count > NGX_MAX_SIZE_T_VALUE / str->len) {
+        ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
+                      "echo_duplicate output size overflows");
+        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+    }
+
     buf = ngx_create_temp_buf(r->pool, count * str->len);
     if (buf == NULL) {
         return NGX_HTTP_INTERNAL_SERVER_ERROR;

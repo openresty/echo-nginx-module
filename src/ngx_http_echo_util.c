@@ -187,11 +187,14 @@ ngx_http_echo_atosz(u_char *line, size_t n)
             return NGX_ERROR;
         }
 
-        value = value * 10 + (*line - '0');
-    }
+        if (value > NGX_MAX_SIZE_T_VALUE / 10
+            || (value == NGX_MAX_SIZE_T_VALUE / 10
+                && (*line - '0') > NGX_MAX_SIZE_T_VALUE % 10))
+        {
+            return NGX_ERROR;
+        }
 
-    if (value < 0) {
-        return NGX_ERROR;
+        value = value * 10 + (*line - '0');
     }
 
     return value;

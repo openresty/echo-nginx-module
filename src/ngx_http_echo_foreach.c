@@ -75,6 +75,13 @@ ngx_http_echo_exec_echo_foreach_split(ngx_http_request_t *r,
 
     computed_arg_elts = computed_args->elts;
 
+    delimiter = &computed_arg_elts[0];
+    if (delimiter->len == 0) {
+        ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
+                      "echo_foreach_split delimiter must not be empty");
+        return NGX_HTTP_INTERNAL_SERVER_ERROR;
+    }
+
     compound  = &computed_arg_elts[1];
 
     dd("HEY coumpound len: %u", (int) compound->len);
@@ -93,8 +100,6 @@ ngx_http_echo_exec_echo_foreach_split(ngx_http_request_t *r,
     if (ctx->foreach->choices == NULL) {
         return NGX_ERROR;
     }
-
-    delimiter = &computed_arg_elts[0];
 
     pos = compound->data;
     end = compound->data + compound->len;

@@ -47,8 +47,6 @@ ngx_http_echo_exec_echo_sleep(ngx_http_request_t *r,
     dd("adding timer with delay %lu ms, r:%.*s", (unsigned long) delay,
        (int) r->uri.len, r->uri.data);
 
-    ngx_add_timer(&ctx->sleep, (ngx_msec_t) delay);
-
     /* we don't check broken downstream connections
      * ourselves so even if the client shuts down
      * the connection prematurely, nginx will still
@@ -63,6 +61,8 @@ ngx_http_echo_exec_echo_sleep(ngx_http_request_t *r,
 
     cln->handler = ngx_http_echo_sleep_cleanup;
     cln->data = r;
+
+    ngx_add_timer(&ctx->sleep, (ngx_msec_t) delay);
 
     return NGX_AGAIN;
 }

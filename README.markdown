@@ -490,6 +490,8 @@ Underscores are allowed in the count number, just like in Perl. For example, to 
 
 The `count` argument could be zero, but not negative. The second `string` argument could be an empty string ("") likewise.
 
+Counts and total output sizes exceeding the platform's maximum `ssize_t` value are rejected with a 500 error before allocation.
+
 Unlike the [echo](#echo) directive, no trailing newline is appended to the result. So it's possible to "abuse" this directive as a no-trailing-newline version of [echo](#echo) by using "count" 1, as in
 
 ```nginx
@@ -1078,6 +1080,8 @@ Accessing /main yields
 As seen in the previous example, this directive should always be accompanied by an [echo_end](#echo_end) directive.
 
 Parallel `echo_foreach_split` loops are allowed, but nested ones are currently forbidden.
+
+The `delimiter` argument must not be empty. An empty delimiter results in a 500 error, including when `string` is empty.
 
 The `delimiter` argument could contain *multiple* arbitrary characters, like
 
