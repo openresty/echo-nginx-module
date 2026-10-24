@@ -10,8 +10,9 @@ home=~
             #--with-cc=gcc46 \
 
 ngx-build $force $version \
-            --with-ld-opt="-L$PCRE_LIB -Wl,-rpath,$PCRE_LIB:$LIBDRIZZLE_LIB:/usr/local/lib" \
-            --with-cc-opt="-DDEBUG_MALLOC" \
+            --with-ld-opt="-L$OPENSSL_LIB -L$PCRE_LIB -Wl,-rpath,$OPENSSL_LIB:$PCRE_LIB:$LIBDRIZZLE_LIB:/usr/local/lib" \
+            --with-cc-opt="-DDEBUG_MALLOC -I $OPENSSL_INC -I $PCRE_INC" \
+            --with-http_ssl_module \
             --with-http_stub_status_module \
             --with-http_image_filter_module \
             --without-mail_pop3_module \
